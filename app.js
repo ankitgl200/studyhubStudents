@@ -6727,16 +6727,6 @@ async function initApp() {
     }
   }, { passive: false });
 
-  // Block double-tap to zoom
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', (e) => {
-    const now = (new Date()).getTime();
-    if (now - lastTouchEnd <= 300) {
-      e.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, { passive: false });
-
   // Restore view states from localStorage
   try {
     const savedNotesFolder = localStorage.getItem('currentNotesFolder');
