@@ -5094,7 +5094,13 @@ body {
 }
 
 /* Mobile App Responsiveness Enhancements */
-html, body {
+html, body, button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+body {
+  max-width: 100%;
+}
+.app-container {
   overflow-x: hidden;
   max-width: 100%;
 }
@@ -5131,13 +5137,25 @@ html, body {
     flex-wrap: wrap !important;
     gap: 8px !important;
     justify-content: flex-start !important;
+    align-items: center !important;
   }
-  .user-actions button, 
+  .user-actions button:not(.btn-delete-user), 
   .user-actions a, 
-  .user-actions span {
+  .user-actions span:not(.user-tag) {
     margin-right: 0 !important;
     flex-grow: 1 !important;
     justify-content: center !important;
+  }
+  .user-actions .btn-delete-user {
+    margin-right: 0 !important;
+    flex-grow: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
   }
 
   /* Adjust Modal padding on small screens */
