@@ -5093,3 +5093,77 @@ body {
   color: var(--primary-dark) !important;
 }
 
+/* Mobile App Responsiveness Enhancements */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  /* Prevent horizontal scroll on document actions and wrap properly */
+  .doc-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .doc-actions > a.btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+  .more-options-container {
+    flex-shrink: 0 !important;
+  }
+
+  /* Make user cards and actions highly responsive */
+  .user-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .user-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+  }
+  .user-actions button, 
+  .user-actions a, 
+  .user-actions span {
+    margin-right: 0 !important;
+    flex-grow: 1 !important;
+    justify-content: center !important;
+  }
+
+  /* Adjust Modal padding on small screens */
+  .modal-content {
+    padding: 20px !important;
+    width: 95% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Headers and page spacing */
+  .page-container {
+    padding: 16px 12px !important;
+  }
+  
+  .section-title {
+    font-size: 18px !important;
+  }
+
+  .folder-page-header h3 {
+    font-size: 18px !important;
+  }
+
+  /* Login / Signup styling robustness */
+  .auth-card {
+    padding: 24px 16px !important;
+  }
+}
+
