@@ -56,6 +56,11 @@ body {
   margin: 0 auto;
 }
 
+.page-view {
+  display: none;
+  width: 100%;
+}
+
 /* Header & Navbar */
 .navbar {
   position: fixed;
@@ -985,6 +990,7 @@ body {
 
 /* Footer styling */
 .footer {
+  display: none !important;
   background: var(--primary-dark);
   color: var(--white);
   padding: 40px 24px;
@@ -2071,6 +2077,442 @@ body {
     padding: 24px 16px !important;
   }
 }
+
+/* Fixed Bottom Navigation Bar for Mobile */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 32px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  padding: 0 12px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  gap: 4px;
+  flex: 1;
+  height: 100%;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hump Indicator at top of navbar item */
+.mobile-bottom-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 28px;
+  height: 4px;
+  background-color: var(--primary);
+  border-radius: 0 0 4px 4px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-bottom-nav-item.active::before {
+  transform: translateX(-50%) scaleX(1);
+}
+
+.mobile-bottom-nav-item i {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2px;
+  padding: 6px 16px;
+  border-radius: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-bottom-nav-item:active i {
+  transform: scale(0.9);
+}
+
+.mobile-bottom-nav-item.active {
+  color: var(--primary) !important;
+}
+
+.mobile-bottom-nav-item.active i {
+  background-color: rgba(30, 86, 160, 0.12); /* StudyHub blue active background pill */
+  color: var(--primary) !important;
+  stroke-width: 2.5px;
+  transform: translateY(-4px); /* Protrude slightly upwards like a hump */
+}
+
+/* Mobile Top App Bar (Fixed) */
+.mobile-top-bar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 56px !important;
+  background: var(--white) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 1010 !important; /* Ensure it floats above modals */
+  box-shadow: var(--shadow-sm);
+}
+
+/* Hide duplicate page title name on mobile header */
+#mobile-page-title {
+  display: none !important;
+}
+
+/* Profile View Styling */
+.profile-hero-card {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px -5px rgba(30, 86, 160, 0.25);
+  position: relative;
+  overflow: hidden;
+  color: var(--white);
+}
+
+.profile-menu-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-menu-section-header {
+  padding: 14px 16px 8px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--primary-accent);
+}
+
+.profile-menu-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-menu-item:last-child {
+  border-bottom: none;
+}
+
+.profile-menu-item:hover,
+.profile-menu-item:active {
+  background-color: var(--primary-accent);
+}
+
+.profile-menu-item .item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-menu-item .item-left i,
+.profile-menu-item .item-left svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+}
+
+.profile-menu-item .arrow-right {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  /* Switch navigation layout */
+  .navbar {
+    display: none !important;
+  }
+  .ui-switcher-bar {
+    display: none !important;
+  }
+  .mobile-top-bar {
+    display: flex !important;
+  }
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  
+  /* Reset top main content padding exactly to top bar height & reserve bottom padding for bottom nav */
+  .main-content {
+    padding-top: 56px !important;
+    padding-bottom: 96px !important;
+  }
+
+  /* Remove blank spacing gaps above layout containers */
+  .home-container,
+  .page-container,
+  .auth-container,
+  .profile-container,
+  .folder-page-header,
+  .hero {
+    margin-top: 0 !important;
+    padding-top: 12px !important;
+  }
+  
+  .hero {
+    padding: 16px !important;
+  }
+
+  /* Place floating buttons perfectly above the bottom floating navbar */
+  .btn-floating-contribute {
+    bottom: 96px !important;
+    left: 20px !important;
+  }
+  .btn-floating-sonic {
+    bottom: 96px !important;
+    right: 20px !important;
+  }
+}
+
+/* Mobile Theme Toggle overrides */
+.profile-menu-item .ui-toggle-slider {
+  background-color: #cbd5e1 !important;
+  border-color: #94a3b8 !important;
+}
+.profile-menu-item input:checked + .ui-toggle-slider {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+.profile-menu-item .ui-toggle-slider:before {
+  background-color: white !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+  bottom: 3px !important;
+  left: 3px !important;
+}
+.profile-menu-item input:checked + .ui-toggle-slider:before {
+  transform: translateX(20px) !important;
+}
+
+/* App Font Family Inheritance */
+body, input, select, textarea, button {
+  font-family: var(--app-font-family, 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif) !important;
+}
+
+/* Color Theme Swatches */
+.color-theme-card {
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.color-theme-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.color-theme-card.active {
+  border-color: var(--primary);
+  background: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 79, 70, 229), 0.18);
+}
+
+/* Font Style Cards */
+.font-style-card {
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.font-style-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.font-style-card.active {
+  border-color: var(--primary);
+  background: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 79, 70, 229), 0.15);
+}
+
+/* Desktop Specific Layout Structure & Alignments */
+@media (min-width: 769px) {
+  .mobile-top-bar,
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+  .navbar {
+    display: flex !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+  .ui-switcher-bar {
+    display: flex !important;
+  }
+  .main-content {
+    padding-top: 134px !important;
+    padding-bottom: 60px !important;
+    min-height: calc(100vh - 120px);
+  }
+  .home-container,
+  .page-container,
+  .auth-container,
+  .profile-container,
+  .folder-page-header,
+  .admin-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+  .hero {
+    display: grid !important;
+    grid-template-columns: 1.2fr 0.8fr !important;
+    gap: 40px !important;
+    align-items: center !important;
+    margin-bottom: 40px !important;
+    padding: 36px 32px !important;
+  }
+  .btn-floating-contribute {
+    bottom: 30px !important;
+    left: 30px !important;
+  }
+  .btn-floating-sonic {
+    bottom: 30px !important;
+    right: 30px !important;
+  }
+}
+
+/* Footer hidden by default (mobile) */
+.desktop-footer {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .desktop-footer {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: #ffffff;
+    padding: 48px 24px;
+    text-align: center;
+    gap: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .desktop-footer .footer-brand {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  
+  .desktop-footer .footer-tagline {
+    font-size: 15px;
+    opacity: 0.9;
+    margin: 0;
+  }
+  
+  .desktop-footer .footer-connect {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    opacity: 0.95;
+  }
+  
+  .desktop-footer .footer-connect a {
+    color: #ffffff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  
+  .desktop-footer .footer-connect a:hover {
+    text-decoration: underline;
+  }
+  
+  .desktop-footer .footer-copyright {
+    font-size: 13px;
+    opacity: 0.8;
+    margin: 4px 0;
+  }
+  
+  .desktop-footer .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  
+  .desktop-footer .footer-links a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+  
+  .desktop-footer .footer-links a:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+  
+  .desktop-footer .footer-divider {
+    opacity: 0.5;
+    font-size: 14px;
+  }
+}
+
 
 
 
