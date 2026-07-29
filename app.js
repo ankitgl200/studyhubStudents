@@ -3292,7 +3292,17 @@ function renderProfileView() {
       <div class="profile-menu-section-header">Connect</div>
       <div class="profile-menu-items">
         <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr&igsh=dGh3cG02MnFhbTJl" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
-          <div class="item-left"><i data-lucide="instagram"></i><span>Instagram</span></div>
+          <div class="item-left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+            <span>Instagram</span>
+          </div>
+          <i data-lucide="plus" class="arrow-right"></i>
+        </a>
+        <a href="https://t.me/+Y8-xHuu_XBo0ZDBl" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+          <div class="item-left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span>Telegram</span>
+          </div>
           <i data-lucide="plus" class="arrow-right"></i>
         </a>
       </div>
