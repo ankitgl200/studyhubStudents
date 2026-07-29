@@ -7,6 +7,7 @@
   <meta name="description" content="A comprehensive academic sharing resource hub for notes, PYQs, and textbooks.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
   <link rel="preconnect" href="https://js.puter.com">
   <!-- Google tag (gtag.js) -->
@@ -18,14 +19,57 @@
 
     gtag('config', 'G-MLBCW8QCG1');
   </script>
-    <link id="theme-stylesheet" rel="stylesheet" href="modern.css?v=1.0.5">
+  <link id="theme-stylesheet" rel="stylesheet" href="modern.css?v=1.0.5">
   <script>
     (function() {
-      var savedTheme = localStorage.getItem('studyhub-ui-theme') || 'modern';
+      // 1. UI Layout Theme
+      var savedUiTheme = localStorage.getItem('studyhub-ui-theme') || 'modern';
       var themeLink = document.getElementById('theme-stylesheet');
       if (themeLink) {
-        themeLink.setAttribute('href', savedTheme === 'modern' ? 'modern.css?v=1.0.5' : 'old.css?v=1.0.5');
+        themeLink.setAttribute('href', savedUiTheme === 'modern' ? 'modern.css?v=1.0.5' : 'old.css?v=1.0.5');
       }
+
+      // 2. Color Theme Palette (9 Light Themes)
+      var colorPalettes = {
+        indigo: { primary: '#4f46e5', dark: '#3730a3', light: '#818cf8', accent: '#eef2ff', rgb: '79, 70, 229', bg: 'linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)' },
+        emerald: { primary: '#059669', dark: '#047857', light: '#34d399', accent: '#ecfdf5', rgb: '5, 150, 105', bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' },
+        ocean: { primary: '#0284c7', dark: '#0369a1', light: '#38bdf8', accent: '#f0f9ff', rgb: '2, 132, 199', bg: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' },
+        rose: { primary: '#e11d48', dark: '#be123c', light: '#fb7185', accent: '#fff1f2', rgb: '225, 29, 72', bg: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)' },
+        amber: { primary: '#d97706', dark: '#b45309', light: '#fbbf24', accent: '#fffbeb', rgb: '217, 119, 6', bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' },
+        purple: { primary: '#7c3aed', dark: '#6d28d9', light: '#a78bfa', accent: '#f5f3ff', rgb: '124, 58, 237', bg: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)' },
+        teal: { primary: '#0d9488', dark: '#0f766e', light: '#2dd4bf', accent: '#f0fdfa', rgb: '13, 148, 136', bg: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)' },
+        coral: { primary: '#f43f5e', dark: '#e11d48', light: '#fda4af', accent: '#fff1f2', rgb: '244, 63, 94', bg: 'linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%)' },
+        slate: { primary: '#475569', dark: '#334155', light: '#94a3b8', accent: '#f8fafc', rgb: '71, 85, 105', bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }
+      };
+
+      var savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
+      var palette = colorPalettes[savedColorKey] || colorPalettes['indigo'];
+
+      var root = document.documentElement;
+      root.style.setProperty('--primary', palette.primary);
+      root.style.setProperty('--primary-dark', palette.dark);
+      root.style.setProperty('--primary-light', palette.light);
+      root.style.setProperty('--primary-accent', palette.accent);
+      root.style.setProperty('--primary-rgb', palette.rgb);
+      root.style.setProperty('--bg-gradient', palette.bg);
+
+      // 3. Typography Font (10 Fonts)
+      var fontsMap = {
+        inter: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+        outfit: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif",
+        jakarta: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+        poppins: "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif",
+        roboto: "'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+        nunito: "'Nunito', -apple-system, BlinkMacSystemFont, sans-serif",
+        lexend: "'Lexend', -apple-system, BlinkMacSystemFont, sans-serif",
+        space: "'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+        lora: "'Lora', Georgia, serif",
+        dmsans: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif"
+      };
+
+      var savedFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
+      var fontStr = fontsMap[savedFontKey] || fontsMap['inter'];
+      root.style.setProperty('--app-font-family', fontStr);
     })();
   </script>
   <!-- Detect App Environment (Median/PWA) to Hide Download App Buttons -->
@@ -136,6 +180,18 @@
       </div>
     </header>
 
+    <!-- Mobile Top App Bar -->
+    <div class="mobile-top-bar" style="display: none;">
+      <div class="mobile-top-bar-left">
+        <a href="#/" class="mobile-logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--primary-dark); font-weight: 800;">
+          <img src="logo.png" alt="logo" class="logo-image" style="width: 28px; height: 28px;" />
+          <span style="font-size: 16px;">StudyHub</span>
+        </a>
+      </div>
+      <div class="mobile-top-bar-title" id="mobile-page-title" style="font-size: 16px; font-weight: 800; color: var(--primary-dark);">Home</div>
+      <div class="mobile-top-bar-right" style="width: 36px; height: 36px;"></div>
+    </div>
+
     <!-- UI Theme Switcher Bar -->
     <div class="ui-switcher-bar">
       <div class="ui-switcher-content">
@@ -170,15 +226,11 @@
         <div style="text-align: center;">
           <div style="width: 40px; height: 40px; border: 4px solid var(--primary-accent); border-top-color: #1e56a0; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
           <h3>Study Hub is loading...</h3>
-          <style>
-            @keyframes spin { to { transform: rotate(360deg); } }
-            .page-view { display: none; width: 100%; }
-          </style>
         </div>
       </div>
 
       <!-- HOME PAGE VIEW -->
-      <div id="view-home" class="page-view">
+      <div id="view-home" class="page-view" style="display: none;">
         <div class="home-container">
           <!-- Hero Section -->
           <section class="hero">
@@ -292,7 +344,7 @@
       </div>
 
       <!-- LOGIN VIEW -->
-      <div id="view-login" class="page-view">
+      <div id="view-login" class="page-view" style="display: none;">
         <div class="auth-container">
           <div class="card auth-card">
             <div class="auth-header">
@@ -341,7 +393,7 @@
       </div>
 
       <!-- SIGNUP VIEW -->
-      <div id="view-signup" class="page-view">
+      <div id="view-signup" class="page-view" style="display: none;">
         <div class="auth-container">
           <div class="card auth-card">
             <div class="auth-header">
@@ -416,103 +468,244 @@
         </div>
       </div>
 
-      <!-- TERMS & CONDITIONS VIEW -->
-      <div id="view-terms" class="page-view" style="display: none;">
-        <div class="auth-container" style="max-width: 800px; margin: 0 auto; padding: 20px 10px;">
-          <div class="card auth-card" style="box-shadow: var(--shadow-lg); border-top: 4px solid var(--primary); width: 100%;">
-            <div class="auth-header" style="margin-bottom: 24px;">
-              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i data-lucide="file-text" style="color: var(--primary); width: 28px; height: 28px;"></i>
-                Terms of Service
-              </h2>
-              <p>Please read these Terms of Service carefully before using Studyhub</p>
-            </div>
-            <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; max-height: 450px; overflow-y: auto; padding-right: 10px; margin-bottom: 24px;">
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">1. Acceptance of Terms</h3>
-              <p style="margin-bottom: 16px;">By accessing and using Studyhub, you agree to comply with and be bound by these Terms of Service. If you do not agree, you must not use our platform.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. Purpose of the Platform</h3>
-              <p style="margin-bottom: 16px;">Studyhub is a central academic repository built for students and educators to share study notes, past year question papers (PYQs), lab manuals, textbooks, and academic roadmaps. It is strictly for educational and non-commercial purposes.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">3. User Accounts & Approvals</h3>
-              <p style="margin-bottom: 16px;">You must provide accurate information when registering. Educator and Admin accounts require manual review and verification by the system administrators before gaining access. You are responsible for keeping your login credentials confidential.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">4. Upload & Content Policy</h3>
-              <p style="margin-bottom: 12px;">When uploading documents, links, or files, you represent and warrant that:</p>
-              <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
-                <li style="margin-bottom: 6px;">The content is strictly academic, educational, and relevant to your courses.</li>
-                <li style="margin-bottom: 6px;">You own the intellectual property or have acquired the appropriate rights/permissions to share the materials.</li>
-                <li style="margin-bottom: 6px;">You will not upload copyrighted textbooks or publisher-owned solutions keys without authorization.</li>
-                <li style="margin-bottom: 6px;">You will not upload spam, malware, or inappropriate/offensive content.</li>
-              </ul>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">5. AI Study Assistant (SONIC)</h3>
-              <p style="margin-bottom: 16px;">The SONIC chatbot is powered by generative artificial intelligence. Its responses are meant to serve as study aids and educational guides. While we strive to maintain high quality, Studyhub does not guarantee the accuracy, completeness, or reliability of SONIC's explanations, and users should verify academic facts independently.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">6. Limitation of Liability</h3>
-              <p style="margin-bottom: 16px;">Studyhub is provided "as is" and "as available". We do not guarantee uninterrupted access. We are not liable for any direct, indirect, incidental, or consequential damages resulting from your use or inability to use the platform.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">7. Changes to Terms</h3>
-              <p style="margin-bottom: 16px;">We reserve the right to modify these Terms of Service at any time. Your continued use of Studyhub after changes are posted constitutes acceptance of the updated terms.</p>
-            </div>
-            <div style="display: flex; justify-content: center; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-              <a href="#/" class="btn btn-primary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;">
-                <i data-lucide="arrow-left" style="width: 16px; height: 16px; margin-right: 6px;"></i> Back to Safety
-              </a>
-            </div>
+      <!-- TERMS & CONDITIONS MODAL -->
+      <div id="modal-terms" class="modal-overlay" style="display: none; z-index: 1200;">
+        <div class="modal-content" style="max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--card-bg); border: 1px solid var(--border-color);">
+          <button class="modal-close" id="modal-terms-close" style="top: 15px; right: 15px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;">&times;</button>
+          <div class="auth-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding: 20px 24px 10px 24px;">
+            <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--primary-dark); font-size: 20px; font-weight: 800;">
+              <i data-lucide="file-text" style="color: var(--primary); width: 24px; height: 24px;"></i>
+              Terms of Service
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 4px;">Please read these Terms of Service carefully before using Studyhub</p>
+          </div>
+          <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; overflow-y: auto; padding: 10px 24px 20px 24px; flex: 1;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">1. Acceptance of Terms</h3>
+            <p style="margin-bottom: 16px;">By accessing and using Studyhub, you agree to comply with and be bound by these Terms of Service. If you do not agree, you must not use our platform.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. Purpose of the Platform</h3>
+            <p style="margin-bottom: 16px;">Studyhub is a central academic repository built for students and educators to share study notes, past year question papers (PYQs), lab manuals, textbooks, and academic roadmaps. It is strictly for educational and non-commercial purposes.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">3. User Accounts & Approvals</h3>
+            <p style="margin-bottom: 16px;">You must provide accurate information when registering. Educator and Admin accounts require manual review and verification by the system administrators before gaining access. You are responsible for keeping your login credentials confidential.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">4. Upload & Content Policy</h3>
+            <p style="margin-bottom: 12px;">When uploading documents, links, or files, you represent and warrant that:</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
+              <li style="margin-bottom: 6px;">The content is strictly academic, educational, and relevant to your courses.</li>
+              <li style="margin-bottom: 6px;">You own the intellectual property or have acquired the appropriate rights/permissions to share the materials.</li>
+              <li style="margin-bottom: 6px;">You will not upload copyrighted textbooks or publisher-owned solutions keys without authorization.</li>
+              <li style="margin-bottom: 6px;">You will not upload spam, malware, or inappropriate/offensive content.</li>
+            </ul>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">5. AI Study Assistant (SONIC)</h3>
+            <p style="margin-bottom: 16px;">The SONIC chatbot is powered by generative artificial intelligence. Its responses are meant to serve as study aids and educational guides. While we strive to maintain high quality, Studyhub does not guarantee the accuracy, completeness, or reliability of SONIC's explanations, and users should verify academic facts independently.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">6. Limitation of Liability</h3>
+            <p style="margin-bottom: 16px;">Studyhub is provided "as is" and "as available". We do not guarantee uninterrupted access. We are not liable for any direct, indirect, incidental, or consequential damages resulting from your use or inability to use the platform.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">7. Changes to Terms</h3>
+            <p style="margin-bottom: 16px;">We reserve the right to modify these Terms of Service at any time. Your continued use of Studyhub after changes are posted constitutes acceptance of the updated terms.</p>
+          </div>
+          <div class="form-actions" style="padding: 12px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: center; background-color: var(--primary-accent);">
+            <button type="button" id="btn-terms-close-footer" class="btn btn-secondary" style="width: 100%;">Close</button>
           </div>
         </div>
       </div>
 
-      <!-- PRIVACY POLICY VIEW -->
-      <div id="view-privacy" class="page-view" style="display: none;">
-        <div class="auth-container" style="max-width: 800px; margin: 0 auto; padding: 20px 10px;">
-          <div class="card auth-card" style="box-shadow: var(--shadow-lg); border-top: 4px solid var(--primary); width: 100%;">
-            <div class="auth-header" style="margin-bottom: 24px;">
-              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i data-lucide="shield" style="color: var(--primary); width: 28px; height: 28px;"></i>
-                Privacy Policy
-              </h2>
-              <p>Your privacy matters to us. Learn how we handle your information.</p>
-            </div>
-            <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; max-height: 450px; overflow-y: auto; padding-right: 10px; margin-bottom: 24px;">
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">1. Information We Collect</h3>
-              <p style="margin-bottom: 12px;">We collect basic account credentials and academic metadata directly provided by you, including:</p>
-              <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
-                <li style="margin-bottom: 6px;">**Registration Data**: Name, phone number, role (student/educator/admin), and securely hashed passwords.</li>
-                <li style="margin-bottom: 6px;">**Support Data**: Information provided when submitting support or forgot-password tickets.</li>
-                <li style="margin-bottom: 6px;">**Usage Data**: Documents uploaded, resource likes, and chatbot conversation history (to maintain context).</li>
-              </ul>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. How We Use Information</h3>
-              <p style="margin-bottom: 12px;">We utilize your data strictly to operate and support Studyhub, specifically to:</p>
-              <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
-                <li style="margin-bottom: 6px;">Manage authentication, permissions, and session validation.</li>
-                <li style="margin-bottom: 6px;">Maintain academic leaderboards (displaying educator name, contributions, and cumulative likes).</li>
-                <li style="margin-bottom: 6px;">Process and route academic chatbot responses.</li>
-                <li style="margin-bottom: 6px;">Dispatch system notifications and direct administrative messages.</li>
-              </ul>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">3. Data Storage and Third-Party API Sharing</h3>
-              <p style="margin-bottom: 16px;">Your data is stored securely in our MongoDB collections and Cloudinary storage (for direct PDF uploads). Chatbot prompts are shared temporarily with third-party LLM inference services (Hugging Face Inference API and Puter AI) to generate responses. We do not sell or monetize your personal details.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">4. Data Security</h3>
-              <p style="margin-bottom: 16px;">Passwords are encrypted using bcrypt hashing before database insertion. Session traffic is authorized via JSON Web Tokens (JWT) stored in your local browser container. Please log out when using public computers to prevent unauthorized access.</p>
-              
-              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">5. Changes to this Policy</h3>
-              <p style="margin-bottom: 16px;">We may update this Privacy Policy periodically to align with system features. Significant updates will be accompanied by an announcement banner in the platform.</p>
-            </div>
-            <div style="display: flex; justify-content: center; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-              <a href="#/" class="btn btn-primary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;">
-                <i data-lucide="arrow-left" style="width: 16px; height: 16px; margin-right: 6px;"></i> Back to Safety
-              </a>
-            </div>
+      <!-- PRIVACY POLICY MODAL -->
+      <div id="modal-privacy" class="modal-overlay" style="display: none; z-index: 1200;">
+        <div class="modal-content" style="max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--card-bg); border: 1px solid var(--border-color);">
+          <button class="modal-close" id="modal-privacy-close" style="top: 15px; right: 15px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;">&times;</button>
+          <div class="auth-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding: 20px 24px 10px 24px;">
+            <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--primary-dark); font-size: 20px; font-weight: 800;">
+              <i data-lucide="shield" style="color: var(--primary); width: 24px; height: 24px;"></i>
+              Privacy Policy
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 4px;">Your privacy matters to us. Learn how we handle your information.</p>
+          </div>
+          <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; overflow-y: auto; padding: 10px 24px 20px 24px; flex: 1;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">1. Information We Collect</h3>
+            <p style="margin-bottom: 12px;">We collect basic account credentials and academic metadata directly provided by you, including:</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
+              <li style="margin-bottom: 6px;">**Registration Data**: Name, phone number, role (student/educator/admin), and securely hashed passwords.</li>
+              <li style="margin-bottom: 6px;">**Support Data**: Information provided when submitting support or forgot-password tickets.</li>
+              <li style="margin-bottom: 6px;">**Usage Data**: Documents uploaded, resource likes, and chatbot conversation history (to maintain context).</li>
+            </ul>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. How We Use Information</h3>
+            <p style="margin-bottom: 12px;">We utilize your data strictly to operate and support Studyhub, specifically to:</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
+              <li style="margin-bottom: 6px;">Manage authentication, permissions, and session validation.</li>
+              <li style="margin-bottom: 6px;">Maintain academic leaderboards (displaying educator name, contributions, and cumulative likes).</li>
+              <li style="margin-bottom: 6px;">Process and route academic chatbot responses.</li>
+              <li style="margin-bottom: 6px;">Dispatch system notifications and direct administrative messages.</li>
+            </ul>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">3. Data Storage and Third-Party API Sharing</h3>
+            <p style="margin-bottom: 16px;">Your data is stored securely in our MongoDB collections and Cloudinary storage (for direct PDF uploads). Chatbot prompts are shared temporarily with third-party LLM inference services (Hugging Face Inference API and Puter AI) to generate responses. We do not sell or monetize your personal details.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">4. Data Security</h3>
+            <p style="margin-bottom: 16px;">Passwords are encrypted using bcrypt hashing before database insertion. Session traffic is authorized via JSON Web Tokens (JWT) stored in your local browser container. Please log out when using public computers to prevent unauthorized access.</p>
+            
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">5. Changes to this Policy</h3>
+            <p style="margin-bottom: 16px;">We may update this Privacy Policy periodically to align with system features. Significant updates will be accompanied by an announcement banner in the platform.</p>
+          </div>
+          <div class="form-actions" style="padding: 12px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: center; background-color: var(--primary-accent);">
+            <button type="button" id="btn-privacy-close-footer" class="btn btn-secondary" style="width: 100%;">Close</button>
           </div>
         </div>
       </div>
 
-      <!-- NOTES VIEW -->
-      <div id="view-notes" class="page-view">
+      <!-- ABOUT STUDYHUB MODAL -->
+      <div id="modal-about" class="modal-overlay" style="display: none; z-index: 1200;">
+        <div class="modal-content" style="max-width: 680px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--card-bg); border: 1px solid var(--border-color);">
+          <button class="modal-close" id="modal-about-close" style="top: 15px; right: 15px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;">&times;</button>
+          <div class="auth-header" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding: 20px 24px 10px 24px;">
+            <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--primary-dark); font-size: 22px; font-weight: 800;">
+              <i data-lucide="info" style="color: var(--primary); width: 26px; height: 26px;"></i>
+              StudyHub
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 4px; font-style: italic;">
+              “Empowering students with centralized academic resources and intelligent study tools.”
+            </p>
+          </div>
+          <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; overflow-y: auto; padding: 10px 24px 20px 24px; flex: 1;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">📖 About StudyHub</h3>
+            <p style="margin-bottom: 12px;"><strong>StudyHub</strong> is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for university and college students, StudyHub serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials.</p>
+            
+            <p style="margin-bottom: 8px;">Beyond being a repository, StudyHub integrates intelligent features to guide students through their academic journey:</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+              <li><strong>Subject-Wise Notes</strong>: Comprehensive and high-quality lecture notes structured for easy understanding.</li>
+              <li><strong>Previous Year Questions (PYQs)</strong>: Organized archives of past exams to help students prepare effectively for university tests.</li>
+              <li><strong>Syllabus & Curriculum Guides</strong>: Access official course outlines and subject goals anytime.</li>
+              <li><strong>Sonic AI Assistant</strong>: An integrated AI companion to assist with instant academic queries, study strategies, and subject summarization.</li>
+              <li><strong>Document Converter & Tools</strong>: Seamlessly convert images to PDF, compress files, and organize study material without leaving the app.</li>
+              <li><strong>Peer Contribution System</strong>: Empowering students and educators to upload and share quality notes with their community.</li>
+            </ul>
+
+            <p style="margin-bottom: 16px;">Our mission is to eliminate academic barriers, streamline learning, and build a vibrant community of collaborative learners. Whether you are preparing for end-semester exams, searching for missing class notes, or looking for quick study tools, <strong>StudyHub is your all-in-one companion</strong>.</p>
+
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🔒 Privacy & Terms</h3>
+            <p style="margin-bottom: 12px;">We deeply value your trust and privacy. StudyHub operates under strict privacy and safety guidelines to ensure your data remains secure and protected.</p>
+
+            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--primary-dark);">🛡️ Privacy Policy Highlights</h4>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
+              <li><strong>Data Protection</strong>: We do not collect unnecessary personal information. Your account details and uploaded files are stored securely.</li>
+              <li><strong>Zero Spam</strong>: Your contact information is never sold, shared, or used for unsolicited commercial marketing.</li>
+              <li><strong>User Control</strong>: You retain ownership of the materials you contribute, with options to manage or delete your data upon request.</li>
+            </ul>
+
+            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--primary-dark);">📜 Terms of Service Highlights</h4>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
+              <li><strong>Academic Integrity</strong>: Materials shared on StudyHub are intended for educational and study purposes only. Users must respect intellectual property rights.</li>
+              <li><strong>Community Guidelines</strong>: We strictly enforce zero-tolerance policies against malicious uploads, copyright infringement, inappropriate content, or platform abuse.</li>
+              <li><strong>Fair Usage</strong>: Downloads and tool usage are monitored to maintain optimal server performance for all students.</li>
+            </ul>
+
+            <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">
+              For full details, please review our official 
+              <a href="javascript:void(0)" onclick="showPrivacyModal()" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Privacy Policy</a> 
+              and 
+              <a href="javascript:void(0)" onclick="showTermsModal()" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Terms of Service</a> 
+              modals.
+            </p>
+
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🤝 Community & Support</h3>
+            <p style="margin-bottom: 8px;">StudyHub is built by students, for students. If you encounter any issues, have suggestions, or want to contribute to the platform, we'd love to hear from you!</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+              <li><strong>Feedback & Help</strong>: Visit our <a href="#/support" onclick="document.getElementById('modal-about').style.display='none';" style="color: var(--primary); font-weight: 600;">Help & Support</a> section to report bugs or submit requests.</li>
+              <li><strong>Get Involved</strong>: If you'd like to share study materials or help improve the platform, your contributions are highly welcome!</li>
+            </ul>
+
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🌟 Closing Note</h3>
+            <p style="font-style: italic; text-align: center; margin-top: 12px; color: var(--primary-dark); font-weight: 600;">
+              “Knowledge multiplies when shared.” We invite every student to make the most of StudyHub, and encourage contributors to help us expand it. Let's work together to make learning accessible for everyone!
+            </p>
+          </div>
+          <div class="form-actions" style="padding: 12px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: center; background-color: var(--primary-accent);">
+            <button type="button" id="btn-about-close-footer" class="btn btn-secondary" style="width: 100%;">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE PAGE VIEW -->
+      <div id="view-profile" class="page-view" style="display: none;">
+        <div class="profile-container" style="max-width: 600px; margin: 0 auto; padding: 20px 16px 80px 16px;">
+          <!-- Top Profile Premium Card -->
+          <div class="profile-hero-card" id="profile-hero-card">
+            <!-- Populated dynamically by app.js -->
+          </div>
+
+          <!-- Profile Menu Sections -->
+          <div class="profile-sections-group" id="profile-sections-group">
+            <!-- Populated dynamically by app.js -->
+          </div>
+
+          <!-- Full Width Logout Button -->
+          <button id="btn-profile-logout" class="btn btn-danger profile-page-logout-btn" style="width: 100%; margin-top: 24px; padding: 14px; font-weight: 700; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; box-shadow: var(--shadow-sm);">
+            <i data-lucide="log-out" style="width: 18px; height: 18px;"></i> Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- APPEARANCE & PERSONALIZATION VIEW -->
+      <div id="view-appearance" class="page-view" style="display: none;">
+        <div class="page-container" style="max-width: 650px; margin: 0 auto; padding: 20px 16px 80px 16px;">
+          
+          <!-- Back button and Header -->
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <a href="#/profile" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; padding: 0; flex-shrink: 0;" title="Back to Profile">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </a>
+            <div>
+              <h2 style="font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0;">Appearance & Personalization</h2>
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Customize your app theme colors and font style</p>
+            </div>
+          </div>
+
+          <!-- Section 1: Change App Theme -->
+          <div class="card" style="padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm); border-top: 4px solid var(--primary);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 17px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; margin: 0;">
+                  <i data-lucide="palette" style="color: var(--primary); width: 20px; height: 20px;"></i>
+                  Change App Theme
+                </h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Select from 9 curated light theme palettes</p>
+              </div>
+              <span class="badge" style="background: var(--primary-accent); color: var(--primary); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">9 Themes</span>
+            </div>
+
+            <!-- Color Swatches Grid -->
+            <div class="theme-color-grid" id="theme-color-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;">
+              <!-- Dynamic Theme Swatches rendered by app.js -->
+            </div>
+          </div>
+
+          <!-- Section 2: Change App Fonts -->
+          <div class="card" style="padding: 24px; box-shadow: var(--shadow-sm); border-top: 4px solid var(--primary);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 17px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; margin: 0;">
+                  <i data-lucide="type" style="color: var(--primary); width: 20px; height: 20px;"></i>
+                  Change App Fonts
+                </h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Choose your favorite typography font style</p>
+              </div>
+              <span class="badge" style="background: var(--primary-accent); color: var(--primary); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">10 Fonts</span>
+            </div>
+
+            <!-- Font Cards List -->
+            <div class="theme-font-list" id="theme-font-list" style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Dynamic Font Options rendered by app.js -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="view-notes" class="page-view" style="display: none;">
         <div class="folder-page-header">
           <div class="folder-breadcrumbs" id="notes-breadcrumbs">
             <!-- Populated dynamically -->
@@ -528,7 +721,7 @@
       </div>
 
       <!-- PAPERS VIEW -->
-      <div id="view-papers" class="page-view">
+      <div id="view-papers" class="page-view" style="display: none;">
         <div class="folder-page-header">
           <div class="folder-breadcrumbs" id="papers-breadcrumbs">
             <!-- Populated dynamically -->
@@ -544,7 +737,7 @@
       </div>
 
       <!-- RESOURCES VIEW -->
-      <div id="view-resources" class="page-view">
+      <div id="view-resources" class="page-view" style="display: none;">
         <div class="folder-page-header">
           <div class="folder-breadcrumbs" id="resources-breadcrumbs">
             <!-- Populated dynamically -->
@@ -560,7 +753,7 @@
       </div>
 
       <!-- ADMIN DASHBOARD VIEW -->
-      <div id="view-admin" class="page-view">
+      <div id="view-admin" class="page-view" style="display: none;">
         <div class="folder-page-header">
           <div class="folder-breadcrumbs">
             <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
@@ -664,7 +857,7 @@
       </div>
 
       <!-- MY UPLOADS VIEW -->
-      <div id="view-my-uploads" class="page-view">
+      <div id="view-my-uploads" class="page-view" style="display: none;">
         <div class="folder-page-header">
           <div class="folder-breadcrumbs">
             <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
@@ -702,7 +895,7 @@
       </div>
 
       <!-- TEACHER DASHBOARD VIEW -->
-      <div id="view-teacher-dashboard" class="page-view">
+      <div id="view-teacher-dashboard" class="page-view" style="display: none;">
         <div class="folder-page-header">
           <div class="folder-breadcrumbs">
             <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
@@ -754,12 +947,12 @@
       </div>
 
       <!-- MY CONTRIBUTIONS VIEW -->
-      <div id="view-my-contributions" class="page-view">
+      <div id="view-my-contributions" class="page-view" style="display: none;">
         <!-- Rendered dynamically via JS -->
       </div>
 
       <!-- HELP & SUPPORT VIEW -->
-      <div id="view-support" class="page-view">
+      <div id="view-support" class="page-view" style="display: none;">
         <div class="support-container" style="max-width: 600px; margin: 0 auto;">
           <div class="card support-card">
             <div class="auth-header" style="margin-bottom: 24px;">
@@ -1134,30 +1327,27 @@
       </aside>
 
     </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div>
-        <p style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Studyhub</p>
-        <p>A central academic repository for students.</p>
-        
-        <!-- Social Connections -->
-        <div class="footer-socials" style="display: flex; justify-content: center; gap: 12px; align-items: center; margin: 12px 0 16px 0;">
-          <span style="font-size: 13px; opacity: 0.6;">Connect:</span>
-          <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr&igsh=dGh3cG02MnFhbTJl" target="_blank" rel="noopener noreferrer" class="footer-link" style="display: inline-flex; align-items: center; gap: 6px;" title="Follow us on Instagram">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
-            Instagram
-          </a>
-        </div>
-
-        <p style="font-size: 12px; opacity: 0.6; margin-bottom: 24px;">&copy; <span id="footer-year">2026</span> Studyhub. Built for juniors, by seniors.</p>
+    
+    <!-- DESKTOP FOOTER -->
+    <footer class="desktop-footer">
+      <h3 class="footer-brand">Studyhub</h3>
+      <p class="footer-tagline">A central academic repository for students.</p>
+      
+      <div class="footer-connect">
+        <span>Connect:</span>
+        <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr" target="_blank" rel="noopener noreferrer">
+          <i data-lucide="instagram" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle;"></i> Instagram
+        </a>
       </div>
+      
+      <p class="footer-copyright">&copy; 2026 Studyhub. Built for juniors, by seniors.</p>
+      
       <div class="footer-links">
-        <a href="#/privacy" class="footer-link">Privacy Policy</a>
-        <span style="opacity: 0.3;">|</span>
-        <a href="#/terms" class="footer-link">Terms of Service</a>
-        <span style="opacity: 0.3;">|</span>
-        <a href="#/support" class="footer-link">Help & Support</a>
+        <a href="#/privacy">Privacy Policy</a>
+        <span class="footer-divider">|</span>
+        <a href="#/terms">Terms of Service</a>
+        <span class="footer-divider">|</span>
+        <a href="#/support">Help & Support</a>
       </div>
     </footer>
   </div>
@@ -1651,6 +1841,30 @@
       </div>
     </div>
   </div>
+
+  <!-- Fixed Bottom Navigation Bar for Mobile -->
+  <nav class="mobile-bottom-nav" style="display: none;">
+    <a href="#/notes" class="mobile-bottom-nav-item" id="bottom-nav-notes">
+      <i data-lucide="book-open"></i>
+      <span>Notes</span>
+    </a>
+    <a href="#/papers" class="mobile-bottom-nav-item" id="bottom-nav-papers">
+      <i data-lucide="file-text"></i>
+      <span>Papers</span>
+    </a>
+    <a href="#/" class="mobile-bottom-nav-item" id="bottom-nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="#/resources" class="mobile-bottom-nav-item" id="bottom-nav-resources">
+      <i data-lucide="compass"></i>
+      <span>Resources</span>
+    </a>
+    <a href="#/profile" class="mobile-bottom-nav-item" id="bottom-nav-profile">
+      <i data-lucide="user"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
 
   <script src="/app.js?v=1.0.5"></script>
 </body>
