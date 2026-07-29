@@ -588,9 +588,12 @@ const isLocalhost = window.location.hostname === 'localhost' ||
                     window.location.hostname === '127.0.0.1' || 
                     window.location.hostname.startsWith('192.168.') || 
                     window.location.hostname.startsWith('10.') || 
-                    window.location.hostname.startsWith('172.');
+                    window.location.hostname.startsWith('172.') ||
+                    window.location.protocol === 'file:';
 const API_BASE = isLocalhost
-  ? `http://${window.location.hostname}:5000/api`
+  ? (window.location.protocol === 'file:' 
+      ? 'http://localhost:5000/api' 
+      : `http://${window.location.hostname}:${window.location.port || 3000}/api`)
   : 'https://syudyhubbackend.onrender.com/api'; // CHANGE THIS TO YOUR DEPLOYED BACKEND URL ON RENDER
 
 async function request(endpoint, options = {}) {
@@ -1013,9 +1016,9 @@ function updateNavbar() {
   if (currentUser) {
     // Show admin dashboard tab for admin & superadmin
     if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
-      adminTab.style.display = 'flex';
+      if (adminTab) adminTab.style.display = 'flex';
     } else {
-      adminTab.style.display = 'none';
+      if (adminTab) adminTab.style.display = 'none';
     }
 
     // Show My Uploads tab for staff (educators, admins, superadmins)
@@ -1070,6 +1073,9 @@ function updateNavbar() {
               ${currentUser.role === 'superadmin' ? 'Super Admin' : (currentUser.role === 'educator' ? 'Educator' : currentUser.role)}
             </span>
           </div>
+          <a href="#/appearance" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+            <i data-lucide="palette" style="width: 14px; height: 14px; color: var(--primary);"></i> App Customization
+          </a>
           <a href="#/reset-password" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="key-round" style="width: 14px; height: 14px; color: var(--primary);"></i> Reset Password
           </a>
@@ -1198,7 +1204,7 @@ function updateNavbar() {
 
   } else {
     if (floatingContributeBtn) floatingContributeBtn.style.display = 'none';
-    adminTab.style.display = 'none';
+    if (adminTab) adminTab.style.display = 'none';
     const myUploadsTab = document.getElementById('nav-my-uploads');
     if (myUploadsTab) myUploadsTab.style.display = 'none';
     const myContributionsTab = document.getElementById('nav-my-contributions');
@@ -1252,7 +1258,7 @@ function updateNavbar() {
 }
 
 function handleAuthProtection(hash) {
-  const publicRoutes = ['#/login', '#/signup', '#/generators', '#/support', '#/terms', '#/privacy'];
+  const publicRoutes = ['#/', '#', '', '#/login', '#/signup', '#/notes', '#/papers', '#/resources', '#/generators', '#/support', '#/terms', '#/privacy'];
   if (!publicRoutes.includes(hash) && !currentUser) {
     navigate('#/login');
     return false;
@@ -1347,7 +1353,7 @@ async function router() {
   // Close any open modals when navigating
   closeAllModals();
 
-  if (hash === '#/' || hash === '#') {
+  if (!hash || hash === '#/' || hash === '#' || hash === '') {
     document.getElementById('view-home').style.display = 'block';
     await renderHomeView();
   } else if (hash === '#/login') {
@@ -1397,17 +1403,66 @@ async function router() {
     document.getElementById('reset-old-password').value = '';
     document.getElementById('reset-new-password').value = '';
     document.getElementById('reset-confirm-password').value = '';
+  } else if (hash === '#/profile') {
+    document.getElementById('view-profile').style.display = 'block';
+    renderProfileView();
+  } else if (hash === '#/appearance') {
+    document.getElementById('view-appearance').style.display = 'block';
+    renderAppearanceView();
   } else if (hash === '#/terms') {
-    document.getElementById('view-terms').style.display = 'block';
+    window.location.hash = '#/';
+    setTimeout(() => showTermsModal(), 100);
+    return;
   } else if (hash === '#/privacy') {
-    document.getElementById('view-privacy').style.display = 'block';
+    window.location.hash = '#/';
+    setTimeout(() => showPrivacyModal(), 100);
+    return;
   } else if (hash === '#/sonic') {
     document.getElementById('view-sonic').style.display = 'block';
     const container = document.getElementById('sonic-messages');
     if (container) container.scrollTop = container.scrollHeight;
   } else {
-    window.location.hash = '#/';
-    return;
+    document.getElementById('view-home').style.display = 'block';
+    await renderHomeView();
+  }
+
+  // Update mobile bottom nav active state
+  document.querySelectorAll('.mobile-bottom-nav-item').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === hash) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+
+  const bottomNav = document.querySelector('.mobile-bottom-nav');
+  if (bottomNav) {
+    if (hash === '#/login' || hash === '#/signup') {
+      bottomNav.style.setProperty('display', 'none', 'important');
+    } else {
+      bottomNav.style.removeProperty('display');
+    }
+  }
+
+  // Update mobile top bar page title
+  const titleEl = document.getElementById('mobile-page-title');
+  if (titleEl) {
+    if (hash === '#/' || hash === '#') titleEl.textContent = 'Study Hub';
+    else if (hash === '#/notes') titleEl.textContent = 'Notes';
+    else if (hash === '#/papers') titleEl.textContent = 'Papers';
+    else if (hash === '#/resources') titleEl.textContent = 'Resources';
+    else if (hash === '#/profile') titleEl.textContent = 'Profile';
+    else if (hash === '#/admin') titleEl.textContent = 'Admin';
+    else if (hash === '#/my-uploads') titleEl.textContent = 'My Uploads';
+    else if (hash === '#/my-contributions') titleEl.textContent = 'Contributions';
+    else if (hash === '#/support') titleEl.textContent = 'Support';
+    else if (hash === '#/generators') titleEl.textContent = 'File Tools';
+    else if (hash === '#/reset-password') titleEl.textContent = 'Reset Password';
+    else if (hash === '#/terms') titleEl.textContent = 'Terms';
+    else if (hash === '#/privacy') titleEl.textContent = 'Privacy';
+    else if (hash === '#/sonic') titleEl.textContent = 'Sonic AI';
+    else titleEl.textContent = 'Study Hub';
   }
 
   const activeView = Array.from(document.querySelectorAll('.page-view'))
@@ -1436,11 +1491,13 @@ async function renderHomeView() {
   const annForm = document.getElementById('form-announcement');
 
   // Toggle announcement button for admin and teachers
-  if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator')) {
-    addAnnBtn.style.display = 'flex';
-  } else {
-    addAnnBtn.style.display = 'none';
-    annForm.style.display = 'none';
+  if (addAnnBtn) {
+    if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator')) {
+      addAnnBtn.style.display = 'flex';
+    } else {
+      addAnnBtn.style.display = 'none';
+      if (annForm) annForm.style.display = 'none';
+    }
   }
 
   // Load and render teacher rankings on the leaderboard card
@@ -3108,6 +3165,327 @@ function renderGPAThresholdsView(mountElement) {
 
   computeAndRender();
 }
+
+function renderProfileView() {
+  if (!currentUser) {
+    navigate('#/login');
+    return;
+  }
+
+  const heroCard = document.getElementById('profile-hero-card');
+  const menuGroup = document.getElementById('profile-sections-group');
+  if (!heroCard || !menuGroup) return;
+
+  // Populate hero card
+  heroCard.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+      <div style="width: 70px; height: 70px; border-radius: 50%; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; box-shadow: var(--shadow-sm); margin-bottom: 12px;">
+        ${escapeHTML(currentUser.name.charAt(0).toUpperCase())}
+      </div>
+      <h3 style="color: white; margin: 0; font-size: 19px; font-weight: 700;">${escapeHTML(capitalizeName(currentUser.name))}</h3>
+      <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin: 4px 0 10px 0;">${escapeHTML(currentUser.phone)}</p>
+      <span style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+        ${currentUser.role === 'superadmin' ? 'SUPER ADMIN' : (currentUser.role === 'educator' ? 'TEACHER' : currentUser.role)}
+      </span>
+    </div>
+  `;
+
+  // Build menu items
+  let html = '';
+
+  // 1. Account Section
+  html += `
+    <div class="profile-menu-section">
+      <div class="profile-menu-section-header">Account</div>
+      <div class="profile-menu-items">
+        ${currentUser.role === 'student' ? `
+          <a href="#/my-contributions" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="award"></i><span>My Contributions</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+        ` : `
+          <a href="#/my-uploads" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="folder-heart"></i><span>My Uploads</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+        `}
+        <a href="#/reset-password" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="key-round"></i><span>Reset Password</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+        <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+          <div class="item-left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+            <span>Contribute</span>
+          </div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  `;
+
+  // 2. Tools Section
+  html += `
+    <div class="profile-menu-section" style="margin-top: 16px;">
+      <div class="profile-menu-section-header">Tools</div>
+      <div class="profile-menu-items">
+        <a href="#/generators" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="file-text"></i><span>File Tools</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+        <a href="javascript:void(0)" class="profile-menu-item btn-download-app-trigger">
+          <div class="item-left"><i data-lucide="smartphone"></i><span>Download App</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  `;
+
+  // 3. Support Section
+  html += `
+    <div class="profile-menu-section" style="margin-top: 16px;">
+      <div class="profile-menu-section-header">Support</div>
+      <div class="profile-menu-items">
+        <a href="javascript:void(0)" onclick="showAboutModal()" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="info"></i><span>About StudyHub</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+        <a href="#/support" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="help-circle"></i><span>Help & Support</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+        <a href="#/privacy" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="shield"></i><span>Privacy Policy</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+        <a href="#/terms" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="file-text"></i><span>Terms of Service</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  `;
+
+  // 3.5 Customization Section
+  html += `
+    <div class="profile-menu-section" style="margin-top: 16px;">
+      <div class="profile-menu-section-header">Customization</div>
+      <div class="profile-menu-items">
+        <a href="#/appearance" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="palette"></i><span>Change Theme & Font</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
+        <div class="profile-menu-item" style="cursor: default;">
+          <div class="item-left"><i data-lucide="layout"></i><span>Modern UI Theme</span></div>
+          <label class="ui-toggle-switch" style="margin: 0;">
+            <input type="checkbox" id="ui-theme-toggle-mobile">
+            <span class="ui-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 3.6 Connect Section
+  html += `
+    <div class="profile-menu-section" style="margin-top: 16px;">
+      <div class="profile-menu-section-header">Connect</div>
+      <div class="profile-menu-items">
+        <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr&igsh=dGh3cG02MnFhbTJl" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="instagram"></i><span>Instagram</span></div>
+          <i data-lucide="plus" class="arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  `;
+
+  // 4. Admin Section (Admins/Superadmins only)
+  if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
+    html += `
+      <div class="profile-menu-section" style="margin-top: 16px;">
+        <div class="profile-menu-section-header" style="color: var(--danger);">Admin Panel</div>
+        <div class="profile-menu-items">
+          <a href="#/admin" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="shield-alert" style="color: var(--danger);"></i><span>Admin Dashboard</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin?tab=users" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>Manage Users</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin?tab=pending" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Teacher Approval</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  menuGroup.innerHTML = html;
+
+  // Add event listener to mobile theme toggle and set initial checked state
+  const mobThemeToggle = document.getElementById('ui-theme-toggle-mobile');
+  if (mobThemeToggle) {
+    const currentTheme = localStorage.getItem('studyhub-ui-theme') || 'modern';
+    mobThemeToggle.checked = (currentTheme === 'modern');
+    mobThemeToggle.addEventListener('change', (e) => {
+      const isModern = e.target.checked;
+      const targetTheme = isModern ? 'modern' : 'old';
+      applyTheme(targetTheme, true);
+    });
+  }
+
+  refreshIcons();
+}
+
+function showTermsModal() {
+  const modal = document.getElementById('modal-terms');
+  if (modal) {
+    modal.style.display = 'flex';
+    const closeBtn = document.getElementById('modal-terms-close');
+    const footerBtn = document.getElementById('btn-terms-close-footer');
+    const closeFn = () => { modal.style.display = 'none'; };
+    if (closeBtn) closeBtn.onclick = closeFn;
+    if (footerBtn) footerBtn.onclick = closeFn;
+    modal.onclick = (e) => { if (e.target === modal) closeFn(); };
+  }
+}
+
+function showPrivacyModal() {
+  const modal = document.getElementById('modal-privacy');
+  if (modal) {
+    modal.style.display = 'flex';
+    const closeBtn = document.getElementById('modal-privacy-close');
+    const footerBtn = document.getElementById('btn-privacy-close-footer');
+    const closeFn = () => { modal.style.display = 'none'; };
+    if (closeBtn) closeBtn.onclick = closeFn;
+    if (footerBtn) footerBtn.onclick = closeFn;
+    modal.onclick = (e) => { if (e.target === modal) closeFn(); };
+  }
+}
+
+function showAboutModal() {
+  const modal = document.getElementById('modal-about');
+  if (modal) {
+    modal.style.display = 'flex';
+    const closeBtn = document.getElementById('modal-about-close');
+    const footerBtn = document.getElementById('btn-about-close-footer');
+    const closeFn = () => { modal.style.display = 'none'; };
+    if (closeBtn) closeBtn.onclick = closeFn;
+    if (footerBtn) footerBtn.onclick = closeFn;
+    modal.onclick = (e) => { if (e.target === modal) closeFn(); };
+    if (typeof refreshIcons === 'function') refreshIcons();
+  }
+}
+
+// ----------------------------------------------------
+// APPEARANCE & PERSONALIZATION (THEMES & FONTS)
+// ----------------------------------------------------
+
+const COLOR_THEMES = [
+  { id: 'indigo', name: 'StudyHub Indigo', desc: 'Default Light Theme', primary: '#4f46e5', dark: '#3730a3', light: '#818cf8', accent: '#eef2ff', rgb: '79, 70, 229', bg: 'linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)' },
+  { id: 'emerald', name: 'Emerald Mint', desc: 'Fresh & Vibrant Green', primary: '#059669', dark: '#047857', light: '#34d399', accent: '#ecfdf5', rgb: '5, 150, 105', bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' },
+  { id: 'ocean', name: 'Sky Ocean', desc: 'Deep Sky Blue Accent', primary: '#0284c7', dark: '#0369a1', light: '#38bdf8', accent: '#f0f9ff', rgb: '2, 132, 199', bg: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' },
+  { id: 'rose', name: 'Rose Crimson', desc: 'Soft & Elegant Rose', primary: '#e11d48', dark: '#be123c', light: '#fb7185', accent: '#fff1f2', rgb: '225, 29, 72', bg: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)' },
+  { id: 'amber', name: 'Sunset Amber', desc: 'Warm Golden Accent', primary: '#d97706', dark: '#b45309', light: '#fbbf24', accent: '#fffbeb', rgb: '217, 119, 6', bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' },
+  { id: 'purple', name: 'Royal Purple', desc: 'Vibrant Modern Violet', primary: '#7c3aed', dark: '#6d28d9', light: '#a78bfa', accent: '#f5f3ff', rgb: '124, 58, 237', bg: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)' },
+  { id: 'teal', name: 'Teal Breeze', desc: 'Calming Aqua Teal', primary: '#0d9488', dark: '#0f766e', light: '#2dd4bf', accent: '#f0fdfa', rgb: '13, 148, 136', bg: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)' },
+  { id: 'coral', name: 'Coral Passion', desc: 'Energetic Coral Peach', primary: '#f43f5e', dark: '#e11d48', light: '#fda4af', accent: '#fff1f2', rgb: '244, 63, 94', bg: 'linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%)' },
+  { id: 'slate', name: 'Slate Graphite', desc: 'Minimal Monochrome', primary: '#475569', dark: '#334155', light: '#94a3b8', accent: '#f8fafc', rgb: '71, 85, 105', bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }
+];
+
+const FONT_STYLES = [
+  { id: 'inter', name: 'Inter', category: 'Clean & Modern (Default)', font: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'outfit', name: 'Outfit', category: 'Trendy & Geometric', font: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'jakarta', name: 'Plus Jakarta Sans', category: 'Sleek & Professional', font: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'poppins', name: 'Poppins', category: 'Friendly & Rounded', font: "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'roboto', name: 'Roboto', category: 'Classic & High Legibility', font: "'Roboto', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'nunito', name: 'Nunito', category: 'Soft & Approachable', font: "'Nunito', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'lexend', name: 'Lexend', category: 'Optimized for Academic Reading', font: "'Lexend', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'space', name: 'Space Grotesk', category: 'Tech & Expressive', font: "'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" },
+  { id: 'lora', name: 'Lora', category: 'Elegant Academic Serif', font: "'Lora', Georgia, serif" },
+  { id: 'dmsans', name: 'DM Sans', category: 'Minimalist & Crisp', font: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }
+];
+
+function applyColorTheme(themeId, save = true) {
+  const theme = COLOR_THEMES.find(t => t.id === themeId) || COLOR_THEMES[0];
+  const root = document.documentElement;
+  root.style.setProperty('--primary', theme.primary);
+  root.style.setProperty('--primary-dark', theme.dark);
+  root.style.setProperty('--primary-light', theme.light);
+  root.style.setProperty('--primary-accent', theme.accent);
+  root.style.setProperty('--primary-rgb', theme.rgb);
+  root.style.setProperty('--bg-gradient', theme.bg);
+  if (save) {
+    localStorage.setItem('studyhub-color-theme', theme.id);
+  }
+}
+
+function applyFontStyle(fontId, save = true) {
+  const fontObj = FONT_STYLES.find(f => f.id === fontId) || FONT_STYLES[0];
+  const root = document.documentElement;
+  root.style.setProperty('--app-font-family', fontObj.font);
+  document.body.style.fontFamily = fontObj.font;
+  if (save) {
+    localStorage.setItem('studyhub-app-font', fontObj.id);
+  }
+}
+
+function renderAppearanceView() {
+  const colorContainer = document.getElementById('theme-color-grid');
+  const fontContainer = document.getElementById('theme-font-list');
+  if (!colorContainer || !fontContainer) return;
+
+  const activeColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
+  const activeFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
+
+  // Render 9 Color Themes
+  colorContainer.innerHTML = COLOR_THEMES.map(t => {
+    const isActive = (t.id === activeColorKey);
+    return `
+      <div class="color-theme-card ${isActive ? 'active' : ''}" onclick="selectColorTheme('${t.id}')">
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: ${t.primary}; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); flex-shrink: 0;">
+          ${isActive ? '<i data-lucide="check" style="color: #ffffff; width: 18px; height: 18px;"></i>' : ''}
+        </div>
+        <div style="overflow: hidden;">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-main); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${t.name}</div>
+          <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${t.desc}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Render 10 Font Styles
+  fontContainer.innerHTML = FONT_STYLES.map(f => {
+    const isActive = (f.id === activeFontKey);
+    return `
+      <div class="font-style-card ${isActive ? 'active' : ''}" onclick="selectFontStyle('${f.id}')">
+        <div style="flex: 1;">
+          <div style="font-weight: 700; font-size: 15px; font-family: ${f.font}; color: var(--text-main);">${f.name}</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: ${f.font};">
+            ${f.category} • The quick brown fox jumps over the lazy dog (123)
+          </div>
+        </div>
+        <div style="width: 26px; height: 26px; border-radius: 50%; background: ${isActive ? 'var(--primary)' : 'var(--border-color)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px;">
+          ${isActive ? '<i data-lucide="check" style="color: #ffffff; width: 15px; height: 15px;"></i>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (typeof refreshIcons === 'function') refreshIcons();
+}
+
+window.selectColorTheme = function(themeId) {
+  applyColorTheme(themeId, true);
+  renderAppearanceView();
+};
+
+window.selectFontStyle = function(fontId) {
+  applyFontStyle(fontId, true);
+  renderAppearanceView();
+};
 
 function showUserDeviceDetailsModal(u) {
   const modal = document.createElement('div');
@@ -5416,7 +5794,10 @@ function initEventHandlers() {
   window.addEventListener('hashchange', router);
 
   // Footer Year
-  document.getElementById('footer-year').textContent = new Date().getFullYear();
+  const footerYear = document.getElementById('footer-year');
+  if (footerYear) {
+    footerYear.textContent = new Date().getFullYear();
+  }
 
   // Download App Modal Listeners for Desktop Navbar
   document.addEventListener('click', async (e) => {
@@ -5458,8 +5839,53 @@ function initEventHandlers() {
       return;
     }
 
-    // Only capture triggers outside mobile menu (mobile is handled directly above)
-    const trigger = e.target.closest('.desktop-nav .btn-download-app-trigger');
+    // Capture profile logout button click
+    const logoutBtn = e.target.closest('#btn-profile-logout');
+    if (logoutBtn) {
+      api.logout();
+      currentUser = null;
+      chatSessionHistory = [];
+      hasChatHistory = false;
+      const container = document.getElementById('sonic-messages');
+      if (container) {
+        container.innerHTML = `
+          <!-- System / Welcome Message -->
+          <div class="message-bubble system" style="align-self: flex-start; max-width: 85%; background: var(--white); border: 1px solid var(--border-color); border-radius: 0 16px 16px 16px; padding: 12px 16px; box-shadow: var(--shadow-sm); display: flex; gap: 10px;">
+            <div style="font-size: 18px; margin-top: 2px;">⚡</div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">SONIC</div>
+              <div style="font-size: 13px; color: var(--text-main); line-height: 1.5;" class="chat-text">
+                Hello! I am **SONIC**, your personal AI study assistant. I'm here to help you solve academic problems, understand concepts, and prepare for exams.
+                <br/><br/>
+                <em>Please note: I am restricted to study-related questions only. How can I help you today?</em>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      updateNavbar();
+      navigate('#/');
+      return;
+    }
+
+    // Intercept terms of service link clicks
+    const termsLink = e.target.closest('a[href="#/terms"]');
+    if (termsLink) {
+      e.preventDefault();
+      showTermsModal();
+      return;
+    }
+
+    // Intercept privacy policy link clicks
+    const privacyLink = e.target.closest('a[href="#/privacy"]');
+    if (privacyLink) {
+      e.preventDefault();
+      showPrivacyModal();
+      return;
+    }
+
+    // Only capture triggers for downloading the app
+    const trigger = e.target.closest('.btn-download-app-trigger');
     if (trigger) {
       e.preventDefault();
       const modal = document.getElementById('modal-download-app');
@@ -5468,6 +5894,7 @@ function initEventHandlers() {
         if (errAlert) errAlert.style.display = 'none';
         modal.style.display = 'flex';
       }
+      return;
     }
 
     // Capture shift/move document button clicks (for admins)
@@ -6785,12 +7212,10 @@ async function initApp() {
     }
   }
 
-  // Pre-load note folders in memory for dropdown tagging inside syllabus upload
-  try {
-    notesFoldersList = await api.getFolders('notes');
-  } catch (err) {
-    console.error('Failed pre-loading subjects list', err);
-  }
+  // Pre-load note folders in memory for dropdown tagging inside syllabus upload (non-blocking)
+  api.getFolders('notes')
+    .then(list => { notesFoldersList = list; })
+    .catch(err => console.error('Failed pre-loading subjects list', err));
 
   document.getElementById('view-loading').style.display = 'none';
   
@@ -6801,6 +7226,12 @@ async function initApp() {
   initContributionEventHandlers();
   initEditorEventHandlers();
   
+  // Initialize Color Theme & Font Style from localStorage
+  const savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
+  applyColorTheme(savedColorKey, false);
+  const savedFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
+  applyFontStyle(savedFontKey, false);
+
   // Initialize UI theme toggle switch
   if (typeof initThemeToggleHandler === 'function') {
     initThemeToggleHandler();
@@ -7352,7 +7783,7 @@ function applyTheme(theme, animate = true) {
   localStorage.setItem('studyhub-ui-theme', theme);
 
   // Sync checkboxes across elements if multiple exist
-  const toggles = document.querySelectorAll('#ui-theme-toggle');
+  const toggles = document.querySelectorAll('#ui-theme-toggle, #ui-theme-toggle-mobile');
   toggles.forEach(t => {
     t.checked = (theme === 'modern');
   });
