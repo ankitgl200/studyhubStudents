@@ -19,11 +19,11 @@
 
     gtag('config', 'G-MLBCW8QCG1');
   </script>
-  <link id="theme-stylesheet" rel="stylesheet" href="modern.css?v=1.0.5">
+  <link id="theme-stylesheet" rel="stylesheet" href="old.css?v=1.0.5">
   <script>
     (function() {
       // 1. UI Layout Theme
-      var savedUiTheme = localStorage.getItem('studyhub-ui-theme') || 'modern';
+      var savedUiTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
       var themeLink = document.getElementById('theme-stylesheet');
       if (themeLink) {
         themeLink.setAttribute('href', savedUiTheme === 'modern' ? 'modern.css?v=1.0.5' : 'old.css?v=1.0.5');
@@ -202,7 +202,7 @@
         <div class="ui-toggle-control">
           <span class="ui-toggle-label old-label">Classic UI</span>
           <label class="ui-toggle-switch">
-            <input type="checkbox" id="ui-theme-toggle" checked>
+            <input type="checkbox" id="ui-theme-toggle">
             <span class="ui-toggle-slider"></span>
           </label>
           <span class="ui-toggle-label modern-label">Modern UI</span>
@@ -578,45 +578,62 @@
             <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
               <li><strong>Subject-Wise Notes</strong>: Comprehensive and high-quality lecture notes structured for easy understanding.</li>
               <li><strong>Previous Year Questions (PYQs)</strong>: Organized archives of past exams to help students prepare effectively for university tests.</li>
-              <li><strong>Syllabus & Curriculum Guides</strong>: Access official course outlines and subject goals anytime.</li>
-              <li><strong>Sonic AI Assistant</strong>: An integrated AI companion to assist with instant academic queries, study strategies, and subject summarization.</li>
-              <li><strong>Document Converter & Tools</strong>: Seamlessly convert images to PDF, compress files, and organize study material without leaving the app.</li>
-              <li><strong>Peer Contribution System</strong>: Empowering students and educators to upload and share quality notes with their community.</li>
+              <li><strong>Academic Resources & Textbooks</strong>: Curated links and documents, including lab manuals, study roadmaps, and reference textbooks.</li>
+              <li><strong>SONIC AI Study Assistant</strong>: An interactive study companion powered by generative AI to explain complex concepts, solve study-related queries, and provide instant academic support.</li>
+              <li><strong>Practical File Generators</strong>: Built-in tools for students to generate custom, A4-ready Lab Front Pages and Index sheets in PDF format.</li>
             </ul>
 
-            <p style="margin-bottom: 16px;">Our mission is to eliminate academic barriers, streamline learning, and build a vibrant community of collaborative learners. Whether you are preparing for end-semester exams, searching for missing class notes, or looking for quick study tools, <strong>StudyHub is your all-in-one companion</strong>.</p>
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
 
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🔒 Privacy & Terms</h3>
-            <p style="margin-bottom: 12px;">We deeply value your trust and privacy. StudyHub operates under strict privacy and safety guidelines to ensure your data remains secure and protected.</p>
-
-            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--primary-dark);">🛡️ Privacy Policy Highlights</h4>
-            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
-              <li><strong>Data Protection</strong>: We do not collect unnecessary personal information. Your account details and uploaded files are stored securely.</li>
-              <li><strong>Zero Spam</strong>: Your contact information is never sold, shared, or used for unsolicited commercial marketing.</li>
-              <li><strong>User Control</strong>: You retain ownership of the materials you contribute, with options to manage or delete your data upon request.</li>
-            </ul>
-
-            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--primary-dark);">📜 Terms of Service Highlights</h4>
-            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
-              <li><strong>Academic Integrity</strong>: Materials shared on StudyHub are intended for educational and study purposes only. Users must respect intellectual property rights.</li>
-              <li><strong>Community Guidelines</strong>: We strictly enforce zero-tolerance policies against malicious uploads, copyright infringement, inappropriate content, or platform abuse.</li>
-              <li><strong>Fair Usage</strong>: Downloads and tool usage are monitored to maintain optimal server performance for all students.</li>
-            </ul>
-
-            <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">
-              For full details, please review our official 
-              <a href="javascript:void(0)" onclick="showPrivacyModal()" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Privacy Policy</a> 
-              and 
-              <a href="javascript:void(0)" onclick="showTermsModal()" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Terms of Service</a> 
-              modals.
-            </p>
-
-            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🤝 Community & Support</h3>
-            <p style="margin-bottom: 8px;">StudyHub is built by students, for students. If you encounter any issues, have suggestions, or want to contribute to the platform, we'd love to hear from you!</p>
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">⚠️ The Problem Statement</h3>
+            <p style="margin-bottom: 12px;">Navigating college academics is often harder than it needs to be due to several persistent challenges:</p>
             <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
-              <li><strong>Feedback & Help</strong>: Visit our <a href="#/support" onclick="document.getElementById('modal-about').style.display='none';" style="color: var(--primary); font-weight: 600;">Help & Support</a> section to report bugs or submit requests.</li>
-              <li><strong>Get Involved</strong>: If you'd like to share study materials or help improve the platform, your contributions are highly welcome!</li>
+              <li><strong>Lack of Organized Study Resources</strong>: Lecture slides, notes, and study material are usually scattered across different chats, emails, and drives. Students spend valuable time searching for resources instead of studying them.</li>
+              <li><strong>Difficulty Finding PYQs</strong>: Previous Year Questions are critical for exam preparation, yet they are rarely cataloged systematically, leaving students guessing about past trends.</li>
+              <li><strong>Lack of Centralized Guidance</strong>: Without a single platform, juniors struggle to seek guidance from seniors, leading to a disconnect and unnecessary stress during exams.</li>
             </ul>
+            <p style="margin-bottom: 12px;">These issues are critical because they lead to unequal access to study material, waste students' time, and increase academic anxiety.</p>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">💡 Our Solution</h3>
+            <p style="margin-bottom: 12px;">StudyHub solves these pain points by offering a unified, clean, and accessible portal:</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+              <li><strong>One-Click Access</strong>: Streamlined storage allows students to access notes and files instantly without jumping between platforms.</li>
+              <li><strong>Systematic Archives</strong>: Categorized and semester-wise sorted papers make finding PYQs completely effortless.</li>
+              <li><strong>Organized & Responsive Interface</strong>: A user-friendly, responsive Single Page Application (SPA) designed to work beautifully on both desktop and mobile devices.</li>
+              <li><strong>Community-Driven Support</strong>: Built by seniors who understand the curriculum, ensuring the resources are always relevant and accurate.</li>
+            </ul>
+            <p style="margin-bottom: 12px;">By centralizing knowledge, StudyHub levels the playing field, allowing every student to focus on learning rather than searching.</p>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">👥 Ownership & Roles</h3>
+            <p style="margin-bottom: 12px;">StudyHub is built and maintained by a dedicated team committed to improving the academic experience:</p>
+            <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+              <li><strong>Ankit Ghugtyal</strong> — Founder & Developer</li>
+              <li><strong>Abhay Chandra Joshi</strong> — Content Curator</li>
+              <li><strong>Adarsh Singh Chaudhary</strong> — Community Manager</li>
+              <li><strong>Shreya Tamta</strong> — Platform Coordinator</li>
+            </ul>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🤝 How to Contribute</h3>
+            <p style="margin-bottom: 12px;">We believe StudyHub belongs to the student community. If you want to help grow the platform, improve the resources, or fix a bug, here is how you can contribute:</p>
+            <ol style="padding-left: 20px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+              <li><strong>Fork the Repository</strong>: Create a personal copy of the repository on your GitHub account.</li>
+              <li><strong>Add or Improve Resources</strong>:
+                <ul style="padding-left: 20px; list-style-type: circle; margin-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                  <li>Add high-quality study materials, missing PYQs, or clean lecture notes.</li>
+                  <li>Improve documentation or optimize features in the client application.</li>
+                </ul>
+              </li>
+              <li><strong>Submit a Pull Request</strong>: Submit your changes back to the main repository for review. Our team will review and merge it.</li>
+            </ol>
+            <p style="margin-bottom: 12px;">Whether you are a developer looking to optimize the platform or a student with great notes, your contributions are highly welcome!</p>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 20px;">🌟 Closing Note</h3>
             <p style="font-style: italic; text-align: center; margin-top: 12px; color: var(--primary-dark); font-weight: 600;">
@@ -755,19 +772,25 @@
       <!-- ADMIN DASHBOARD VIEW -->
       <div id="view-admin" class="page-view" style="display: none;">
         <div class="folder-page-header">
-          <div class="folder-breadcrumbs">
-            <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="shield-check" style="color: var(--primary); width: 22px; height: 22px;"></i> 
+          <div class="folder-breadcrumbs" style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13px;">
+            <a href="#/profile" style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="user" style="width: 16px; height: 16px;"></i> Profile
+            </a>
+            <span style="color: var(--text-muted); font-size: 12px;">&sol;</span>
+            <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 4px; color: var(--text-muted);">
+              <i data-lucide="shield-check" style="color: var(--primary); width: 18px; height: 18px;"></i> 
               Control Panel (<span id="admin-panel-role-label">Admin</span>)
             </span>
+            <span style="color: var(--text-muted); font-size: 12px;">&sol;</span>
+            <span id="admin-panel-subpage-title" style="font-weight: 700; color: var(--primary);">Approvals</span>
           </div>
         </div>
 
         <div id="admin-error-alert" class="alert alert-danger" style="display: none;"></div>
 
-        <div class="dashboard-grid">
-          <!-- Pending Approvals -->
-          <div>
+        <div class="admin-subviews-container" style="margin-top: 20px;">
+          <!-- Section: Pending Approvals -->
+          <div id="admin-section-approvals" class="admin-subview" style="display: none;">
             <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
               <i data-lucide="shield-alert" style="color: var(--warning); width: 20px; height: 20px;"></i> 
               Pending Approvals (<span id="pending-users-count">0</span>)
@@ -780,8 +803,8 @@
             </div>
           </div>
 
-          <!-- User Directory -->
-          <div>
+          <!-- Section: User Directory -->
+          <div id="admin-section-users" class="admin-subview" style="display: none;">
             <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
               <i data-lucide="users" style="color: var(--primary); width: 20px; height: 20px;"></i> 
               User Directory (<span id="all-users-count">0</span>)
@@ -795,7 +818,8 @@
                 <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;"></i>
               </div>
               <button id="btn-admin-user-search" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                Search
+                <span class="search-btn-text">Search</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-btn-icon" style="display: none; width: 18px; height: 18px;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </button>
               <button id="btn-admin-user-search-clear" class="btn btn-secondary" style="padding: 10px 16px; display: none; align-items: center; justify-content: center; background-color: #fee2e2; color: #ef4444; border: 1px solid #fee2e2;" title="Clear Search">
                 <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -809,50 +833,69 @@
             </div>
             <div id="directory-show-more-container" style="margin-top: 16px; display: flex; justify-content: center;"></div>
           </div>
-        </div>
 
-        <!-- Contributed Resources Section -->
-        <div style="margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px;">
-          <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-            <i data-lucide="upload-cloud" style="color: var(--warning); width: 22px; height: 22px;"></i> 
-            Pending Contributions (<span id="pending-docs-count">0</span>)
-          </h3>
-          <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-            Review resources contributed by students. You can view, accept, or delete them.
-          </p>
-          <div id="pending-docs-list-container">
-            <!-- Rendered via JS -->
+          <!-- Section: Pending Contributions -->
+          <div id="admin-section-contributions" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="upload-cloud" style="color: var(--warning); width: 22px; height: 22px;"></i> 
+              Pending Contributions (<span id="pending-docs-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Review resources contributed by students. You can view, accept, or delete them.
+            </p>
+            <div id="pending-docs-list-container">
+              <!-- Rendered via JS -->
+            </div>
           </div>
-        </div>
 
-        <!-- Help & Support Requests Section -->
-        <div style="margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px;">
-          <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-            <i data-lucide="help-circle" style="color: var(--primary); width: 20px; height: 20px;"></i> 
-            Help & Support Requests (<span id="support-requests-count">0</span>)
-          </h3>
-          <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-            View and manage support tickets, feature requests, or queries submitted by educators and students.
-          </p>
-          <div id="support-requests-list-container">
-            <!-- Rendered via JS -->
+          <!-- Section: Help & Support Requests -->
+          <div id="admin-section-support" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="help-circle" style="color: var(--primary); width: 20px; height: 20px;"></i> 
+              Help & Support Requests (<span id="support-requests-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              View and manage support tickets, feature requests, or queries submitted by educators and students.
+            </p>
+            <div id="support-requests-list-container">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="support-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;"></div>
           </div>
-          <div id="support-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;"></div>
-        </div>
 
-        <!-- Sent Notifications & Requests Section (Superadmins Only) -->
-        <div id="superadmin-messages-section" style="margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px; display: none;">
-          <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-            <i data-lucide="mail" style="color: var(--primary); width: 20px; height: 20px;"></i> 
-            Sent Notifications & Requests (<span id="superadmin-messages-count">0</span>)
-          </h3>
-          <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-            Superadmin Control: View, edit (unseen only), or delete all direct notification messages sent to users.
-          </p>
-          <div id="superadmin-messages-list-container">
-            <!-- Rendered via JS -->
+          <!-- Section: Sent Notifications & Requests -->
+          <div id="admin-section-notifications" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="mail" style="color: var(--primary); width: 20px; height: 20px;"></i> 
+              Sent Notifications & Requests (<span id="superadmin-messages-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Superadmin Control: View, edit (unseen only), or delete all direct notification messages sent to users.
+            </p>
+            <div id="superadmin-messages-list-container">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="messages-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;"></div>
           </div>
-          <div id="messages-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;"></div>
+
+          <!-- Section: User Ratings & Reviews -->
+          <div id="admin-section-reviews" class="admin-subview" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 class="section-title" style="margin: 0; font-size: 20px;">
+                  <i data-lucide="star" style="color: var(--warning); width: 22px; height: 22px; fill: var(--warning);"></i> 
+                  User Ratings & Reviews (<span id="admin-reviews-count">0</span>)
+                </h3>
+                <p style="color: var(--text-muted); margin-top: 4px; font-size: 14px; margin-bottom: 0;">
+                  Average Rating: <strong id="admin-reviews-average" style="color: var(--primary);">0.0</strong> / 5.0
+                </p>
+              </div>
+            </div>
+            <div id="admin-reviews-list-container">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="reviews-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;"></div>
+          </div>
         </div>
       </div>
 
@@ -1001,6 +1044,61 @@
               <button type="button" id="btn-show-support-history" class="btn btn-secondary" style="width: 100%; margin-top: 10px; display: none;">
                 <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                   <i data-lucide="history" style="width: 18px; height: 18px;"></i> Show History
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS VIEW -->
+      <div id="view-reviews" class="page-view" style="display: none;">
+        <div class="support-container" style="max-width: 600px; margin: 0 auto;">
+          <div class="card support-card">
+            <div class="auth-header" style="margin-bottom: 24px;">
+              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i data-lucide="star" style="color: var(--warning); width: 28px; height: 28px; fill: var(--warning);"></i>
+                Reviews & Ratings
+              </h2>
+              <p>We value your feedback! Rate your experience and leave a review.</p>
+            </div>
+
+            <div id="review-error-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="review-success-alert" class="alert alert-success" style="display: none;"></div>
+
+            <!-- Existing review display card -->
+            <div id="existing-review-container" style="display: none; background-color: rgba(243, 248, 255, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; margin-bottom: 16px;">
+              <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Your Submitted Feedback</div>
+              <div id="existing-review-stars" style="display: flex; justify-content: center; gap: 4px; margin-bottom: 12px; font-size: 24px; color: var(--warning);"></div>
+              <p id="existing-review-comment" style="font-style: italic; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap;"></p>
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Submitted on <span id="existing-review-date"></span></div>
+              <div style="font-size: 12px; font-weight: 600; color: var(--success); margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> You have already submitted a review.
+              </div>
+            </div>
+
+            <!-- Review submission form -->
+            <form id="form-review">
+              <div class="form-group" style="text-align: center; margin-bottom: 24px;">
+                <label class="form-label" style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 700; color: var(--text-main);">Tap stars to rate us</label>
+                <div class="star-rating-input" style="display: flex; justify-content: center; gap: 8px; font-size: 32px; cursor: pointer; color: #cbd5e1;">
+                  <span class="star-btn" data-value="1" style="transition: color 0.15s;"><i data-lucide="star" style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="2" style="transition: color 0.15s;"><i data-lucide="star" style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="3" style="transition: color 0.15s;"><i data-lucide="star" style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="4" style="transition: color 0.15s;"><i data-lucide="star" style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="5" style="transition: color 0.15s;"><i data-lucide="star" style="width: 32px; height: 32px;"></i></span>
+                </div>
+                <input type="hidden" id="review-rating-value" value="0" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="review-comment">Review Comment <span style="font-weight: normal; color: var(--text-muted);">(Optional)</span></label>
+                <textarea id="review-comment" class="form-input" style="min-height: 120px; resize: vertical;" placeholder="Tell us what you like or how we can improve..." maxlength="1000"></textarea>
+              </div>
+
+              <button type="submit" id="btn-submit-review" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="check" style="width: 18px; height: 18px;"></i> Submit Review
                 </span>
               </button>
             </form>
@@ -1849,29 +1947,46 @@
   </div>
 
   <!-- Fixed Bottom Navigation Bar for Mobile -->
-  <nav class="mobile-bottom-nav" style="display: none;">
-    <a href="#/notes" class="mobile-bottom-nav-item" id="bottom-nav-notes">
-      <i data-lucide="book-open"></i>
-      <span>Notes</span>
+  <nav class="mobile-bottom-nav dock" id="dock" style="display: none;">
+    <!-- Ambient liquid skin and bead -->
+    <svg class="dock__skin" id="skin" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="mnPlate" x1="0" y1="0" x2="0" y2="1">
+          <stop class="dock__plate-hi" offset="0" />
+          <stop class="dock__plate-lo" offset="1" />
+        </linearGradient>
+        <linearGradient id="mnRim" x1="0" y1="0" x2="0" y2="1">
+          <stop class="dock__rim-hi" offset="0" />
+          <stop class="dock__rim-lo" offset="1" />
+        </linearGradient>
+      </defs>
+      <path class="dock__fill" id="skinFill" />
+    </svg>
+    
+    <span class="dock__bead" id="bead" aria-hidden="true"></span>
+
+    <a href="#/notes" class="mobile-bottom-nav-item tab" id="bottom-nav-notes" role="tab" style="--acc: var(--primary);">
+      <i data-lucide="book-open" class="tab__icon"></i>
+      <span class="tab__label">Notes</span>
     </a>
-    <a href="#/papers" class="mobile-bottom-nav-item" id="bottom-nav-papers">
-      <i data-lucide="file-text"></i>
-      <span>Papers</span>
+    <a href="#/papers" class="mobile-bottom-nav-item tab" id="bottom-nav-papers" role="tab" style="--acc: var(--primary);">
+      <i data-lucide="file-text" class="tab__icon"></i>
+      <span class="tab__label">Papers</span>
     </a>
-    <a href="#/" class="mobile-bottom-nav-item" id="bottom-nav-home">
-      <i data-lucide="home"></i>
-      <span>Home</span>
+    <a href="#/" class="mobile-bottom-nav-item tab" id="bottom-nav-home" role="tab" style="--acc: var(--primary);">
+      <i data-lucide="home" class="tab__icon"></i>
+      <span class="tab__label">Home</span>
     </a>
-    <a href="#/resources" class="mobile-bottom-nav-item" id="bottom-nav-resources">
-      <i data-lucide="compass"></i>
-      <span>Resources</span>
+    <a href="#/resources" class="mobile-bottom-nav-item tab" id="bottom-nav-resources" role="tab" style="--acc: var(--primary);">
+      <i data-lucide="compass" class="tab__icon"></i>
+      <span class="tab__label">Resources</span>
     </a>
-    <a href="#/profile" class="mobile-bottom-nav-item" id="bottom-nav-profile">
-      <i data-lucide="user"></i>
-      <span>Profile</span>
+    <a href="#/profile" class="mobile-bottom-nav-item tab" id="bottom-nav-profile" role="tab" style="--acc: var(--primary);">
+      <i data-lucide="user" class="tab__icon"></i>
+      <span class="tab__label">Profile</span>
     </a>
   </nav>
 
-  <script src="/app.js?v=1.0.5"></script>
+  <script src="app.js?v=1.0.5"></script>
 </body>
 </html>
