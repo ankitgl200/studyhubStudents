@@ -910,6 +910,10 @@ const api = {
     return await request('/auth/teachers/ranking');
   },
 
+  async getContributors() {
+    return await request('/auth/contributors');
+  },
+
   async getTeacherStats() {
     return await request('/auth/teachers/stats');
   },
@@ -1287,7 +1291,7 @@ function updateNavbar() {
 }
 
 function handleAuthProtection(hash) {
-  const publicRoutes = ['#/', '#', '', '#/login', '#/signup', '#/notes', '#/papers', '#/resources', '#/generators', '#/support', '#/terms', '#/privacy'];
+  const publicRoutes = ['#/', '#', '', '#/login', '#/signup', '#/notes', '#/papers', '#/resources', '#/generators', '#/support', '#/terms', '#/privacy', '#/contributors'];
   if (!publicRoutes.includes(hash) && !currentUser) {
     navigate('#/login');
     return false;
@@ -1458,6 +1462,9 @@ async function router() {
   } else if (hash === '#/my-contributions') {
     document.getElementById('view-my-contributions').style.display = 'block';
     await renderMyContributionsView();
+  } else if (hash === '#/contributors') {
+    document.getElementById('view-contributors').style.display = 'block';
+    await renderContributorsView();
   } else if (hash === '#/support') {
     document.getElementById('view-support').style.display = 'block';
     await renderSupportView();
@@ -1542,6 +1549,11 @@ async function router() {
 
 // 1. HOME VIEW (Announcements)
 async function renderHomeView() {
+  const contributorsBtn = document.getElementById('home-btn-contributors');
+  if (contributorsBtn) {
+    contributorsBtn.style.display = 'inline-flex';
+  }
+
   const container = document.getElementById('announcements-list-container');
   const addAnnBtn = document.getElementById('btn-add-announcement');
   const annForm = document.getElementById('form-announcement');
@@ -3268,6 +3280,10 @@ function renderProfileView() {
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
         `}
+        <a href="#/contributors" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="trophy"></i><span>Top Contributors</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
         <a href="#/reset-password" class="profile-menu-item">
           <div class="item-left"><i data-lucide="key-round"></i><span>Reset Password</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -5695,6 +5711,94 @@ async function renderReviewsView() {
     }
   }
   refreshIcons();
+}
+
+async function renderContributorsView() {
+  const loading = document.getElementById('contributors-loading');
+  const errorAlert = document.getElementById('contributors-error-alert');
+  const wrapper = document.getElementById('contributors-list-wrapper');
+  const list = document.getElementById('contributors-ranking-list');
+
+  if (loading) loading.style.display = 'block';
+  if (errorAlert) errorAlert.style.display = 'none';
+  if (wrapper) wrapper.style.display = 'none';
+
+
+
+  try {
+    const contributors = await api.getContributors();
+    
+    if (loading) loading.style.display = 'none';
+    if (wrapper) wrapper.style.display = 'block';
+    
+    if (!contributors || contributors.length === 0) {
+      if (list) {
+        list.innerHTML = `
+          <div style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+            <i data-lucide="users" style="width: 48px; height: 48px; opacity: 0.3; margin-bottom: 12px; stroke-width: 1.5;"></i>
+            <h4 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600; color: var(--text-main);">No Contributors Yet</h4>
+            <p style="margin: 0; font-size: 13px;">Upload notes, lab manuals or PYQs to see your name on the board!</p>
+          </div>
+        `;
+      }
+      refreshIcons();
+      return;
+    }
+
+    const showStats = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+    let html = '';
+    contributors.forEach((c, index) => {
+      const isTop3 = index < 3;
+      const rankColors = ['#f59e0b', '#94a3b8', '#b45309']; // Gold, Silver, Bronze
+      const rankBadge = isTop3 
+        ? `<div style="width: 28px; height: 28px; border-radius: 50%; background: ${rankColors[index]}15; color: ${rankColors[index]}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: 1.5px solid ${rankColors[index]}40;">
+            ${index + 1}
+           </div>`
+        : `<div style="width: 28px; height: 28px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;">
+            ${index + 1}
+           </div>`;
+
+      const statsHTML = showStats ? `
+          <div style="display: flex; align-items: center; gap: 16px; flex-shrink: 0;">
+            <div style="text-align: right;">
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">Approved Uploads</span>
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">${c.uploads}</span>
+            </div>
+            
+            <div style="width: 58px; text-align: center; background: var(--primary-accent); padding: 6px 8px; border-radius: var(--radius-sm); border: 1.5px solid rgba(37, 99, 235, 0.15); display: flex; flex-direction: column; align-items: center; gap: 2px;">
+              <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px;">Pts</span>
+              <span style="font-size: 15px; font-weight: 800; color: var(--primary); line-height: 1;">${c.points}</span>
+            </div>
+          </div>
+      ` : '';
+
+      html += `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-color); background: ${isTop3 ? 'rgba(248, 250, 252, 0.5)' : 'transparent'};">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            ${rankBadge}
+            <div style="min-width: 0;">
+              <div style="font-weight: 700; font-size: 14px; color: var(--text-main); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                ${escapeHTML(capitalizeName(c.name))}
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                Joined ${new Date(c.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
+              </div>
+            </div>
+          </div>
+          ${statsHTML}
+        </div>
+      `;
+    });
+
+    if (list) list.innerHTML = html;
+    refreshIcons();
+  } catch (err) {
+    if (loading) loading.style.display = 'none';
+    if (errorAlert) {
+      errorAlert.textContent = err.message || 'Failed to load contributors leaderboard';
+      errorAlert.style.display = 'block';
+    }
+  }
 }
 
 // --- FILE TOOLS / GENERATORS PAGE LOGIC ---
