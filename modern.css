@@ -33,6 +33,12 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a, button, .btn, .profile-menu-section-header, .profile-menu-item, .mobile-bottom-nav-item, .nav-link, .ui-toggle-switch {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {
@@ -864,6 +870,7 @@ body {
 /* CGPA / SGPA Calculator styling */
 .calculator-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-color);
@@ -4487,18 +4494,37 @@ body {
       flex: 1 1 0 !important;
     }
 
-    .tab-group,
-    .calculator-tabs {
+    .tab-group {
       gap: 4px !important;
       overflow: hidden !important;
     }
 
-    .tab-group > *,
-    .calculator-tabs > * {
+    .calculator-tabs {
+      gap: 8px !important;
+      overflow-x: auto !important;
+      flex-wrap: nowrap !important;
+      scrollbar-width: none !important;
+      padding-bottom: 8px !important;
+    }
+
+    .calculator-tabs::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    .tab-group > * {
       padding: 7px 5px !important;
       font-size: clamp(9px, 2.8vw, 12px) !important;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .calculator-tabs > * {
+      flex: 0 0 auto !important;
+      padding: 8px 16px !important;
+      font-size: 14px !important;
+      white-space: nowrap !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
     }
 
     .modal-header {
@@ -5025,6 +5051,16 @@ body {
     height: 32px !important;
   }
 
+  .search-btn-text {
+    display: none !important;
+  }
+  .search-btn-icon {
+    display: block !important;
+  }
+  #btn-admin-user-search {
+    padding: 10px 14px !important;
+  }
+
   /* Center download app popup modal content */
   #modal-download-app {
     align-items: center !important;
@@ -5220,83 +5256,153 @@ body {
 }
 
 /* Fixed Bottom Navigation Bar for Mobile */
+/* Hill Hump Styling for the Mobile Bottom Nav */
 .mobile-bottom-nav {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 32px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  position: fixed !important;
+  bottom: 20px !important; /* Floats above bottom with 20px margin */
+  left: 20px !important;
+  right: 20px !important;
+  width: calc(100% - 40px) !important;
+  max-width: 480px !important;
+  margin-inline: auto !important;
+  height: 64px !important;
+  z-index: 1000 !important;
+  touch-action: pan-y !important;
+  -webkit-tap-highlight-color: transparent !important;
+  isolation: isolate !important;
   display: none;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 1000;
-  padding: 0 12px;
-  padding-bottom: env(safe-area-inset-bottom);
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  
+  /* Geometry fallback */
+  --dock-r: 18px;
+  --bead-d: 46px;
+  --bead-cy: 0px;
+  --rise: 14px; /* The height the icon rises when active inside the bead */
+  
+  /* Colors */
+  --bar: #ffffff;
+  --bar-hi: #ffffff;
+  --bar-lo: #fcfcfc;
+  --icon-off: #64748b;
+  --icon-on: #ffffff;
+  --glow-rgb: 30 86 160; /* StudyHub blue */
+  --glow: rgb(var(--glow-rgb));
+  --acc: var(--primary);
 }
 
+.js .mobile-bottom-nav {
+  background: none !important;
+}
+
+/* Ambient ground shadow */
+.dock__cast {
+  position: absolute !important;
+  inset: 46% 7% 6% 7% !important;
+  border-radius: 999px !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 10px 22px -8px rgba(0, 0, 0, 0.12),
+    0 24px 44px -16px rgba(0, 0, 0, 0.16) !important;
+}
+
+.dock__skin {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.06)) !important;
+}
+
+.dock__fill {
+  fill: url(#mnPlate) !important;
+  stroke: rgba(0, 0, 0, 0.05) !important;
+  stroke-width: 1px !important;
+}
+
+.dock__plate-hi { stop-color: var(--bar-hi) !important; }
+.dock__plate-lo { stop-color: var(--bar-lo) !important; }
+
+/* Specular top light for 3D feel */
+.dock__rim-hi { stop-color: rgba(0, 0, 0, 0.03) !important; }
+.dock__rim-lo { stop-color: rgba(0, 0, 0, 0.01) !important; }
+
+/* The Active Liquid Bead */
+.dock__bead {
+  position: absolute !important;
+  top: var(--bead-cy) !important;
+  left: 0 !important;
+  width: var(--bead-d) !important;
+  height: var(--bead-d) !important;
+  margin: calc(var(--bead-d) / -2) 0 0 calc(var(--bead-d) / -2) !important;
+  border-radius: 50% !important;
+  background: var(--primary) !important; /* solid blue circle highlight */
+  box-shadow:
+    0 0 0 1px rgba(30, 86, 160, 0.15),
+    0 6px 16px rgba(30, 86, 160, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  will-change: transform;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+.mobile-bottom-nav:not(.is-ready) .dock__bead {
+  opacity: 0 !important;
+}
+
+/* Tabs & items */
 .mobile-bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
-  gap: 4px;
-  flex: 1;
-  height: 100%;
-  position: relative;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  -webkit-tap-highlight-color: transparent;
+  position: relative !important;
+  flex: 1 !important;
+  display: block !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  --t: 0;
 }
 
-/* Hump Indicator at top of navbar item */
-.mobile-bottom-nav-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) scaleX(0);
-  width: 28px;
-  height: 4px;
-  background-color: var(--primary);
-  border-radius: 0 0 4px 4px;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.tab__icon {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 22px !important;
+  height: 22px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2.2px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  color: color-mix(in oklab, var(--icon-off) calc((1 - var(--t)) * 100%), var(--icon-on)) !important;
+  transform: translate(-50%, -50%) translateY(calc(var(--t) * var(--rise) * -1)) !important;
+  will-change: transform;
+  z-index: 10 !important;
 }
 
-.mobile-bottom-nav-item.active::before {
-  transform: translateX(-50%) scaleX(1);
+.tab__label {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 8px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  color: var(--primary) !important; /* blue active label color */
+  opacity: 0 !important;
+  transform: translateY(calc((1 - var(--t)) * 7px)) !important;
+  pointer-events: none !important;
+  white-space: nowrap !important;
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
 }
 
-.mobile-bottom-nav-item i {
-  width: 22px;
-  height: 22px;
-  stroke-width: 2.2px;
-  padding: 6px 16px;
-  border-radius: 16px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.mobile-bottom-nav-item[aria-selected="true"] .tab__label,
+.mobile-bottom-nav.is-dragging .tab__label {
+  opacity: var(--t) !important;
+  transform: translateY(calc((1 - var(--t)) * 4px)) !important;
 }
-
-.mobile-bottom-nav-item:active i {
-  transform: scale(0.9);
-}
-
-.mobile-bottom-nav-item.active {
-  color: var(--primary) !important;
-}
-
-.mobile-bottom-nav-item.active i {
-  background-color: rgba(30, 86, 160, 0.12); /* StudyHub blue active background pill */
-  color: var(--primary) !important;
-  stroke-width: 2.5px;
-  transform: translateY(-4px); /* Protrude slightly upwards like a hump */
 }
 
 /* Mobile Top App Bar (Fixed) */
@@ -5355,6 +5461,10 @@ body {
 .profile-menu-items {
   display: flex;
   flex-direction: column;
+}
+
+.profile-menu-section.collapsed .profile-menu-items {
+  display: none;
 }
 
 .profile-menu-item {
