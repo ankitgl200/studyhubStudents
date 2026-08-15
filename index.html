@@ -148,6 +148,9 @@
           <a href="#/papers" class="nav-link" id="nav-papers">Papers</a>
           <a href="#/resources" class="nav-link" id="nav-resources">Resources</a>
           <a href="#/support" class="nav-link" id="nav-support">Help & Support</a>
+          <a href="#/contributors" class="nav-link" id="nav-contributors-desktop" style="display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="trophy" style="width: 16px; height: 16px;"></i> Contributors
+          </a>
           <a href="#/generators" class="nav-link" id="nav-generators" style="display: flex; align-items: center; gap: 4px;">
             <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> File Tools
           </a>
@@ -247,6 +250,9 @@
               <div class="hero-actions">
                 <a href="#/notes" class="btn btn-primary">Browse Notes</a>
                 <a href="#/papers" class="btn btn-secondary">Previous Year Papers</a>
+                <a href="#/contributors" id="home-btn-contributors" class="btn btn-secondary" style="display: none; align-items: center; gap: 8px;">
+                  <i data-lucide="trophy" style="color: #fbbf24; width: 16px; height: 16px;"></i> Contributors
+                </a>
               </div>
             </div>
 
@@ -663,6 +669,39 @@
           <button id="btn-profile-logout" class="btn btn-danger profile-page-logout-btn" style="width: 100%; margin-top: 24px; padding: 14px; font-weight: 700; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; box-shadow: var(--shadow-sm);">
             <i data-lucide="log-out" style="width: 18px; height: 18px;"></i> Logout
           </button>
+        </div>
+      </div>
+
+      <!-- CONTRIBUTORS LEADERBOARD VIEW -->
+      <div id="view-contributors" class="page-view" style="display: none;">
+        <div class="profile-container" style="max-width: 600px; margin: 0 auto; padding: 20px 16px 80px 16px;">
+          <a href="#/profile" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Back
+          </a>
+          
+          <div style="margin-bottom: 24px;">
+            <h2 style="display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0;">
+              <i data-lucide="trophy" style="color: #fbbf24; width: 28px; height: 28px;"></i> Student Contributors
+            </h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin: 6px 0 0 0; line-height: 1.4;">
+              Ranked by points. You earn **1 point** for every contribution you upload that is approved and goes live.
+            </p>
+          </div>
+
+          <div id="contributors-loading" style="text-align: center; padding: 40px 0;">
+            <div style="width: 32px; height: 32px; border: 3px solid var(--primary-accent); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;"></div>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Loading leaderboard...</p>
+          </div>
+
+          <div id="contributors-error-alert" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
+
+          <div id="contributors-list-wrapper" style="display: none;">
+            <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--white); box-shadow: var(--shadow-sm);">
+              <div id="contributors-ranking-list" style="display: flex; flex-direction: column;">
+                <!-- Populated dynamically via JS -->
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
