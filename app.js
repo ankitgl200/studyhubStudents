@@ -912,6 +912,25 @@ const api = {
 
   async getTeacherStats() {
     return await request('/auth/teachers/stats');
+  },
+
+  // Reviews API
+  async getMyReview() {
+    return await request('/reviews/my');
+  },
+  async submitReview(rating, comment) {
+    return await request('/reviews', {
+      method: 'POST',
+      body: { rating, comment }
+    });
+  },
+  async getAllReviews() {
+    return await request('/reviews');
+  },
+  async deleteReview(id) {
+    return await request(`/reviews/${id}`, {
+      method: 'DELETE'
+    });
   }
 };
 
@@ -935,6 +954,7 @@ let adminUserSearchQuery = '';
 let directoryVisibleCount = 5;
 let helpRequestsVisibleCount = 5;
 let notificationsVisibleCount = 5;
+let reviewsVisibleCount = 5;
 
 // GPA Calculator State
 const GRADE_POINTS = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0 };
@@ -1052,6 +1072,7 @@ function updateNavbar() {
     }
 
     // Populate Desktop Auth State
+    // Populate Desktop Auth State
     container.innerHTML = `
       <div class="profile-dropdown-wrapper">
         <button id="profile-trigger-btn" class="profile-dropdown-btn" type="button">
@@ -1059,33 +1080,41 @@ function updateNavbar() {
           <span>${escapeHTML(capitalizeName(currentUser.name))}</span>
           <i data-lucide="chevron-down" style="width: 14px; height: 14px; margin-left: 2px; opacity: 0.7;"></i>
         </button>
-        <div class="profile-dropdown-menu" id="profile-dropdown-menu">
-          <div class="profile-info-header">
-            <div class="profile-name">${escapeHTML(capitalizeName(currentUser.name))}</div>
-            <div class="profile-phone">
+        <div class="profile-dropdown-menu" id="profile-dropdown-menu" style="max-height: 80vh; overflow-y: auto; padding: 16px;">
+          <div class="profile-info-header" style="margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <div class="profile-name" style="font-weight: 700; font-size: 14px; color: var(--text-main);">${escapeHTML(capitalizeName(currentUser.name))}</div>
+            <div class="profile-phone" style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 4px;">
               <i data-lucide="phone" style="width: 12px; height: 12px;"></i>
               ${escapeHTML(currentUser.phone)}
             </div>
           </div>
-          <div class="profile-role-container">
-            <span class="profile-role-label">Role:</span>
-            <span class="profile-role-badge">
+          <div class="profile-role-container" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 12px;">
+            <span class="profile-role-label" style="color: var(--text-muted); font-weight: 500; text-transform: uppercase;">Role:</span>
+            <span class="profile-role-badge" style="background-color: var(--primary-accent); color: var(--primary); font-weight: 700; padding: 2px 6px; border-radius: var(--radius-sm);">
               ${currentUser.role === 'superadmin' ? 'Super Admin' : (currentUser.role === 'educator' ? 'Educator' : currentUser.role)}
             </span>
           </div>
-          <a href="#/appearance" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+
+          <!-- Academic Sections & Utilities (Excluding buttons already visible in the navigation bar) -->
+          <a href="javascript:void(0)" onclick="showAboutModal(); document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--primary);"></i> About StudyHub
+          </a>
+          <a href="#/appearance" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="palette" style="width: 14px; height: 14px; color: var(--primary);"></i> App Customization
           </a>
-          <a href="#/reset-password" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+          <a href="#/reset-password" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="key-round" style="width: 14px; height: 14px; color: var(--primary);"></i> Reset Password
           </a>
-          <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+          <a href="#/reviews" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+            <i data-lucide="star" style="width: 14px; height: 14px; color: var(--primary);"></i> Write a Review
+          </a>
+          <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute
           </a>
-          <a href="#/terms" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+          <a href="#/terms" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i> Terms of Service
           </a>
-          <a href="#/privacy" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 8px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+          <a href="#/privacy" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 12px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="shield" style="width: 14px; height: 14px; color: var(--primary);"></i> Privacy Policy
           </a>
 
@@ -1305,6 +1334,11 @@ function getHashQueryParams() {
 
 // --- ROUTER ENGINE ---
 async function router() {
+  if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#/') {
+    if (window.location.hash !== '#/') {
+      window.location.hash = '#/';
+    }
+  }
   const fullHash = window.location.hash || '#/';
   const hash = fullHash.split('?')[0];
   const adSpace = document.getElementById('site-ad-space');
@@ -1344,6 +1378,26 @@ async function router() {
   // Run protection check
   if (!handleAuthProtection(hash)) return;
 
+  // Update mobile bottom nav active state instantly before asynchronous loading
+  document.querySelectorAll('.mobile-bottom-nav-item').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === hash) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+
+  const bottomNav = document.querySelector('.mobile-bottom-nav');
+  if (bottomNav) {
+    if (hash === '#/login' || hash === '#/signup') {
+      bottomNav.style.setProperty('display', 'none', 'important');
+    } else {
+      bottomNav.style.removeProperty('display');
+    }
+  }
+  updateMobileBottomNavPosition();
+
   // Toggle page visibility
   document.querySelectorAll('.page-view').forEach(view => {
     view.style.display = 'none';
@@ -1375,12 +1429,29 @@ async function router() {
   } else if (hash === '#/resources') {
     document.getElementById('view-resources').style.display = 'block';
     await renderResourcesView();
-  } else if (hash === '#/admin') {
+  } else if (hash.startsWith('#/admin')) {
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+      if (hash === '#/admin/approvals') {
+        return navigate('#/admin?tab=pending');
+      } else if (hash === '#/admin/users') {
+        return navigate('#/admin?tab=users');
+      } else if (hash === '#/admin/reviews') {
+        return navigate('#/admin?tab=reviews');
+      } else if (hash === '#/admin/contributions' || hash === '#/admin/support' || hash === '#/admin/notifications') {
+        return navigate('#/admin');
+      }
+    } else {
+      if (hash === '#/admin' || hash === '#/admin/') {
+        return navigate('#/admin/approvals');
+      }
+    }
     directoryVisibleCount = 5;
     helpRequestsVisibleCount = 5;
     notificationsVisibleCount = 5;
+    reviewsVisibleCount = 5;
     document.getElementById('view-admin').style.display = 'block';
-    await renderAdminDashboardView();
+    await renderAdminDashboardView(hash);
   } else if (hash === '#/my-uploads') {
     document.getElementById('view-my-uploads').style.display = 'block';
     await renderMyUploadsView();
@@ -1390,6 +1461,9 @@ async function router() {
   } else if (hash === '#/support') {
     document.getElementById('view-support').style.display = 'block';
     await renderSupportView();
+  } else if (hash === '#/reviews') {
+    document.getElementById('view-reviews').style.display = 'block';
+    await renderReviewsView();
   } else if (hash === '#/generators') {
     document.getElementById('view-generators').style.display = 'block';
     await renderGeneratorsView();
@@ -1426,25 +1500,6 @@ async function router() {
     await renderHomeView();
   }
 
-  // Update mobile bottom nav active state
-  document.querySelectorAll('.mobile-bottom-nav-item').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === hash) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
-
-  const bottomNav = document.querySelector('.mobile-bottom-nav');
-  if (bottomNav) {
-    if (hash === '#/login' || hash === '#/signup') {
-      bottomNav.style.setProperty('display', 'none', 'important');
-    } else {
-      bottomNav.style.removeProperty('display');
-    }
-  }
-
   // Update mobile top bar page title
   const titleEl = document.getElementById('mobile-page-title');
   if (titleEl) {
@@ -1457,6 +1512,7 @@ async function router() {
     else if (hash === '#/my-uploads') titleEl.textContent = 'My Uploads';
     else if (hash === '#/my-contributions') titleEl.textContent = 'Contributions';
     else if (hash === '#/support') titleEl.textContent = 'Support';
+    else if (hash === '#/reviews') titleEl.textContent = 'Reviews';
     else if (hash === '#/generators') titleEl.textContent = 'File Tools';
     else if (hash === '#/reset-password') titleEl.textContent = 'Reset Password';
     else if (hash === '#/terms') titleEl.textContent = 'Terms';
@@ -3195,8 +3251,11 @@ function renderProfileView() {
 
   // 1. Account Section
   html += `
-    <div class="profile-menu-section">
-      <div class="profile-menu-section-header">Account</div>
+    <div class="profile-menu-section collapsed">
+      <div class="profile-menu-section-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+        <span>Account</span>
+        <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
+      </div>
       <div class="profile-menu-items">
         ${currentUser.role === 'student' ? `
           <a href="#/my-contributions" class="profile-menu-item">
@@ -3213,6 +3272,10 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="key-round"></i><span>Reset Password</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
+        <a href="#/reviews" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="star"></i><span>Write a Review</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
         <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
           <div class="item-left">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
@@ -3226,8 +3289,11 @@ function renderProfileView() {
 
   // 2. Tools Section
   html += `
-    <div class="profile-menu-section" style="margin-top: 16px;">
-      <div class="profile-menu-section-header">Tools</div>
+    <div class="profile-menu-section collapsed" style="margin-top: 16px;">
+      <div class="profile-menu-section-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+        <span>Tools</span>
+        <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
+      </div>
       <div class="profile-menu-items">
         <a href="#/generators" class="profile-menu-item">
           <div class="item-left"><i data-lucide="file-text"></i><span>File Tools</span></div>
@@ -3243,8 +3309,11 @@ function renderProfileView() {
 
   // 3. Support Section
   html += `
-    <div class="profile-menu-section" style="margin-top: 16px;">
-      <div class="profile-menu-section-header">Support</div>
+    <div class="profile-menu-section collapsed" style="margin-top: 16px;">
+      <div class="profile-menu-section-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+        <span>Support</span>
+        <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
+      </div>
       <div class="profile-menu-items">
         <a href="javascript:void(0)" onclick="showAboutModal()" class="profile-menu-item">
           <div class="item-left"><i data-lucide="info"></i><span>About StudyHub</span></div>
@@ -3268,8 +3337,11 @@ function renderProfileView() {
 
   // 3.5 Customization Section
   html += `
-    <div class="profile-menu-section" style="margin-top: 16px;">
-      <div class="profile-menu-section-header">Customization</div>
+    <div class="profile-menu-section collapsed" style="margin-top: 16px;">
+      <div class="profile-menu-section-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+        <span>Customization</span>
+        <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
+      </div>
       <div class="profile-menu-items">
         <a href="#/appearance" class="profile-menu-item">
           <div class="item-left"><i data-lucide="palette"></i><span>Change Theme & Font</span></div>
@@ -3288,8 +3360,11 @@ function renderProfileView() {
 
   // 3.6 Connect Section
   html += `
-    <div class="profile-menu-section" style="margin-top: 16px;">
-      <div class="profile-menu-section-header">Connect</div>
+    <div class="profile-menu-section collapsed" style="margin-top: 16px;">
+      <div class="profile-menu-section-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+        <span>Connect</span>
+        <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
+      </div>
       <div class="profile-menu-items">
         <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr&igsh=dGh3cG02MnFhbTJl" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
           <div class="item-left">
@@ -3311,10 +3386,46 @@ function renderProfileView() {
 
   // 4. Admin Section (Admins/Superadmins only)
   if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
+    const isMobile = window.innerWidth <= 768;
     html += `
-      <div class="profile-menu-section" style="margin-top: 16px;">
-        <div class="profile-menu-section-header" style="color: var(--danger);">Admin Panel</div>
+      <div class="profile-menu-section collapsed" style="margin-top: 16px;">
+        <div class="profile-menu-section-header" style="color: var(--danger); cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+          <span>Admin Panel</span>
+          <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
+        </div>
         <div class="profile-menu-items">
+    `;
+    if (isMobile) {
+      html += `
+          <a href="#/admin/approvals" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Pending Approvals</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin/users" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>User Directory</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin/contributions" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="upload-cloud" style="color: var(--danger);"></i><span>Pending Contributions</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin/support" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="help-circle" style="color: var(--danger);"></i><span>Help & Support Requests</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          ${currentUser.role === 'superadmin' ? `
+            <a href="#/admin/notifications" class="profile-menu-item">
+              <div class="item-left"><i data-lucide="mail" style="color: var(--danger);"></i><span>Sent Notifications</span></div>
+              <i data-lucide="chevron-right" class="arrow-right"></i>
+            </a>
+          ` : ''}
+          <a href="#/admin/reviews" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+      `;
+    } else {
+      html += `
           <a href="#/admin" class="profile-menu-item">
             <div class="item-left"><i data-lucide="shield-alert" style="color: var(--danger);"></i><span>Admin Dashboard</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -3327,6 +3438,13 @@ function renderProfileView() {
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Teacher Approval</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
+          <a href="#/admin?tab=reviews" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+      `;
+    }
+    html += `
         </div>
       </div>
     `;
@@ -3334,10 +3452,32 @@ function renderProfileView() {
 
   menuGroup.innerHTML = html;
 
+  // Bind expand/collapse listeners to headers
+  const headers = menuGroup.querySelectorAll('.profile-menu-section-header');
+  headers.forEach(header => {
+    header.addEventListener('click', () => {
+      const section = header.closest('.profile-menu-section');
+      if (!section) return;
+
+      const isCollapsed = section.classList.contains('collapsed');
+      section.classList.toggle('collapsed');
+
+      const toggle = header.querySelector('.section-toggle-icon');
+      if (toggle) {
+        if (isCollapsed) {
+          toggle.innerHTML = '<i data-lucide="minus" style="width: 16px; height: 16px;"></i>';
+        } else {
+          toggle.innerHTML = '<i data-lucide="plus" style="width: 16px; height: 16px;"></i>';
+        }
+      }
+      refreshIcons();
+    });
+  });
+
   // Add event listener to mobile theme toggle and set initial checked state
   const mobThemeToggle = document.getElementById('ui-theme-toggle-mobile');
   if (mobThemeToggle) {
-    const currentTheme = localStorage.getItem('studyhub-ui-theme') || 'modern';
+    const currentTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
     mobThemeToggle.checked = (currentTheme === 'modern');
     mobThemeToggle.addEventListener('change', (e) => {
       const isModern = e.target.checked;
@@ -3566,7 +3706,14 @@ function showUserDeviceDetailsModal(u) {
 }
 
 // 5. ADMIN DASHBOARD VIEW
-async function renderAdminDashboardView() {
+async function renderAdminDashboardView(currentHash) {
+  if (!currentHash) {
+    currentHash = window.location.hash;
+  }
+  if (!currentHash.startsWith('#/admin')) {
+    currentHash = '#/admin/approvals';
+  }
+
   const roleLabel = document.getElementById('admin-panel-role-label');
   const errorAlert = document.getElementById('admin-error-alert');
   const pendingCount = document.getElementById('pending-users-count');
@@ -3575,6 +3722,61 @@ async function renderAdminDashboardView() {
   const allContainer = document.getElementById('all-users-list-container');
   const directoryHint = document.getElementById('admin-directory-hint');
   const tabsContainer = document.getElementById('directory-tabs');
+  const subpageTitle = document.getElementById('admin-panel-subpage-title');
+
+  // Set role label
+  if (roleLabel) {
+    roleLabel.textContent = currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin';
+  }
+  if (errorAlert) {
+    errorAlert.style.display = 'none';
+  }
+
+  // Handle visibility of the sub-view containers based on Mobile vs PC viewport
+  const isMobile = window.innerWidth <= 768;
+  const pcSep = subpageTitle ? subpageTitle.previousElementSibling : null;
+
+  if (isMobile) {
+    if (pcSep) pcSep.style.display = 'inline';
+    if (subpageTitle) subpageTitle.style.display = 'inline';
+
+    document.querySelectorAll('.admin-subview').forEach(view => {
+      view.style.display = 'none';
+    });
+
+    if (currentHash === '#/admin/approvals') {
+      if (subpageTitle) subpageTitle.textContent = 'Pending Approvals';
+      const view = document.getElementById('admin-section-approvals');
+      if (view) view.style.display = 'block';
+    } else if (currentHash === '#/admin/users') {
+      if (subpageTitle) subpageTitle.textContent = 'User Directory';
+      const view = document.getElementById('admin-section-users');
+      if (view) view.style.display = 'block';
+    } else if (currentHash === '#/admin/contributions') {
+      if (subpageTitle) subpageTitle.textContent = 'Pending Contributions';
+      const view = document.getElementById('admin-section-contributions');
+      if (view) view.style.display = 'block';
+    } else if (currentHash === '#/admin/support') {
+      if (subpageTitle) subpageTitle.textContent = 'Help & Support';
+      const view = document.getElementById('admin-section-support');
+      if (view) view.style.display = 'block';
+    } else if (currentHash === '#/admin/notifications') {
+      if (subpageTitle) subpageTitle.textContent = 'Sent Notifications';
+      const view = document.getElementById('admin-section-notifications');
+      if (view) view.style.display = 'block';
+    } else if (currentHash === '#/admin/reviews') {
+      if (subpageTitle) subpageTitle.textContent = 'User Reviews';
+      const view = document.getElementById('admin-section-reviews');
+      if (view) view.style.display = 'block';
+    }
+  } else {
+    if (pcSep) pcSep.style.display = 'none';
+    if (subpageTitle) subpageTitle.style.display = 'none';
+
+    document.querySelectorAll('.admin-subview').forEach(view => {
+      view.style.display = 'block';
+    });
+  }
 
   const adminSearchInput = document.getElementById('admin-user-search-input');
   const adminSearchClearBtn = document.getElementById('btn-admin-user-search-clear');
@@ -3583,579 +3785,731 @@ async function renderAdminDashboardView() {
     adminSearchClearBtn.style.display = adminUserSearchQuery ? 'flex' : 'none';
   }
 
-  roleLabel.textContent = currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin';
-  errorAlert.style.display = 'none';
-
   if (currentUser.role === 'superadmin') {
-    directoryHint.textContent = 'Super Admin view: You have full deletion and admin promotion privileges.';
+    if (directoryHint) directoryHint.textContent = 'Super Admin view: You have full deletion and admin promotion privileges.';
   } else {
-    directoryHint.textContent = 'Admin view: You can manage and delete Student accounts only.';
+    if (directoryHint) directoryHint.textContent = 'Admin view: You can manage and delete Student accounts only.';
   }
 
-  pendingContainer.innerHTML = '<div class="empty-state">Loading approvals...</div>';
-  allContainer.innerHTML = '<div class="empty-state">Loading users...</div>';
-
   try {
-    const pending = await api.getPendingUsers();
-    pendingCount.textContent = pending.length;
+    const fetchApprovals = async () => {
+      pendingContainer.innerHTML = '<div class="empty-state">Loading approvals...</div>';
+      const pending = await api.getPendingUsers();
+      pendingCount.textContent = pending.length;
 
-    if (pending.length === 0) {
-      pendingContainer.innerHTML = `<div class="empty-state" style="padding: 30px;">No registration requests pending approval.</div>`;
-    } else {
-      pendingContainer.innerHTML = pending.map(u => `
-        <div class="user-card">
-          <div class="user-info">
-            <h5>${escapeHTML(capitalizeName(u.name))}</h5>
-            <p>Phone: ${escapeHTML(u.phone)} &bull; Requested Role: <strong style="text-transform: capitalize; color: var(--primary);">${escapeHTML(u.role)}</strong></p>
-            <p style="font-size: 11px; margin-top: 2px;">Registered: ${new Date(u.createdAt).toLocaleString()}</p>
+      if (pending.length === 0) {
+        pendingContainer.innerHTML = `<div class="empty-state" style="padding: 30px;">No registration requests pending approval.</div>`;
+      } else {
+        pendingContainer.innerHTML = pending.map(u => `
+          <div class="user-card">
+            <div class="user-info">
+              <h5>${escapeHTML(capitalizeName(u.name))}</h5>
+              <p>Phone: ${escapeHTML(u.phone)} &bull; Requested Role: <strong style="text-transform: capitalize; color: var(--primary);">${escapeHTML(u.role)}</strong></p>
+              <p style="font-size: 11px; margin-top: 2px;">Registered: ${new Date(u.createdAt).toLocaleString()}</p>
+            </div>
+            <div class="user-actions">
+              <button class="btn btn-primary btn-sm btn-approve-user" data-id="${u.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px; background-color: var(--success); border: none;">
+                <i data-lucide="user-check" style="width:14px;height:14px;"></i> Approve
+              </button>
+              <button class="btn btn-danger btn-sm btn-reject-user" data-id="${u.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="user-x" style="width:14px;height:14px;"></i> Reject
+              </button>
+            </div>
           </div>
-          <div class="user-actions">
-            <button class="btn btn-primary btn-sm btn-approve-user" data-id="${u.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px; background-color: var(--success); border: none;">
-              <i data-lucide="user-check" style="width:14px;height:14px;"></i> Approve
-            </button>
-            <button class="btn btn-danger btn-sm btn-reject-user" data-id="${u.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
-              <i data-lucide="user-x" style="width:14px;height:14px;"></i> Reject
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
 
-      document.querySelectorAll('.btn-approve-user').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
-          refreshIcons();
-          try {
-            await api.approveUser(btn.getAttribute('data-id'));
-            await renderAdminDashboardView();
-          } catch (err) {
-            alert(err.message || 'Approval failed');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
+        document.querySelectorAll('.btn-approve-user').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
             refreshIcons();
-          }
+            try {
+              await api.approveUser(btn.getAttribute('data-id'));
+              await renderAdminDashboardView(currentHash);
+            } catch (err) {
+              alert(err.message || 'Approval failed');
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+              refreshIcons();
+            }
+          });
         });
-      });
 
-      document.querySelectorAll('.btn-reject-user').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          if (!confirm('Reject and delete this registration request?')) return;
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
-          refreshIcons();
-          try {
-            await api.rejectUser(btn.getAttribute('data-id'));
-            await renderAdminDashboardView();
-          } catch (err) {
-            alert(err.message || 'Rejection failed');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
+        document.querySelectorAll('.btn-reject-user').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Reject and delete this registration request?')) return;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
             refreshIcons();
-          }
+            try {
+              await api.rejectUser(btn.getAttribute('data-id'));
+              await renderAdminDashboardView(currentHash);
+            } catch (err) {
+              alert(err.message || 'Rejection failed');
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+              refreshIcons();
+            }
+          });
         });
-      });
-    }
-
-    const all = await api.getAllUsers();
-
-    // Sort users descending by their date of joining (newest first)
-    all.sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
-      const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
-      return dateB - dateA;
-    });
-
-    let filteredUsers = all;
-    if (adminUserSearchQuery.trim()) {
-      const q = adminUserSearchQuery.toLowerCase().trim();
-      filteredUsers = all.filter(u => {
-        const name = (u.name || '').toLowerCase();
-        const phone = (u.phone || '').toLowerCase();
-        return name.includes(q) || phone.includes(q);
-      });
-    }
-
-    allCount.textContent = filteredUsers.length;
-
-    const adminsList = filteredUsers.filter(u => u.role === 'admin' || u.role === 'superadmin');
-    const teachersList = filteredUsers.filter(u => u.role === 'educator');
-    const studentsList = filteredUsers.filter(u => u.role === 'student');
-
-    const renderTabs = () => {
-      tabsContainer.innerHTML = `
-        <button class="calc-tab ${activeDirectoryTab === 'admin' ? 'active' : ''}" id="tab-dir-admin">Admin (${adminsList.length})</button>
-        <button class="calc-tab ${activeDirectoryTab === 'teacher' ? 'active' : ''}" id="tab-dir-teacher">Teachers (${teachersList.length})</button>
-        <button class="calc-tab ${activeDirectoryTab === 'student' ? 'active' : ''}" id="tab-dir-student">Students (${studentsList.length})</button>
-      `;
-
-      document.getElementById('tab-dir-admin').addEventListener('click', () => { activeDirectoryTab = 'admin'; directoryVisibleCount = 5; updateDirectoryView(); });
-      document.getElementById('tab-dir-teacher').addEventListener('click', () => { activeDirectoryTab = 'teacher'; directoryVisibleCount = 5; updateDirectoryView(); });
-      document.getElementById('tab-dir-student').addEventListener('click', () => { activeDirectoryTab = 'student'; directoryVisibleCount = 5; updateDirectoryView(); });
+      }
     };
 
-    const updateDirectoryView = () => {
-      renderTabs();
+    const fetchUsers = async () => {
+      allContainer.innerHTML = '<div class="empty-state">Loading users...</div>';
+      const all = await api.getAllUsers();
 
-      let selectedUsers = [];
-      if (activeDirectoryTab === 'admin') selectedUsers = adminsList;
-      else if (activeDirectoryTab === 'teacher') selectedUsers = teachersList;
-      else if (activeDirectoryTab === 'student') selectedUsers = studentsList;
+      // Sort users descending by their date of joining (newest first)
+      all.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
 
-      if (selectedUsers.length === 0) {
-        allContainer.innerHTML = `<div class="empty-state">No users found in this category.</div>`;
-        const dirShowMoreContainer = document.getElementById('directory-show-more-container');
-        if (dirShowMoreContainer) dirShowMoreContainer.innerHTML = '';
-        refreshIcons();
-        return;
+      let filteredUsers = all;
+      if (adminUserSearchQuery.trim()) {
+        const q = adminUserSearchQuery.toLowerCase().trim();
+        filteredUsers = all.filter(u => {
+          const name = (u.name || '').toLowerCase();
+          const phone = (u.phone || '').toLowerCase();
+          return name.includes(q) || phone.includes(q);
+        });
       }
 
-      const slicedUsers = selectedUsers.slice(0, directoryVisibleCount);
+      allCount.textContent = filteredUsers.length;
 
-      allContainer.innerHTML = slicedUsers.map(u => {
-        const isPrimarySuperAdmin = u.phone === '8218325600';
-        const canPromote = currentUser.role === 'superadmin' && u.role === 'admin';
-        
-        const canDelete = u.id !== currentUser.id && 
-                          !isPrimarySuperAdmin && 
-                          (currentUser.role === 'superadmin' || (currentUser.role === 'admin' && u.role === 'student'));
+      const adminsList = filteredUsers.filter(u => u.role === 'admin' || u.role === 'superadmin');
+      const teachersList = filteredUsers.filter(u => u.role === 'educator');
+      const studentsList = filteredUsers.filter(u => u.role === 'student');
 
-        return `
-          <div class="user-card" style="padding: 14px 16px;">
-            <div class="user-info btn-user-details" data-id="${u.id}" style="cursor: pointer;" title="Click to view Device & Session Details">
-              <h5 style="font-size: 15px; display: flex; align-items: center; gap: 6px;">
-                ${escapeHTML(capitalizeName(u.name))}
-                ${isPrimarySuperAdmin ? `
-                  <span style="font-size: 10px; background-color: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
-                    Primary Owner
+      const renderTabs = () => {
+        tabsContainer.innerHTML = `
+          <button class="calc-tab ${activeDirectoryTab === 'admin' ? 'active' : ''}" id="tab-dir-admin">Admin (${adminsList.length})</button>
+          <button class="calc-tab ${activeDirectoryTab === 'teacher' ? 'active' : ''}" id="tab-dir-teacher">Teachers (${teachersList.length})</button>
+          <button class="calc-tab ${activeDirectoryTab === 'student' ? 'active' : ''}" id="tab-dir-student">Students (${studentsList.length})</button>
+        `;
+
+        document.getElementById('tab-dir-admin').addEventListener('click', () => { activeDirectoryTab = 'admin'; directoryVisibleCount = 5; updateDirectoryView(); });
+        document.getElementById('tab-dir-teacher').addEventListener('click', () => { activeDirectoryTab = 'teacher'; directoryVisibleCount = 5; updateDirectoryView(); });
+        document.getElementById('tab-dir-student').addEventListener('click', () => { activeDirectoryTab = 'student'; directoryVisibleCount = 5; updateDirectoryView(); });
+      };
+
+      const updateDirectoryView = () => {
+        renderTabs();
+
+        let selectedUsers = [];
+        if (activeDirectoryTab === 'admin') selectedUsers = adminsList;
+        else if (activeDirectoryTab === 'teacher') selectedUsers = teachersList;
+        else if (activeDirectoryTab === 'student') selectedUsers = studentsList;
+
+        if (selectedUsers.length === 0) {
+          allContainer.innerHTML = `<div class="empty-state">No users found in this category.</div>`;
+          const dirShowMoreContainer = document.getElementById('directory-show-more-container');
+          if (dirShowMoreContainer) dirShowMoreContainer.innerHTML = '';
+          refreshIcons();
+          return;
+        }
+
+        const slicedUsers = selectedUsers.slice(0, directoryVisibleCount);
+
+        allContainer.innerHTML = slicedUsers.map(u => {
+          const isPrimarySuperAdmin = u.phone === '8218325600';
+          const canPromote = currentUser.role === 'superadmin' && u.role === 'admin';
+          
+          const canDelete = u.id !== currentUser.id && 
+                            !isPrimarySuperAdmin && 
+                            (currentUser.role === 'superadmin' || (currentUser.role === 'admin' && u.role === 'student'));
+
+          return `
+            <div class="user-card" style="padding: 14px 16px;">
+              <div class="user-info btn-user-details" data-id="${u.id}" style="cursor: pointer;" title="Click to view Device & Session Details">
+                <h5 style="font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                  ${escapeHTML(capitalizeName(u.name))}
+                  ${isPrimarySuperAdmin ? `
+                    <span style="font-size: 10px; background-color: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
+                      Primary Owner
+                    </span>
+                  ` : ''}
+                </h5>
+                <p style="font-size: 12px;">Phone: ${escapeHTML(u.phone)}</p>
+                <div style="display: flex; gap: 6px; margin-top: 4px;">
+                  <span class="user-tag" style="margin: 0; padding: 2px 6px; font-size: 10px; background-color: ${u.role === 'superadmin' ? '#fee2e2' : 'var(--primary-accent)'}; color: ${u.role === 'superadmin' ? '#ef4444' : 'var(--primary-dark)'};">
+                    ${u.role === 'superadmin' ? 'Super Admin' : escapeHTML(u.role)}
+                  </span>
+                  <span class="user-tag" style="margin: 0; padding: 2px 6px; font-size: 10px; background-color: ${u.approved ? '#dcfce7' : '#fee2e2'}; color: ${u.approved ? '#166534' : '#991b1b'};">
+                    ${u.approved ? 'Approved' : 'Pending'}
+                  </span>
+                </div>
+              </div>
+              <div class="user-actions" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px;">
+                ${u.role === 'educator' && typeof u.points === 'number' ? `
+                  <span class="user-tag" style="margin: 0 8px 0 0; padding: 4px 10px; font-size: 11px; font-weight: 700; background-color: var(--primary-accent); color: var(--primary-dark);">
+                    ${u.points} pts
                   </span>
                 ` : ''}
-              </h5>
-              <p style="font-size: 12px;">Phone: ${escapeHTML(u.phone)}</p>
-              <div style="display: flex; gap: 6px; margin-top: 4px;">
-                <span class="user-tag" style="margin: 0; padding: 2px 6px; font-size: 10px; background-color: ${u.role === 'superadmin' ? '#fee2e2' : 'var(--primary-accent)'}; color: ${u.role === 'superadmin' ? '#ef4444' : 'var(--primary-dark)'};">
-                  ${u.role === 'superadmin' ? 'Super Admin' : escapeHTML(u.role)}
-                </span>
-                <span class="user-tag" style="margin: 0; padding: 2px 6px; font-size: 10px; background-color: ${u.approved ? '#dcfce7' : '#fee2e2'}; color: ${u.approved ? '#166534' : '#991b1b'};">
-                  ${u.approved ? 'Approved' : 'Pending'}
-                </span>
+                ${u.id !== currentUser.id ? `
+                  <button class="btn btn-secondary btn-sm btn-message-user" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: var(--primary-accent); color: var(--primary-dark); border-color: var(--primary-accent);" title="Send Notification Message">
+                    <i data-lucide="bell" style="width: 12px; height: 12px;"></i> Message
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-admin-reset-password" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: #fef08a; color: #854d0e; border-color: #fef08a;" title="Reset user password to 123456">
+                    <i data-lucide="key" style="width: 12px; height: 12px;"></i> Reset Password
+                  </button>
+                ` : ''}
+                ${canPromote ? `
+                  <button class="btn btn-secondary btn-sm btn-promote-admin" data-id="${u.id}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd;" title="Promote to Super Admin">
+                    <i data-lucide="award" style="width: 12px; height: 12px;"></i> Promote
+                  </button>
+                ` : ''}
+                ${canDelete ? `
+                  <button class="btn btn-danger btn-sm btn-delete-user" data-id="${u.id}" style="padding: 8px; border-radius: 50%;" title="Delete User">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                  </button>
+                ` : ''}
               </div>
             </div>
-            <div class="user-actions" style="display: flex; align-items: center;">
-              ${u.role === 'educator' && typeof u.points === 'number' ? `
-                <span class="user-tag" style="margin: 0 8px 0 0; padding: 4px 10px; font-size: 11px; font-weight: 700; background-color: var(--primary-accent); color: var(--primary-dark);">
-                  ${u.points} pts
-                </span>
-              ` : ''}
-              ${u.id !== currentUser.id ? `
-                <button class="btn btn-secondary btn-sm btn-message-user" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: var(--primary-accent); color: var(--primary-dark); border-color: var(--primary-accent);" title="Send Notification Message">
-                  <i data-lucide="bell" style="width: 12px; height: 12px;"></i> Message
-                </button>
-                <button class="btn btn-secondary btn-sm btn-admin-reset-password" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: #fef08a; color: #854d0e; border-color: #fef08a;" title="Reset user password to 123456">
-                  <i data-lucide="key" style="width: 12px; height: 12px;"></i> Reset Password
-                </button>
-              ` : ''}
-              ${canPromote ? `
-                <button class="btn btn-secondary btn-sm btn-promote-admin" data-id="${u.id}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd;" title="Promote to Super Admin">
-                  <i data-lucide="award" style="width: 12px; height: 12px;"></i> Promote
-                </button>
-              ` : ''}
-              ${canDelete ? `
-                <button class="btn btn-danger btn-sm btn-delete-user" data-id="${u.id}" style="padding: 8px; border-radius: 50%;" title="Delete User">
-                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.btn-promote-admin').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          if (!confirm('Promote this admin to Super Admin? This action gives them absolute permission.')) return;
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i>';
-          refreshIcons();
-          try {
-            const res = await api.promoteUser(btn.getAttribute('data-id'));
-            alert(res.message || 'Successfully promoted user to Super Admin!');
-            await renderAdminDashboardView();
-          } catch (err) {
-            alert(err.message || 'Promotion failed');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
-            refreshIcons();
-          }
-        });
-      });
-
-      document.querySelectorAll('.btn-delete-user').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          if (!confirm('Permanently delete this user account?')) return;
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i>';
-          refreshIcons();
-          try {
-            await api.deleteUser(btn.getAttribute('data-id'));
-            await renderAdminDashboardView();
-          } catch (err) {
-            alert(err.message || 'Deletion failed');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
-            refreshIcons();
-          }
-        });
-      });
-
-      document.querySelectorAll('.btn-message-user').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const userId = btn.getAttribute('data-id');
-          const userName = btn.getAttribute('data-name');
-          
-          const modal = document.getElementById('modal-send-message');
-          const userIdInput = document.getElementById('send-message-user-id');
-          const nameInput = document.getElementById('send-message-recipient-name');
-          const bodyTextarea = document.getElementById('send-message-body');
-          const errAlert = document.getElementById('send-message-error-alert');
-          
-          if (modal && userIdInput && nameInput && bodyTextarea) {
-            errAlert.style.display = 'none';
-            bodyTextarea.value = '';
-            userIdInput.value = userId;
-            nameInput.value = userName;
-            modal.style.display = 'flex';
-            renderMessageTemplates();
-          }
-        });
-      });
-      document.querySelectorAll('.btn-admin-reset-password').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const userName = btn.getAttribute('data-name');
-          const userId = btn.getAttribute('data-id');
-          if (!confirm(`Are you sure you want to reset the password for ${userName} to 123456?`)) return;
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i>';
-          refreshIcons();
-          try {
-            const res = await api.adminResetPassword(userId);
-            alert(res.message || 'Successfully reset password to 123456!');
-          } catch (err) {
-            alert(err.message || 'Failed to reset password');
-          } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
-            refreshIcons();
-          }
-        });
-      });
-
-      // Render Show More button for Directory if needed
-      const dirShowMoreContainer = document.getElementById('directory-show-more-container');
-      const dirRemaining = selectedUsers.length - directoryVisibleCount;
-      if (dirShowMoreContainer) {
-        if (dirRemaining > 0) {
-          dirShowMoreContainer.innerHTML = `
-            <button id="btn-directory-show-more" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; font-weight: 600;">
-              Show More (${dirRemaining} remaining) <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-            </button>
           `;
-          document.getElementById('btn-directory-show-more').addEventListener('click', () => {
-            directoryVisibleCount += 10;
-            updateDirectoryView();
+        }).join('');
+
+        document.querySelectorAll('.btn-promote-admin').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Promote this admin to Super Admin? This action gives them absolute permission.')) return;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i>';
+            refreshIcons();
+            try {
+              const res = await api.promoteUser(btn.getAttribute('data-id'));
+              alert(res.message || 'Successfully promoted user to Super Admin!');
+              await renderAdminDashboardView(currentHash);
+            } catch (err) {
+              alert(err.message || 'Promotion failed');
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+              refreshIcons();
+            }
           });
-        } else {
-          dirShowMoreContainer.innerHTML = '';
-        }
-      }
-
-      // Attach click listeners to user info block for device details modal
-      allContainer.querySelectorAll('.btn-user-details').forEach(el => {
-        el.addEventListener('click', () => {
-          const id = el.getAttribute('data-id');
-          const u = selectedUsers.find(user => user.id === id);
-          if (u) {
-            showUserDeviceDetailsModal(u);
-          }
         });
-      });
 
-      refreshIcons();
+        document.querySelectorAll('.btn-delete-user').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Permanently delete this user account?')) return;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i>';
+            refreshIcons();
+            try {
+              await api.deleteUser(btn.getAttribute('data-id'));
+              await renderAdminDashboardView(currentHash);
+            } catch (err) {
+              alert(err.message || 'Deletion failed');
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+              refreshIcons();
+            }
+          });
+        });
+
+        document.querySelectorAll('.btn-message-user').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const userId = btn.getAttribute('data-id');
+            const userName = btn.getAttribute('data-name');
+            
+            const modal = document.getElementById('modal-send-message');
+            const userIdInput = document.getElementById('send-message-user-id');
+            const nameInput = document.getElementById('send-message-recipient-name');
+            const bodyTextarea = document.getElementById('send-message-body');
+            const errAlert = document.getElementById('send-message-error-alert');
+            
+            if (modal && userIdInput && nameInput && bodyTextarea) {
+              errAlert.style.display = 'none';
+              bodyTextarea.value = '';
+              userIdInput.value = userId;
+              nameInput.value = userName;
+              modal.style.display = 'flex';
+              renderMessageTemplates();
+            }
+          });
+        });
+        document.querySelectorAll('.btn-admin-reset-password').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const userName = btn.getAttribute('data-name');
+            const userId = btn.getAttribute('data-id');
+            if (!confirm(`Are you sure you want to reset the password for ${userName} to 123456?`)) return;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i>';
+            refreshIcons();
+            try {
+              const res = await api.adminResetPassword(userId);
+              alert(res.message || 'Successfully reset password to 123456!');
+            } catch (err) {
+              alert(err.message || 'Failed to reset password');
+            } finally {
+              btn.disabled = false;
+              btn.innerHTML = originalHTML;
+              refreshIcons();
+            }
+          });
+        });
+
+        // Render Show More button for Directory if needed
+        const dirShowMoreContainer = document.getElementById('directory-show-more-container');
+        const dirRemaining = selectedUsers.length - directoryVisibleCount;
+        if (dirShowMoreContainer) {
+          if (dirRemaining > 0) {
+            dirShowMoreContainer.innerHTML = `
+              <button id="btn-directory-show-more" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; font-weight: 600;">
+                Show More (${dirRemaining} remaining) <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+              </button>
+            `;
+            document.getElementById('btn-directory-show-more').addEventListener('click', () => {
+              directoryVisibleCount += 10;
+              updateDirectoryView();
+            });
+          } else {
+            dirShowMoreContainer.innerHTML = '';
+          }
+        }
+
+        // Attach click listeners to user info block for device details modal
+        allContainer.querySelectorAll('.btn-user-details').forEach(el => {
+          el.addEventListener('click', () => {
+            const id = el.getAttribute('data-id');
+            const u = selectedUsers.find(user => user.id === id);
+            if (u) {
+              showUserDeviceDetailsModal(u);
+            }
+          });
+        });
+
+        refreshIcons();
+      };
+
+      updateDirectoryView();
     };
 
-    updateDirectoryView();
+    const fetchContributions = async () => {
+      await renderPendingContributions();
+    };
 
-    // Fetch and render help requests
-    const helpRequestsContainer = document.getElementById('support-requests-list-container');
-    const helpRequestsCount = document.getElementById('support-requests-count');
+    const fetchSupport = async () => {
+      const helpRequestsContainer = document.getElementById('support-requests-list-container');
+      const helpRequestsCount = document.getElementById('support-requests-count');
 
-    if (helpRequestsContainer && helpRequestsCount) {
-      helpRequestsContainer.innerHTML = '<div class="empty-state">Loading support requests...</div>';
+      if (helpRequestsContainer && helpRequestsCount) {
+        helpRequestsContainer.innerHTML = '<div class="empty-state">Loading support requests...</div>';
 
-      try {
-        const tickets = await api.getHelpRequests();
-        helpRequestsCount.textContent = tickets.length;
+        try {
+          const tickets = await api.getHelpRequests();
+          helpRequestsCount.textContent = tickets.length;
 
-        if (tickets.length === 0) {
-          helpRequestsContainer.innerHTML = '<div class="empty-state">No support requests submitted yet.</div>';
-          const supportShowMoreContainer = document.getElementById('support-show-more-container');
-          if (supportShowMoreContainer) supportShowMoreContainer.innerHTML = '';
-        } else {
-          const slicedTickets = tickets.slice(0, helpRequestsVisibleCount);
+          if (tickets.length === 0) {
+            helpRequestsContainer.innerHTML = '<div class="empty-state">No support requests submitted yet.</div>';
+            const supportShowMoreContainer = document.getElementById('support-show-more-container');
+            if (supportShowMoreContainer) supportShowMoreContainer.innerHTML = '';
+          } else {
+            const slicedTickets = tickets.slice(0, helpRequestsVisibleCount);
 
-          helpRequestsContainer.innerHTML = slicedTickets.map(t => {
-            const isResolved = t.status === 'resolved';
-            const cardClass = isResolved ? 'status-resolved' : 'status-pending';
-            const badgeClass = isResolved ? 'status-badge-resolved' : 'status-badge-pending';
-            const statusText = isResolved ? 'Resolved' : 'Pending';
-            const statusIcon = isResolved ? 'check-circle' : 'clock';
-            
-            const roleBadge = t.role === 'superadmin' ? 'Super Admin' : (t.role === 'educator' ? 'Educator' : 'Student');
-            
-            return `
-              <div class="ticket-card ${cardClass}">
-                <div class="ticket-header">
-                  <div class="ticket-user-info">
-                    <h5 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">${escapeHTML(capitalizeName(t.name))}</h5>
-                    <div class="ticket-user-meta">
-                      <span class="profile-role-badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 6px; font-size: 10px; font-weight: 600; text-transform: capitalize;">${roleBadge}</span>
-                      <span>&bull;</span>
-                      <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="phone" style="width: 12px; height: 12px;"></i> ${escapeHTML(t.phone)}</span>
-                      <span>&bull;</span>
-                      <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="calendar" style="width: 12px; height: 12px;"></i> ${new Date(t.createdAt).toLocaleString()}</span>
+            helpRequestsContainer.innerHTML = slicedTickets.map(t => {
+              const isResolved = t.status === 'resolved';
+              const cardClass = isResolved ? 'status-resolved' : 'status-pending';
+              const badgeClass = isResolved ? 'status-badge-resolved' : 'status-badge-pending';
+              const statusText = isResolved ? 'Resolved' : 'Pending';
+              const statusIcon = isResolved ? 'check-circle' : 'clock';
+              
+              const roleBadge = t.role === 'superadmin' ? 'Super Admin' : (t.role === 'educator' ? 'Educator' : 'Student');
+              
+              return `
+                <div class="ticket-card ${cardClass}">
+                  <div class="ticket-header">
+                    <div class="ticket-user-info">
+                      <h5 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">${escapeHTML(capitalizeName(t.name))}</h5>
+                      <div class="ticket-user-meta">
+                        <span class="profile-role-badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 6px; font-size: 10px; font-weight: 600; text-transform: capitalize;">${roleBadge}</span>
+                        <span>&bull;</span>
+                        <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="phone" style="width: 12px; height: 12px;"></i> ${escapeHTML(t.phone)}</span>
+                        <span>&bull;</span>
+                        <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="calendar" style="width: 12px; height: 12px;"></i> ${new Date(t.createdAt).toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
-                  <span class="ticket-status-badge ${badgeClass}">
-                    <i data-lucide="${statusIcon}" style="width: 14px; height: 14px;"></i> ${statusText}
-                  </span>
-                </div>
-                <div class="ticket-subject" style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">Subject: ${escapeHTML(t.subject)}</div>
-                <div class="ticket-message" style="font-size: 14px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap;">${escapeHTML(t.message)}</div>
-                <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px;">
-                  <button class="btn btn-secondary btn-sm btn-resolve-ticket" data-id="${t.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
-                    ${isResolved ? `
-                      <i data-lucide="clock" style="width: 14px; height: 14px;"></i> Mark Pending
-                    ` : `
-                      <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Mark Resolved
-                    `}
-                  </button>
-                  <button class="btn btn-danger btn-sm btn-delete-ticket" data-id="${t.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
-                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete Request
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('');
-
-          // Bind resolve handler
-          helpRequestsContainer.querySelectorAll('.btn-resolve-ticket').forEach(btn => {
-            btn.addEventListener('click', async () => {
-              const id = btn.getAttribute('data-id');
-              const originalHTML = btn.innerHTML;
-              btn.disabled = true;
-              btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Updating...';
-              refreshIcons();
-              try {
-                await api.resolveHelpRequest(id);
-                await renderAdminDashboardView();
-              } catch (err) {
-                alert(err.message || 'Failed to update request');
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-                refreshIcons();
-              }
-            });
-          });
-
-          // Bind delete handler
-          helpRequestsContainer.querySelectorAll('.btn-delete-ticket').forEach(btn => {
-            btn.addEventListener('click', async () => {
-              const id = btn.getAttribute('data-id');
-              if (!confirm('Are you sure you want to permanently delete this help request?')) return;
-              const originalHTML = btn.innerHTML;
-              btn.disabled = true;
-              btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Deleting...';
-              refreshIcons();
-              try {
-                await api.deleteHelpRequest(id);
-                await renderAdminDashboardView();
-              } catch (err) {
-                alert(err.message || 'Failed to delete request');
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-                refreshIcons();
-              }
-            });
-          });
-
-          // Render Show More button for Support requests if needed
-          const supportShowMoreContainer = document.getElementById('support-show-more-container');
-          const supportRemaining = tickets.length - helpRequestsVisibleCount;
-          if (supportShowMoreContainer) {
-            if (supportRemaining > 0) {
-              supportShowMoreContainer.innerHTML = `
-                <button id="btn-support-show-more" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; font-weight: 600;">
-                  Show More (${supportRemaining} remaining) <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                </button>
-              `;
-              document.getElementById('btn-support-show-more').addEventListener('click', () => {
-                helpRequestsVisibleCount += 10;
-                renderAdminDashboardView();
-              });
-            } else {
-              supportShowMoreContainer.innerHTML = '';
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching help requests:', err);
-        helpRequestsContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load support requests: ${escapeHTML(err.message)}</div>`;
-      }
-    }
-
-    // Fetch and render superadmin notification messages list
-    const superadminMessagesSection = document.getElementById('superadmin-messages-section');
-    const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
-    const superadminMessagesCount = document.getElementById('superadmin-messages-count');
-
-    if (currentUser.role === 'superadmin' && superadminMessagesSection && superadminMessagesContainer && superadminMessagesCount) {
-      superadminMessagesSection.style.display = 'block';
-      superadminMessagesContainer.innerHTML = '<div class="empty-state">Loading sent messages...</div>';
-
-      try {
-        const notifications = await api.getAllNotifications();
-        superadminMessagesCount.textContent = notifications.length;
-
-        if (notifications.length === 0) {
-          superadminMessagesContainer.innerHTML = '<div class="empty-state">No notification messages sent yet.</div>';
-          const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
-          if (messagesShowMoreContainer) messagesShowMoreContainer.innerHTML = '';
-        } else {
-          const slicedNotifications = notifications.slice(0, notificationsVisibleCount);
-
-          superadminMessagesContainer.innerHTML = slicedNotifications.map(n => {
-            const seenLabelClass = n.read ? 'status-badge-resolved' : 'status-badge-pending';
-            const seenText = n.read ? 'seen' : 'unseen';
-            const seenIcon = n.read ? 'eye' : 'eye-off';
-            
-            return `
-              <div class="ticket-card" style="border-left: 4px solid ${n.read ? '#10b981' : '#eab308'}; margin-bottom: 12px; padding: 14px 16px;">
-                <div class="ticket-header" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                  <div class="ticket-user-info">
-                    <h5 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">
-                      To: ${escapeHTML(capitalizeName(n.recipient.name))} (${escapeHTML(n.recipient.phone)})
-                    </h5>
-                    <span style="font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
-                      <i data-lucide="calendar" style="width: 12px; height: 12px;"></i> ${new Date(n.createdAt).toLocaleString()}
+                    <span class="ticket-status-badge ${badgeClass}">
+                      <i data-lucide="${statusIcon}" style="width: 14px; height: 14px;"></i> ${statusText}
                     </span>
                   </div>
-                  <span class="ticket-status-badge ${seenLabelClass}" style="text-transform: capitalize; padding: 2px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
-                    <i data-lucide="${seenIcon}" style="width: 12px; height: 12px;"></i> ${seenText}
-                  </span>
-                </div>
-                <div class="ticket-message" style="font-size: 13px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap;">${escapeHTML(n.message)}</div>
-                <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
-                  ${!n.read ? `
-                    <button class="btn btn-secondary btn-sm btn-edit-notification" data-id="${n.id}" data-raw="${escapeHTML(n.rawMessage)}" style="padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; background-color: #f1f5f9; border-color: #cbd5e1; color: #475569;">
-                      <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit Message
+                  <div class="ticket-subject" style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">Subject: ${escapeHTML(t.subject)}</div>
+                  <div class="ticket-message" style="font-size: 14px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap;">${escapeHTML(t.message)}</div>
+                  <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px;">
+                    <button class="btn btn-secondary btn-sm btn-resolve-ticket" data-id="${t.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
+                      ${isResolved ? `
+                        <i data-lucide="clock" style="width: 14px; height: 14px;"></i> Mark Pending
+                      ` : `
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Mark Resolved
+                      `}
                     </button>
-                  ` : ''}
-                  <button class="btn btn-danger btn-sm btn-delete-notification" data-id="${n.id}" style="padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
-                    <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Delete
-                  </button>
+                    <button class="btn btn-danger btn-sm btn-delete-ticket" data-id="${t.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
+                      <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete Request
+                    </button>
+                  </div>
                 </div>
-              </div>
-            `;
-          }).join('');
-
-          // Bind Edit button click
-          superadminMessagesContainer.querySelectorAll('.btn-edit-notification').forEach(btn => {
-            btn.addEventListener('click', async () => {
-              const id = btn.getAttribute('data-id');
-              const rawMessage = btn.getAttribute('data-raw');
-              
-              const newMsgBody = prompt('Edit your message body:', rawMessage);
-              if (newMsgBody === null) return; // user cancelled
-              
-              if (!newMsgBody.trim()) {
-                alert('Message body cannot be empty');
-                return;
-              }
-
-              const originalHTML = btn.innerHTML;
-              btn.disabled = true;
-              btn.innerHTML = 'Saving...';
-
-              try {
-                await api.updateNotification(id, newMsgBody.trim());
-                await renderAdminDashboardView();
-              } catch (err) {
-                alert(err.message || 'Failed to update message');
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-                refreshIcons();
-              }
-            });
-          });
-
-          // Bind Delete button click
-          superadminMessagesContainer.querySelectorAll('.btn-delete-notification').forEach(btn => {
-            btn.addEventListener('click', async () => {
-              const id = btn.getAttribute('data-id');
-              if (!confirm('Are you sure you want to delete this message?')) return;
-              
-              const originalHTML = btn.innerHTML;
-              btn.disabled = true;
-              btn.innerHTML = 'Deleting...';
-
-              try {
-                await api.deleteNotification(id);
-                await renderAdminDashboardView();
-              } catch (err) {
-                alert(err.message || 'Failed to delete message');
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-                refreshIcons();
-              }
-            });
-          });
-
-          // Render Show More button for Sent notifications if needed
-          const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
-          const messagesRemaining = notifications.length - notificationsVisibleCount;
-          if (messagesShowMoreContainer) {
-            if (messagesRemaining > 0) {
-              messagesShowMoreContainer.innerHTML = `
-                <button id="btn-messages-show-more" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; font-weight: 600;">
-                  Show More (${messagesRemaining} remaining) <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                </button>
               `;
-              document.getElementById('btn-messages-show-more').addEventListener('click', () => {
-                notificationsVisibleCount += 10;
-                renderAdminDashboardView();
+            }).join('');
+
+            // Bind resolve handler
+            helpRequestsContainer.querySelectorAll('.btn-resolve-ticket').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const originalHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Updating...';
+                refreshIcons();
+                try {
+                  await api.resolveHelpRequest(id);
+                  await renderAdminDashboardView(currentHash);
+                } catch (err) {
+                  alert(err.message || 'Failed to update request');
+                  btn.disabled = false;
+                  btn.innerHTML = originalHTML;
+                  refreshIcons();
+                }
               });
-            } else {
-              messagesShowMoreContainer.innerHTML = '';
+            });
+
+            // Bind delete handler
+            helpRequestsContainer.querySelectorAll('.btn-delete-ticket').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                if (!confirm('Are you sure you want to permanently delete this help request?')) return;
+                const originalHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Deleting...';
+                refreshIcons();
+                try {
+                  await api.deleteHelpRequest(id);
+                  await renderAdminDashboardView(currentHash);
+                } catch (err) {
+                  alert(err.message || 'Failed to delete request');
+                  btn.disabled = false;
+                  btn.innerHTML = originalHTML;
+                  refreshIcons();
+                }
+              });
+            });
+
+            // Render Show More button for Support requests if needed
+            const supportShowMoreContainer = document.getElementById('support-show-more-container');
+            const supportRemaining = tickets.length - helpRequestsVisibleCount;
+            if (supportShowMoreContainer) {
+              if (supportRemaining > 0) {
+                supportShowMoreContainer.innerHTML = `
+                  <button id="btn-support-show-more" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; font-weight: 600;">
+                    Show More (${supportRemaining} remaining) <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                  </button>
+                `;
+                document.getElementById('btn-support-show-more').addEventListener('click', () => {
+                  helpRequestsVisibleCount += 10;
+                  renderAdminDashboardView(currentHash);
+                });
+              } else {
+                supportShowMoreContainer.innerHTML = '';
+              }
             }
           }
+        } catch (err) {
+          console.error('Error fetching help requests:', err);
+          helpRequestsContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load support requests: ${escapeHTML(err.message)}</div>`;
         }
-      } catch (err) {
-        console.error('Error fetching sent notifications:', err);
-        superadminMessagesContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load sent notifications: ${escapeHTML(err.message)}</div>`;
       }
-    } else if (superadminMessagesSection) {
-      superadminMessagesSection.style.display = 'none';
-      const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
-      if (messagesShowMoreContainer) messagesShowMoreContainer.innerHTML = '';
+    };
+
+    const fetchNotifications = async () => {
+      const superadminMessagesSection = document.getElementById('superadmin-messages-section');
+      const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
+      const superadminMessagesCount = document.getElementById('superadmin-messages-count');
+
+      if (currentUser.role === 'superadmin' && superadminMessagesSection && superadminMessagesContainer && superadminMessagesCount) {
+        superadminMessagesSection.style.display = 'block';
+        superadminMessagesContainer.innerHTML = '<div class="empty-state">Loading sent messages...</div>';
+
+        try {
+          const notifications = await api.getAllNotifications();
+          superadminMessagesCount.textContent = notifications.length;
+
+          if (notifications.length === 0) {
+            superadminMessagesContainer.innerHTML = '<div class="empty-state">No notification messages sent yet.</div>';
+            const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
+            if (messagesShowMoreContainer) messagesShowMoreContainer.innerHTML = '';
+          } else {
+            const slicedNotifications = notifications.slice(0, notificationsVisibleCount);
+
+            superadminMessagesContainer.innerHTML = slicedNotifications.map(n => {
+              const seenLabelClass = n.read ? 'status-badge-resolved' : 'status-badge-pending';
+              const seenText = n.read ? 'seen' : 'unseen';
+              const seenIcon = n.read ? 'eye' : 'eye-off';
+              
+              return `
+                <div class="ticket-card" style="border-left: 4px solid ${n.read ? '#10b981' : '#eab308'}; margin-bottom: 12px; padding: 14px 16px;">
+                  <div class="ticket-header" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="ticket-user-info">
+                      <h5 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">
+                        To: ${escapeHTML(capitalizeName(n.recipient.name))} (${escapeHTML(n.recipient.phone)})
+                      </h5>
+                      <span style="font-size: 11px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
+                        <i data-lucide="calendar" style="width: 12px; height: 12px;"></i> ${new Date(n.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <span class="ticket-status-badge ${seenLabelClass}" style="text-transform: capitalize; padding: 2px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                      <i data-lucide="${seenIcon}" style="width: 12px; height: 12px;"></i> ${seenText}
+                    </span>
+                  </div>
+                  <div class="ticket-message" style="font-size: 13px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap;">${escapeHTML(n.message)}</div>
+                  <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px;">
+                    ${!n.read ? `
+                      <button class="btn btn-secondary btn-sm btn-edit-notification" data-id="${n.id}" data-raw="${escapeHTML(n.rawMessage)}" style="padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; background-color: #f1f5f9; border-color: #cbd5e1; color: #475569;">
+                        <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit Message
+                      </button>
+                    ` : ''}
+                    <button class="btn btn-danger btn-sm btn-delete-notification" data-id="${n.id}" style="padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
+                      <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+
+            // Bind Edit button click
+            superadminMessagesContainer.querySelectorAll('.btn-edit-notification').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const rawMessage = btn.getAttribute('data-raw');
+                
+                const newMsgBody = prompt('Edit your message body:', rawMessage);
+                if (newMsgBody === null) return; // user cancelled
+                
+                if (!newMsgBody.trim()) {
+                  alert('Message body cannot be empty');
+                  return;
+                }
+
+                const originalHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = 'Saving...';
+
+                try {
+                  await api.updateNotification(id, newMsgBody.trim());
+                  await renderAdminDashboardView(currentHash);
+                } catch (err) {
+                  alert(err.message || 'Failed to update message');
+                  btn.disabled = false;
+                  btn.innerHTML = originalHTML;
+                  refreshIcons();
+                }
+              });
+            });
+
+            // Bind Delete button click
+            superadminMessagesContainer.querySelectorAll('.btn-delete-notification').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                if (!confirm('Are you sure you want to delete this message?')) return;
+                
+                const originalHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = 'Deleting...';
+
+                try {
+                  await api.deleteNotification(id);
+                  await renderAdminDashboardView(currentHash);
+                } catch (err) {
+                  alert(err.message || 'Failed to delete message');
+                  btn.disabled = false;
+                  btn.innerHTML = originalHTML;
+                  refreshIcons();
+                }
+              });
+            });
+
+            // Render Show More button for Sent notifications if needed
+            const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
+            const messagesRemaining = notifications.length - notificationsVisibleCount;
+            if (messagesShowMoreContainer) {
+              if (messagesRemaining > 0) {
+                messagesShowMoreContainer.innerHTML = `
+                  <button id="btn-messages-show-more" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; font-weight: 600;">
+                    Show More (${messagesRemaining} remaining) <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                  </button>
+                `;
+                document.getElementById('btn-messages-show-more').addEventListener('click', () => {
+                  notificationsVisibleCount += 10;
+                  renderAdminDashboardView(currentHash);
+                });
+              } else {
+                messagesShowMoreContainer.innerHTML = '';
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching sent notifications:', err);
+          superadminMessagesContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load sent notifications: ${escapeHTML(err.message)}</div>`;
+        }
+      } else if (superadminMessagesSection) {
+        superadminMessagesSection.style.display = 'none';
+        const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
+        if (messagesShowMoreContainer) messagesShowMoreContainer.innerHTML = '';
+      }
+    };
+
+    const fetchReviews = async () => {
+      const reviewsContainer = document.getElementById('admin-reviews-list-container');
+      const reviewsCount = document.getElementById('admin-reviews-count');
+      const reviewsAverage = document.getElementById('admin-reviews-average');
+
+      if (reviewsContainer && reviewsCount && reviewsAverage) {
+        reviewsContainer.innerHTML = '<div class="empty-state">Loading reviews...</div>';
+
+        try {
+          const reviews = await api.getAllReviews();
+          reviewsCount.textContent = reviews.length;
+
+          if (reviews.length === 0) {
+            reviewsAverage.textContent = '0.0';
+            reviewsContainer.innerHTML = '<div class="empty-state">No reviews submitted yet.</div>';
+            const reviewsShowMoreContainer = document.getElementById('reviews-show-more-container');
+            if (reviewsShowMoreContainer) reviewsShowMoreContainer.innerHTML = '';
+          } else {
+            // Calculate average
+            const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+            const avg = (sum / reviews.length).toFixed(1);
+            reviewsAverage.textContent = avg;
+
+            // Support show-more pagination for reviews
+            const slicedReviews = reviews.slice(0, reviewsVisibleCount);
+
+            reviewsContainer.innerHTML = slicedReviews.map(r => {
+              let starsHTML = '';
+              for (let i = 1; i <= 5; i++) {
+                const color = i <= r.rating ? 'var(--warning)' : '#cbd5e1';
+                const fill = i <= r.rating ? 'var(--warning)' : 'none';
+                starsHTML += `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${fill}" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+              }
+
+              return `
+                <div class="ticket-card" style="border-left: 5px solid ${r.rating >= 4 ? 'var(--success)' : (r.rating <= 2 ? 'var(--danger)' : 'var(--warning)')}; margin-bottom: 12px; padding: 14px 16px;">
+                  <div class="ticket-header" style="border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+                    <div class="ticket-user-info">
+                      <h5 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">${escapeHTML(capitalizeName(r.name))}</h5>
+                      <div class="ticket-user-meta" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted);">
+                        <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="calendar" style="width: 12px; height: 12px;"></i> ${new Date(r.createdAt).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 2px;">
+                      ${starsHTML}
+                    </div>
+                  </div>
+                  <div class="ticket-message" style="font-size: 14px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap; margin-top: 4px;">${escapeHTML(r.comment) || '<span style="font-style: italic; color: var(--text-muted);">No comment review left.</span>'}</div>
+                  <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px;">
+                    <button class="btn btn-danger btn-sm btn-delete-review" data-id="${r.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
+                      <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete Review
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+
+            // Bind delete review handler
+            reviewsContainer.querySelectorAll('.btn-delete-review').forEach(btn => {
+              btn.addEventListener('click', async () => {
+                if (!confirm('Permanently delete this user review?')) return;
+                const id = btn.getAttribute('data-id');
+                const originalHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Deleting...';
+                refreshIcons();
+                try {
+                  await api.deleteReview(id);
+                  await renderAdminDashboardView(currentHash);
+                } catch (err) {
+                  alert(err.message || 'Deletion failed');
+                  btn.disabled = false;
+                  btn.innerHTML = originalHTML;
+                  refreshIcons();
+                }
+              });
+            });
+
+            // Render show-more pagination button
+            const reviewsShowMoreContainer = document.getElementById('reviews-show-more-container');
+            if (reviewsShowMoreContainer) {
+              const reviewsRemaining = reviews.length - reviewsVisibleCount;
+              if (reviewsRemaining > 0) {
+                reviewsShowMoreContainer.innerHTML = `
+                  <button id="btn-reviews-show-more" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">
+                    Show More Reviews (${reviewsRemaining} remaining)
+                  </button>
+                `;
+                document.getElementById('btn-reviews-show-more').addEventListener('click', async () => {
+                  reviewsVisibleCount += 10;
+                  await renderAdminDashboardView(currentHash);
+                });
+              } else {
+                reviewsShowMoreContainer.innerHTML = '';
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Load reviews view error:', err);
+          reviewsContainer.innerHTML = `<div class="alert alert-danger">Error loading reviews: ${err.message}</div>`;
+        }
+      }
+    };
+
+    // Execute fetches depending on isMobile vs Desktop View
+    if (!isMobile) {
+      // Desktop: Fetch and display EVERYTHING in parallel
+      await Promise.all([
+        fetchApprovals(),
+        fetchUsers(),
+        fetchContributions(),
+        fetchSupport(),
+        fetchNotifications(),
+        fetchReviews()
+      ]);
+    } else {
+      // Mobile: Fetch ONLY the active section's data
+      if (currentHash === '#/admin/approvals') {
+        await fetchApprovals();
+      } else if (currentHash === '#/admin/users') {
+        await fetchUsers();
+      } else if (currentHash === '#/admin/contributions') {
+        await fetchContributions();
+      } else if (currentHash === '#/admin/support') {
+        await fetchSupport();
+      } else if (currentHash === '#/admin/notifications') {
+        await fetchNotifications();
+      } else if (currentHash === '#/admin/reviews') {
+        await fetchReviews();
+      }
     }
 
-    await renderPendingContributions();
+    // Scroll to query-params (only on PC / Desktop)
+    if (!isMobile) {
+      setTimeout(() => {
+        const params = getHashQueryParams();
+        if (params.tab === 'users') {
+          const directorySection = document.getElementById('admin-user-search-input');
+          if (directorySection) directorySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (params.tab === 'pending') {
+          const pendingSection = document.getElementById('pending-users-list-container');
+          if (pendingSection) pendingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (params.tab === 'reviews') {
+          const reviewsSection = document.getElementById('admin-reviews-list-container');
+          if (reviewsSection) reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 150);
+    }
 
     refreshIcons();
-
   } catch (err) {
     errorAlert.textContent = err.message || 'Failed to load control panel directory';
     errorAlert.style.display = 'block';
@@ -4904,6 +5258,442 @@ async function renderSupportView() {
     showHistoryBtn.style.display = currentUser ? 'block' : 'none';
   }
 
+  refreshIcons();
+}
+
+// --- MOBILE BOTTOM NAV ANIMATION ENGINE (MENISCUS LIQUID NAVIGATION) ---
+const Meniscus = {
+  initialized: false,
+  x: 0,
+  v: 0,
+  target: 0,
+  dragging: false,
+  raf: 0,
+  last: 0,
+  current: 0,
+  suppressClick: false,
+  pid: null,
+  startX: 0,
+  
+  G: { W: 0, H: 0, R: 17, D: 46, RB: 29, S: 10, CY: 0, slots: [], span: 80 },
+  
+  reach(s, rb, by) {
+    return Math.sqrt(Math.max((s + rb) ** 2 - (s - by) ** 2, 1));
+  },
+  
+  clamp(v, a, b) {
+    return (v < a ? a : v > b ? b : v);
+  },
+  
+  smooth(t) {
+    return t * t * (3 - 2 * t);
+  },
+  
+  mixRGB(a, b, t) {
+    return `${Math.round(a[0] + (b[0] - a[0]) * t)} ${Math.round(a[1] + (b[1] - a[1]) * t)} ${Math.round(a[2] + (b[2] - a[2]) * t)}`;
+  },
+
+  measure() {
+    const dock = document.getElementById('dock');
+    const svg = document.getElementById('skin');
+    if (!dock || !svg) return false;
+    
+    const r = dock.getBoundingClientRect();
+    const W = Math.round(r.width);
+    const H = Math.round(r.height);
+    if (W < 40 || H < 30) return false;
+
+    const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
+    this.G.slots = tabs.map((t) => {
+      const b = t.getBoundingClientRect();
+      return b.left - r.left + b.width / 2;
+    });
+    this.G.span = this.G.slots.length > 1 ? this.G.slots[1] - this.G.slots[0] : W;
+
+    this.G.W = W;
+    this.G.H = H;
+    this.G.R = this.clamp(H * 0.20, 13, 20);
+    this.G.CY = 0;
+
+    let D = Math.min(H * 0.68, this.G.span * 0.78);
+    const room = this.G.slots[0] - this.G.R - 6;
+    for (let i = 0; i < 3; i++) {
+      const hw = this.reach(D * 0.22, D / 2 + 6, this.G.CY);
+      if (hw <= room) break;
+      D *= room / hw;
+    }
+    this.G.D = Math.max(Math.round(D), 30);
+    this.G.S = this.G.D * 0.22;
+    this.G.RB = this.G.D / 2 + 6;
+
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    dock.style.setProperty('--dock-r', `${this.G.R.toFixed(1)}px`);
+    dock.style.setProperty('--bead-d', `${this.G.D}px`);
+    dock.style.setProperty('--bead-cy', `${this.G.CY}px`);
+    dock.style.setProperty('--rise', `${(H / 2 - this.G.CY).toFixed(1)}px`);
+    return true;
+  },
+
+  trough(bx, by, rb, sL, sR) {
+    const { W, H, R } = this.G;
+    const wing = (s, side) => {
+      const L = s + rb;
+      const half = this.reach(s, rb, by);
+      const sx = bx + side * half;
+      return { sx, s, tx: sx + ((bx - sx) / L) * s, ty: s + ((by - s) / L) * s };
+    };
+    const A = wing(sL, -1);
+    const B = wing(sR, +1);
+
+    const a0 = Math.atan2(A.ty - by, A.tx - bx);
+    const a1 = Math.atan2(B.ty - by, B.tx - bx);
+    let sweep = ((a0 - a1) * 180) / Math.PI;
+    while (sweep < 0) sweep += 360;
+    const large = sweep > 180 ? 1 : 0;
+
+    const n = (v) => v.toFixed(2);
+    return (
+      `M0 ${n(R)}` +
+      `A${n(R)} ${n(R)} 0 0 1 ${n(R)} 0` +
+      `L${n(this.clamp(A.sx, R, W - R))} 0` +
+      `A${n(sL)} ${n(sL)} 0 0 1 ${n(A.tx)} ${n(A.ty)}` +
+      `A${n(rb)} ${n(rb)} 0 ${large} 0 ${n(B.tx)} ${n(B.ty)}` +
+      `A${n(sR)} ${n(sR)} 0 0 1 ${n(this.clamp(B.sx, R, W - R))} 0` +
+      `L${n(W - R)} 0` +
+      `A${n(R)} ${n(R)} 0 0 1 ${n(W)} ${n(R)}` +
+      `L${n(W)} ${n(H - R)}` +
+      `A${n(R)} ${n(R)} 0 0 1 ${n(W - R)} ${n(H)}` +
+      `L${n(R)} ${n(H)}` +
+      `A${n(R)} ${n(R)} 0 0 1 0 ${n(H - R)}` +
+      `Z`
+    );
+  },
+
+  paint() {
+    const fillP = document.getElementById('skinFill');
+    const bead = document.getElementById('bead');
+    const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
+    if (!fillP || !bead) return;
+    if (typeof this.x !== 'number' || isNaN(this.x)) return;
+
+    const q = this.clamp(this.v / 1100, -1, 1) * (this.dragging ? 0.5 : 1);
+    const mag = Math.abs(q);
+
+    const sL = this.clamp(this.G.S * (1 + 0.06 * mag + 0.40 * q), this.G.S * 0.55, this.G.S * 2.1);
+    const sR = this.clamp(this.G.S * (1 + 0.06 * mag - 0.40 * q), this.G.S * 0.55, this.G.S * 2.1);
+
+    const d = this.trough(this.x, this.G.CY, this.G.RB, sL, sR);
+    fillP.setAttribute('d', d);
+
+    const sx = 1 + 0.07 * mag;
+    bead.style.transform = `translate3d(${this.x.toFixed(2)}px,0,0) scale(${sx.toFixed(3)},${(1 / sx).toFixed(3)})`;
+
+    for (let i = 0; i < tabs.length; i++) {
+      const dx = Math.abs(this.x - this.G.slots[i]);
+      tabs[i].style.setProperty('--t', this.smooth(this.clamp(1 - dx / (this.G.span * 0.55), 0, 1)).toFixed(3));
+    }
+  },
+
+  loop(now) {
+    this.raf = 0;
+    const dt = Math.min((now - this.last) / 1000, 1 / 30);
+    this.last = now;
+
+    const K = this.dragging ? 900 : 680;
+    const C = this.dragging ? 52 : 36;
+    let step = dt;
+    while (step > 0) {
+      const h = Math.min(step, 1 / 240);
+      this.v += (-K * (this.x - this.target) - C * this.v) * h;
+      this.x += this.v * h;
+      step -= h;
+    }
+
+    this.paint();
+    if (Math.abs(this.x - this.target) > 0.05 || Math.abs(this.v) > 0.6 || this.dragging) {
+      this.run();
+    } else {
+      this.x = this.target;
+      this.v = 0;
+      this.paint();
+    }
+  },
+
+  run() {
+    if (this.raf) return;
+    this.last = performance.now();
+    this.raf = requestAnimationFrame((now) => this.loop(now));
+  },
+
+  jump(to) {
+    this.target = to;
+    this.run();
+  },
+
+  select(i, { focus = false, animate = true } = {}) {
+    const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
+    if (tabs.length === 0) return;
+    this.current = (i + tabs.length) % tabs.length;
+    
+    tabs.forEach((t, n) => {
+      t.setAttribute('aria-selected', String(n === this.current));
+      t.tabIndex = n === this.current ? 0 : -1;
+    });
+
+    const targetHash = tabs[this.current].getAttribute('href');
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+
+    if (focus) tabs[this.current].focus();
+    if (animate) {
+      this.jump(this.G.slots[this.current]);
+    } else {
+      this.x = this.target = this.G.slots[this.current];
+      this.v = 0;
+      this.paint();
+    }
+  },
+
+  init() {
+    const dock = document.getElementById('dock');
+    if (!dock) return;
+    
+    if (this.initialized) return;
+    this.initialized = true;
+
+    const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
+    
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', (e) => {
+        if (this.suppressClick) {
+          e.preventDefault();
+          return;
+        }
+        this.select(i);
+      });
+    });
+
+    dock.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      this.pid = e.pointerId;
+      this.startX = e.clientX;
+      this.suppressClick = false;
+    });
+
+    dock.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== this.pid) return;
+      if (!this.dragging && Math.abs(e.clientX - this.startX) < 7) return;
+      if (!this.dragging) {
+        this.dragging = true;
+        this.suppressClick = true;
+        dock.classList.add('is-dragging');
+        dock.setPointerCapture(this.pid);
+      }
+      e.preventDefault();
+      const left = dock.getBoundingClientRect().left;
+      this.target = this.clamp(e.clientX - left, this.G.slots[0], this.G.slots[this.G.slots.length - 1]);
+      this.run();
+    });
+
+    const release = (e) => {
+      if (e.pointerId !== this.pid) return;
+      this.pid = null;
+      if (!this.dragging) return;
+      this.dragging = false;
+      dock.classList.remove('is-dragging');
+      let near = 0, nd = Infinity;
+      this.G.slots.forEach((s, i) => {
+        const d = Math.abs(this.target - s);
+        if (d < nd) {
+          nd = d;
+          near = i;
+        }
+      });
+      this.select(near);
+      setTimeout(() => { this.suppressClick = false; }, 50);
+    };
+
+    dock.addEventListener('pointerup', release);
+    dock.addEventListener('pointercancel', release);
+
+    const layout = (animate) => {
+      if (!this.measure()) return;
+      if (animate) this.jump(this.G.slots[this.current]);
+      else {
+        this.x = this.target = this.G.slots[this.current];
+        this.v = 0;
+        this.paint();
+      }
+      dock.classList.add('is-ready');
+    };
+
+    layout(false);
+    new ResizeObserver(() => layout(false)).observe(dock);
+    document.fonts?.ready.then(() => layout(false));
+    
+    // Sync initial state
+    const hash = window.location.hash || '#/';
+    const activeIndex = tabs.findIndex(tab => tab.getAttribute('href') === hash);
+    if (activeIndex !== -1 && this.G.slots.length > 0) {
+      this.select(activeIndex, { animate: false });
+    }
+  }
+};
+
+function updateMobileBottomNavPosition() {
+  const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
+  if (tabs.length === 0) return;
+  
+  if (!Meniscus.initialized) {
+    Meniscus.init();
+  }
+  
+  if (Meniscus.G.slots.length === 0) return;
+  
+  const hash = window.location.hash || '#/';
+  const activeIndex = tabs.findIndex(tab => tab.getAttribute('href') === hash);
+  if (activeIndex !== -1) {
+    Meniscus.select(activeIndex);
+  }
+}
+
+// --- REVIEWS VIEW LOGIC ---
+let selectedReviewRating = 0;
+
+function initReviewEventHandlers() {
+  const form = document.getElementById('form-review');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const comment = document.getElementById('review-comment').value;
+      const errorAlert = document.getElementById('review-error-alert');
+      const successAlert = document.getElementById('review-success-alert');
+      const btnSubmit = document.getElementById('btn-submit-review');
+      
+      errorAlert.style.display = 'none';
+      successAlert.style.display = 'none';
+
+      if (selectedReviewRating === 0) {
+        errorAlert.textContent = 'Please select a rating (1-5 stars)';
+        errorAlert.style.display = 'block';
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      const originalHTML = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Submitting...';
+      refreshIcons();
+
+      try {
+        await api.submitReview(selectedReviewRating, comment);
+        successAlert.textContent = 'Thank you! Your review has been submitted successfully.';
+        successAlert.style.display = 'block';
+        form.reset();
+        selectedReviewRating = 0;
+        updateStarRatingDisplay(0);
+        setTimeout(async () => {
+          await renderReviewsView();
+        }, 1500);
+      } catch (err) {
+        errorAlert.textContent = err.message || 'Failed to submit review';
+        errorAlert.style.display = 'block';
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalHTML;
+        refreshIcons();
+      }
+    });
+  }
+
+  // Star rating tap interaction
+  const stars = document.querySelectorAll('.star-rating-input .star-btn');
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const val = parseInt(star.getAttribute('data-value'));
+      selectedReviewRating = val;
+      document.getElementById('review-rating-value').value = val;
+      updateStarRatingDisplay(val);
+    });
+
+    star.addEventListener('mouseenter', () => {
+      const val = parseInt(star.getAttribute('data-value'));
+      updateStarRatingDisplay(val, true);
+    });
+
+    star.addEventListener('mouseleave', () => {
+      updateStarRatingDisplay(selectedReviewRating);
+    });
+  });
+}
+
+function updateStarRatingDisplay(rating, isHover = false) {
+  const stars = document.querySelectorAll('.star-rating-input .star-btn');
+  stars.forEach((star, index) => {
+    const starIcon = star.querySelector('svg') || star.querySelector('i');
+    if (index < rating) {
+      star.style.color = 'var(--warning)';
+      if (starIcon) {
+        starIcon.style.fill = 'var(--warning)';
+      }
+    } else {
+      star.style.color = '#cbd5e1';
+      if (starIcon) {
+        starIcon.style.fill = 'none';
+      }
+    }
+  });
+}
+
+async function renderReviewsView() {
+  const form = document.getElementById('form-review');
+  const existingContainer = document.getElementById('existing-review-container');
+  const errorAlert = document.getElementById('review-error-alert');
+  const successAlert = document.getElementById('review-success-alert');
+
+  if (errorAlert) errorAlert.style.display = 'none';
+  if (successAlert) successAlert.style.display = 'none';
+
+  if (!currentUser) {
+    navigate('#/login');
+    return;
+  }
+
+  try {
+    const res = await api.getMyReview();
+    if (res.hasSubmitted) {
+      if (form) form.style.display = 'none';
+      if (existingContainer) {
+        existingContainer.style.display = 'block';
+        
+        // Render stars
+        const starsContainer = document.getElementById('existing-review-stars');
+        if (starsContainer) {
+          let starsHTML = '';
+          for (let i = 1; i <= 5; i++) {
+            const fillAttr = i <= res.review.rating ? 'fill="var(--warning)"' : 'fill="none"';
+            const color = i <= res.review.rating ? 'var(--warning)' : '#cbd5e1';
+            starsHTML += `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${i <= res.review.rating ? 'var(--warning)' : 'none'}" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+          }
+          starsContainer.innerHTML = starsHTML;
+        }
+        const commentEl = document.getElementById('existing-review-comment');
+        if (commentEl) commentEl.textContent = res.review.comment || 'No comment provided.';
+        const dateEl = document.getElementById('existing-review-date');
+        if (dateEl) dateEl.textContent = new Date(res.review.createdAt).toLocaleString();
+      }
+    } else {
+      if (form) form.style.display = 'block';
+      if (existingContainer) existingContainer.style.display = 'none';
+      selectedReviewRating = 0;
+      updateStarRatingDisplay(0);
+    }
+  } catch (err) {
+    if (errorAlert) {
+      errorAlert.textContent = err.message || 'Error checking review status';
+      errorAlert.style.display = 'block';
+    }
+  }
   refreshIcons();
 }
 
@@ -7235,6 +8025,10 @@ async function initApp() {
   initSonicEventHandlers();
   initContributionEventHandlers();
   initEditorEventHandlers();
+  initReviewEventHandlers();
+
+  // Update mobile bottom nav position on window resizing
+  window.addEventListener('resize', updateMobileBottomNavPosition);
   
   // Initialize Color Theme & Font Style from localStorage
   const savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
@@ -7774,7 +8568,7 @@ async function renderMyContributionsView() {
 function initThemeToggleHandler() {
   const toggle = document.getElementById('ui-theme-toggle');
   if (toggle) {
-    const activeTheme = localStorage.getItem('studyhub-ui-theme') || 'modern';
+    const activeTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
     toggle.checked = (activeTheme === 'modern');
 
     toggle.addEventListener('change', (e) => {
