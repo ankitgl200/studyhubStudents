@@ -2266,21 +2266,36 @@ body {
 }
 }
 
-/* Mobile Top App Bar (Fixed) */
+/* Mobile Top App Bar (Fixed/Stationary) */
 .mobile-top-bar {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  height: 56px !important;
+  height: auto !important;
   background: var(--white) !important;
   border-bottom: 1px solid var(--border-color) !important;
   display: none;
   justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
-  z-index: 1010 !important; /* Ensure it floats above modals */
+  padding: 16px 20px !important;
+  z-index: 1010 !important;
   box-shadow: var(--shadow-sm);
+}
+
+.mobile-logo {
+  margin-left: 4px !important;
+}
+
+.mobile-logo .logo-image {
+  margin-right: 12px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.mobile-logo span {
+  font-size: 18px !important;
+  margin-left: 2px !important;
 }
 
 /* Hide duplicate page title name on mobile header */
@@ -2387,7 +2402,7 @@ body {
   
   /* Reset top main content padding exactly to top bar height & reserve bottom padding for bottom nav */
   .main-content {
-    padding-top: 56px !important;
+    padding-top: 64px !important;
     padding-bottom: 96px !important;
   }
 
