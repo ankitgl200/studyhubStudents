@@ -2861,7 +2861,7 @@ function renderProfileView() {
             <div class="item-left"><i data-lucide="help-circle" style="color: var(--danger);"></i><span>Help & Support Requests</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          ${currentUser.role === 'superadmin' ? `
+          ${(currentUser.role === 'superadmin' || currentUser.role === 'admin') ? `
             <a href="#/admin/notifications" class="profile-menu-item">
               <div class="item-left"><i data-lucide="mail" style="color: var(--danger);"></i><span>Sent Notifications</span></div>
               <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -4069,11 +4069,11 @@ async function renderAdminDashboardView(currentHash) {
     };
 
     const fetchNotifications = async () => {
-      const superadminMessagesSection = document.getElementById('superadmin-messages-section');
+      const superadminMessagesSection = document.getElementById('admin-section-notifications');
       const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
       const superadminMessagesCount = document.getElementById('superadmin-messages-count');
 
-      if (currentUser.role === 'superadmin' && superadminMessagesSection && superadminMessagesContainer && superadminMessagesCount) {
+      if ((currentUser.role === 'superadmin' || currentUser.role === 'admin') && superadminMessagesSection && superadminMessagesContainer && superadminMessagesCount) {
         superadminMessagesSection.style.display = 'block';
         superadminMessagesContainer.innerHTML = '<div class="empty-state">Loading sent messages...</div>';
 
