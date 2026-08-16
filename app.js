@@ -30,558 +30,13 @@ function ensurePuterLoaded() {
   return loadScript("https://js.puter.com/v2/");
 }
 
-// --- SONIC CHATBOT ENGINE ---
-let chatSessionHistory = [];
-let hasChatHistory = false;
 
-window.addEventListener('beforeunload', (e) => {
-  if (hasChatHistory) {
-    e.preventDefault();
-    e.returnValue = 'Refreshing the page will clear your conversation history. Are you sure you want to refresh?';
-    return e.returnValue;
-  }
-});
 
-function cleanLaTeX(text) {
-  if (!text) return '';
-  let cleaned = text;
 
-  // Replace block math wrappers
-  cleaned = cleaned.replace(/\\\[\s*/g, '\n').replace(/\s*\\\]/g, '\n');
-  // Replace inline math wrappers
-  cleaned = cleaned.replace(/\\\(\s*/g, ' ').replace(/\s*\\\)/g, ' ');
-  // Replace LaTeX subscripts like _{\text{net}} -> _net
-  cleaned = cleaned.replace(/_\{?\\text\{\s*(.*?)\s*\}\}?/g, '_$1');
-  cleaned = cleaned.replace(/_\{\s*(.*?)\s*\}/g, '_$1');
-  
-  // Clean common LaTeX commands
-  cleaned = cleaned.replace(/\\Sigma/g, 'Î£')
-                   .replace(/\\theta/g, 'Î¸')
-                   .replace(/\\pi/g, 'Ï€')
-                   .replace(/\\alpha/g, 'Î±')
-                   .replace(/\\beta/g, 'Î²')
-                   .replace(/\\gamma/g, 'Î³')
-                   .replace(/\\delta/g, 'Î´')
-                   .replace(/\\lambda/g, 'Î»')
-                   .replace(/\\mu/g, 'Î¼')
-                   .replace(/\\infty/g, 'âˆž')
-                   .replace(/\\times/g, 'Ã—')
-                   .replace(/\\div/g, 'Ã·')
-                   .replace(/\\pm/g, 'Â±')
-                   .replace(/\\neq/g, 'â‰ ')
-                   .replace(/\\leq/g, 'â‰¤')
-                   .replace(/\\geq/g, 'â‰¥')
-                   .replace(/\\approx/g, 'â‰ˆ')
-                   .replace(/\\rightarrow/g, 'â†’')
-                   .replace(/\\Rightarrow/g, 'â‡’')
-                   .replace(/\\leftarrow/g, 'â†')
-                   .replace(/\\Leftarrow/g, 'â‡')
-                   .replace(/\\leftrightarrow/g, 'â†”')
-                   .replace(/\\Leftrightarrow/g, 'â‡”')
-                   .replace(/\\cdot/g, 'Â·')
-                   .replace(/\\to/g, 'â†’')
-                   .replace(/\\text\{\s*(.*?)\s*\}/g, '$1')
-                   .replace(/\\frac\{\s*(.*?)\s*\}\{\s*(.*?)\s*\}/g, '($1 / $2)')
-                   .replace(/\\sqrt\{\s*(.*?)\s*\}/g, 'âˆš($1)')
-                   .replace(/\\Delta/g, 'Î”');
-  return cleaned;
-}
 
-function formatChatText(text) {
-  text = cleanLaTeX(text);
-  const lines = text.split('\n');
-  let result = [];
-  let inUl = false;
-  let inOl = false;
-  let inCodeBlock = false;
 
-  for (let line of lines) {
-    // Escape HTML tags for security
-    let escaped = line
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
 
-    // Handle Code Block Toggle
-    if (escaped.trim().startsWith('```')) {
-      if (inCodeBlock) {
-        result.push('</pre>');
-        inCodeBlock = false;
-      } else {
-        const lang = escaped.trim().slice(3).trim();
-        result.push(`<pre style="background: rgba(0,0,0,0.04); padding: 12px; border-radius: 8px; font-family: monospace; overflow-x: auto; margin: 8px 0; border: 1px solid rgba(0,0,0,0.08); line-height: 1.4; font-size: 12.5px;" data-lang="${lang}">`);
-        inCodeBlock = true;
-      }
-      continue;
-    }
 
-    if (inCodeBlock) {
-      result.push(escaped + '\n');
-      continue;
-    }
-
-    // Process Inline Formats (Bold, Italic, Inline Code)
-    function formatInline(str) {
-      str = str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      str = str.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      str = str.replace(/`(.*?)`/g, '<code style="background: rgba(0,0,0,0.06); padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 90%; color: #e11d48;">$1</code>');
-      return str;
-    }
-
-    // Check for List Items
-    const ulMatch = escaped.match(/^[\-\*]\s+(.*)$/);
-    const olMatch = escaped.match(/^\d+\.\s+(.*)$/);
-
-    if (ulMatch) {
-      if (inOl) {
-        result.push('</ol>');
-        inOl = false;
-      }
-      if (!inUl) {
-        result.push('<ul style="margin: 6px 0; padding-left: 20px; list-style-type: disc;">');
-        inUl = true;
-      }
-      result.push(`<li style="margin-bottom: 4px; line-height: 1.5;">${formatInline(ulMatch[1])}</li>`);
-    } else if (olMatch) {
-      if (inUl) {
-        result.push('</ul>');
-        inUl = false;
-      }
-      if (!inOl) {
-        result.push('<ol style="margin: 6px 0; padding-left: 20px; list-style-type: decimal;">');
-        inOl = true;
-      }
-      result.push(`<li style="margin-bottom: 4px; line-height: 1.5;">${formatInline(olMatch[1])}</li>`);
-    } else {
-      if (inUl) {
-        result.push('</ul>');
-        inUl = false;
-      }
-      if (inOl) {
-        result.push('</ol>');
-        inOl = false;
-      }
-
-      // Check for Headers
-      const h3Match = escaped.match(/^###\s+(.*)$/);
-      const h2Match = escaped.match(/^##\s+(.*)$/);
-      const h1Match = escaped.match(/^#\s+(.*)$/);
-
-      if (h3Match) {
-        result.push(`<h4 style="margin: 12px 0 6px 0; font-size: 13.5px; font-weight: 700; color: var(--text-main);">${formatInline(h3Match[1])}</h4>`);
-      } else if (h2Match) {
-        result.push(`<h3 style="margin: 16px 0 8px 0; font-size: 14.5px; font-weight: 700; color: var(--text-main);">${formatInline(h2Match[1])}</h3>`);
-      } else if (h1Match) {
-        result.push(`<h2 style="margin: 20px 0 10px 0; font-size: 15.5px; font-weight: 700; color: var(--text-main);">${formatInline(h1Match[1])}</h2>`);
-      } else {
-        const trimmed = escaped.trim();
-        if (trimmed === '') {
-          result.push('<div style="height: 8px;"></div>');
-        } else {
-          result.push(`<p style="margin: 0 0 6px 0; line-height: 1.5;">${formatInline(escaped)}</p>`);
-        }
-      }
-    }
-  }
-
-  if (inUl) result.push('</ul>');
-  if (inOl) result.push('</ol>');
-  if (inCodeBlock) result.push('</pre>');
-
-  return result.join('');
-}
-
-function typeHtml(element, html, speed = 15, onComplete) {
-  const tokens = html.match(/<[^>]+>|&[a-zA-Z0-9#]+;|[^<&]+/g) || [];
-  let tokenIndex = 0;
-  let charIndex = 0;
-  let currentHTML = "";
-
-  function typeNext() {
-    if (tokenIndex >= tokens.length) {
-      if (onComplete) onComplete();
-      return;
-    }
-
-    const token = tokens[tokenIndex];
-
-    if ((token.startsWith('<') && token.endsWith('>')) || (token.startsWith('&') && token.endsWith(';'))) {
-      currentHTML += token;
-      element.innerHTML = currentHTML;
-      tokenIndex++;
-      typeNext();
-    } else {
-      if (charIndex < token.length) {
-        currentHTML += token[charIndex];
-        element.innerHTML = currentHTML;
-        charIndex++;
-        const chatContainer = document.getElementById('sonic-messages');
-        if (chatContainer) {
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        setTimeout(typeNext, speed);
-      } else {
-        charIndex = 0;
-        tokenIndex++;
-        typeNext();
-      }
-    }
-  }
-
-  typeNext();
-}
-
-function appendSonicMessage(role, text) {
-  return new Promise((resolve) => {
-    const container = document.getElementById('sonic-messages');
-    if (!container) {
-      resolve();
-      return;
-    }
-
-    const bubble = document.createElement('div');
-    bubble.className = `message-bubble ${role}`;
-    
-    if (role === 'user') {
-      bubble.style.cssText = `
-        align-self: flex-end;
-        max-width: 80%;
-        background: var(--primary);
-        color: white;
-        border-radius: 16px 16px 0 16px;
-        padding: 10px 16px;
-        box-shadow: var(--shadow-sm);
-        word-break: break-word;
-        line-height: 1.5;
-        font-size: 13px;
-      `;
-      bubble.innerHTML = formatChatText(text);
-      container.appendChild(bubble);
-      container.scrollTop = container.scrollHeight;
-      resolve();
-    } else {
-      bubble.style.cssText = `
-        align-self: flex-start;
-        max-width: 85%;
-        background: var(--white);
-        border: 1px solid var(--border-color);
-        border-radius: 0 16px 16px 16px;
-        padding: 12px 16px;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        gap: 10px;
-        word-break: break-word;
-        line-height: 1.5;
-        font-size: 13px;
-      `;
-      bubble.innerHTML = `
-        <div style="font-size: 18px; margin-top: 2px;">âš¡</div>
-        <div style="flex: 1;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">SONIC</div>
-          <div class="chat-text"></div>
-        </div>
-      `;
-      container.appendChild(bubble);
-      container.scrollTop = container.scrollHeight;
-
-      const chatTextElement = bubble.querySelector('.chat-text');
-      const formattedHtml = formatChatText(text);
-
-      const input = document.getElementById('sonic-input');
-      const form = document.getElementById('form-sonic-chat');
-      let submitBtn = null;
-      if (form) {
-        submitBtn = form.querySelector('button[type="submit"]');
-      }
-
-      if (input) input.disabled = true;
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.5';
-      }
-
-      typeHtml(chatTextElement, formattedHtml, 15, () => {
-        if (input) {
-          input.disabled = false;
-          input.focus();
-        }
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.style.opacity = '1';
-        }
-        resolve();
-      });
-    }
-  });
-}
-
-async function askSonicDirect(userMsg) {
-  const HF_TOKEN = window.HF_TOKEN || '';
-  if (!HF_TOKEN) {
-    throw new Error('Browser Hugging Face token is not configured');
-  }
-  const COMPLETIONS_URL = 'https://api-inference.huggingface.co/v1/chat/completions';
-
-  const systemPrompt = `You are SONIC, a helpful AI study assistant.
-STRICT RULES:
-1. ONLY answer questions related to studies, academics, homework, exams, courses, and educational topics. If the user asks a question that is NOT related to studies (such as casual chit-chat, hobbies, entertainment, sports, movies, games, jokes, personal questions, how to cook, etc.), you MUST politely decline and ask them to ask something related to studies.
-2. STRICTLY FORBIDDEN: Do NOT use LaTeX math equations or symbol wrappers like \\[ ... \\], $$ ... $$, \\( ... \\), or $ ... $.
-3. DO NOT write raw LaTeX math notation (e.g. \\frac, \\Sigma, \\Rightarrow, \\text, etc.).
-4. Use clean, plain-text math/science equations and unicode symbols (e.g., use 'F_net = m * a', 'a = F_net / m', 'E = m * c^2', 'Î£F = 0 â‡’ v = constant').
-5. DO NOT include unnecessary introductory phrases (such as "Sure! I can teach you..." or "Here is what you need...") or polite concluding chit-chat. Directly output the relevant educational notes, formulas, or step-by-step explanations.
-6. Keep formatting clean and readable using standard bold text, list bullets, or simple markdown headers.`;
-
-  const messages = [
-    { role: 'system', content: systemPrompt }
-  ];
-
-  for (const turn of chatSessionHistory) {
-    messages.push({
-      role: turn.role === 'user' ? 'user' : 'assistant',
-      content: turn.content
-    });
-  }
-  messages.push({ role: 'user', content: userMsg });
-
-  const models = [
-    'openchat/openchat-3.5-0106',
-    'Qwen/Qwen2.5-7B-Instruct',
-    'mistralai/Mistral-7B-Instruct-v0.3',
-    'HuggingFaceH4/zephyr-7b-beta'
-  ];
-
-  let lastError = null;
-
-  for (const model of models) {
-    try {
-      console.log(`Direct fetch trying model: ${model}`);
-      const response = await fetch(COMPLETIONS_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HF_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          max_tokens: 500,
-          temperature: 0.3
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        const errMsg = errData.error && errData.error.message ? errData.error.message : (errData.error || `HTTP ${response.status}`);
-        throw new Error(errMsg);
-      }
-
-      const data = await response.json();
-
-      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-        return data.choices[0].message.content.trim();
-      }
-      throw new Error('Invalid response format');
-    } catch (err) {
-      console.warn(`Direct fetch failed for model ${model}:`, err.message);
-      lastError = err;
-      // If the error indicates a network block (like Failed to fetch), escalate immediately to trigger backend proxy
-      if (err.message && err.message.includes('Failed to fetch')) {
-        throw err;
-      }
-    }
-  }
-
-  throw lastError || new Error('All models failed to respond');
-}
-
-async function askSonicProxy(userMsg) {
-  const data = await request('/sonic/chat', {
-    method: 'POST',
-    body: { prompt: userMsg, history: chatSessionHistory }
-  });
-
-  if (data && data.response) {
-    return data.response.trim();
-  }
-  throw new Error('Invalid response from proxy');
-}
-
-async function askSonicPuter(userMsg) {
-  await ensurePuterLoaded();
-  if (typeof puter === 'undefined') {
-    throw new Error('Puter SDK not loaded');
-  }
-
-  console.log('Querying Puter AI (Stage 3 fallback)...');
-  const systemPrompt = `You are SONIC, a helpful AI study assistant.
-STRICT RULES:
-1. ONLY answer questions related to studies, academics, homework, exams, courses, and educational topics. If the user asks a question that is NOT related to studies (such as casual chit-chat, hobbies, entertainment, sports, movies, games, jokes, personal questions, how to cook, etc.), you MUST politely decline and ask them to ask something related to studies.
-2. STRICTLY FORBIDDEN: Do NOT use LaTeX math equations or symbol wrappers like \\[ ... \\], $$ ... $$, \\( ... \\), or $ ... $.
-3. DO NOT write raw LaTeX math notation (e.g. \\frac, \\Sigma, \\Rightarrow, \\text, etc.).
-4. Use clean, plain-text math/science equations and unicode symbols (e.g., use 'F_net = m * a', 'a = F_net / m', 'E = m * c^2', 'Î£F = 0 â‡’ v = constant').
-5. DO NOT include unnecessary introductory phrases (such as "Sure! I can teach you..." or "Here is what you need...") or polite concluding chit-chat. Directly output the relevant educational notes, formulas, or step-by-step explanations.
-6. Keep formatting clean and readable using standard bold text, list bullets, or simple markdown headers.`;
-
-  const messages = [
-    { role: 'system', content: systemPrompt }
-  ];
-
-  for (const turn of chatSessionHistory) {
-    messages.push({
-      role: turn.role === 'user' ? 'user' : 'assistant',
-      content: turn.content
-    });
-  }
-  messages.push({ role: 'user', content: userMsg });
-
-  const response = await puter.ai.chat(messages);
-  
-  if (response && response.message && response.message.content) {
-    const content = response.message.content;
-    if (typeof content === 'string') {
-      return content.trim();
-    }
-    if (Array.isArray(content) && content[0] && content[0].text) {
-      return content[0].text.trim();
-    }
-  }
-
-  if (typeof response === 'string') {
-    return response.trim();
-  }
-
-  throw new Error('Invalid response from Puter AI');
-}
-
-async function askSonicPollinations(userMsg) {
-  console.log('Querying Pollinations GET (Stage 4 fallback)...');
-  const systemPrompt = `You are SONIC, a helpful AI study assistant.
-STRICT RULES:
-1. ONLY answer questions related to studies, academics, homework, exams, courses, and educational topics. If the user asks a question that is NOT related to studies (such as casual chit-chat, hobbies, entertainment, sports, movies, games, jokes, personal questions, how to cook, etc.), you MUST politely decline and ask them to ask something related to studies.
-2. STRICTLY FORBIDDEN: Do NOT use LaTeX math equations or symbol wrappers like \\[ ... \\], $$ ... $$, \\( ... \\), or $ ... $.
-3. DO NOT write raw LaTeX math notation (e.g. \\frac, \\Sigma, \\Rightarrow, \\text, etc.).
-4. Use clean, plain-text math/science equations and unicode symbols (e.g., use 'F_net = m * a', 'a = F_net / m', 'E = m * c^2', 'Î£F = 0 â‡’ v = constant').
-5. DO NOT include unnecessary introductory phrases (such as "Sure! I can teach you..." or "Here is what you need...") or polite concluding chit-chat. Directly output the relevant educational notes, formulas, or step-by-step explanations.
-6. Keep formatting clean and readable using standard bold text, list bullets, or simple markdown headers.`;
-
-  let fullPrompt = `System: ${systemPrompt}\n\n`;
-  for (const turn of chatSessionHistory) {
-    fullPrompt += `${turn.role === 'user' ? 'User' : 'Assistant'}: ${turn.content}\n`;
-  }
-  fullPrompt += `User: ${userMsg}`;
-
-  const models = ['openai', 'mistral', 'llama'];
-  let lastError = null;
-
-  for (const model of models) {
-    try {
-      console.log(`Pollinations GET trying model: ${model}`);
-      const encodedPrompt = encodeURIComponent(fullPrompt);
-      const url = `https://text.pollinations.ai/${encodedPrompt}?model=${model}&jsonMode=false`;
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const text = await response.text();
-      if (text && text.trim()) {
-        try {
-          const parsed = JSON.parse(text);
-          if (parsed.error) {
-            throw new Error(parsed.error.message || parsed.error);
-          }
-        } catch (e) {
-          // Success: Raw text response
-        }
-        return text.trim();
-      }
-      throw new Error('Empty response');
-    } catch (err) {
-      console.warn(`Pollinations GET model ${model} failed:`, err.message);
-      lastError = err;
-    }
-  }
-
-  throw lastError || new Error('All Pollinations models failed');
-}
-
-async function askSonic(userMsg) {
-  // 1. Try browser-side direct Hugging Face query
-  try {
-    return await askSonicDirect(userMsg);
-  } catch (directErr) {
-    console.warn('Direct Hugging Face query failed:', directErr.message);
-
-    // 2. Try backend proxy Hugging Face query
-    try {
-      return await askSonicProxy(userMsg);
-    } catch (proxyErr) {
-      console.warn('Backend proxy Hugging Face query failed:', proxyErr.message);
-
-      // 3. Try Puter AI directly (unblocked, keyless, very stable)
-      try {
-        return await askSonicPuter(userMsg);
-      } catch (puterErr) {
-        console.warn('Puter AI query failed:', puterErr.message);
-
-        // 4. Try Pollinations GET keyless query directly in browser
-        try {
-          return await askSonicPollinations(userMsg);
-        } catch (pollinationsErr) {
-          console.error('All routes failed for SONIC:', pollinationsErr);
-          throw new Error(`Failed to connect to SONIC chatbot. (HuggingFace Direct: ${directErr.message} | HuggingFace Proxy: ${proxyErr.message} | Puter AI: ${puterErr.message} | Pollinations GET: ${pollinationsErr.message})`);
-        }
-      }
-    }
-  }
-}
-
-function initSonicEventHandlers() {
-  const form = document.getElementById('form-sonic-chat');
-  const input = document.getElementById('sonic-input');
-  const typingIndicator = document.getElementById('sonic-typing');
-  const btnPrint = document.getElementById('btn-print-chat');
-
-  if (form && input) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const userMsg = input.value.trim();
-      if (!userMsg) return;
-
-      input.value = '';
-      await appendSonicMessage('user', userMsg);
-      hasChatHistory = true;
-
-      // Add to session history
-      chatSessionHistory.push({ role: 'user', content: userMsg });
-
-      // Show typing indicator
-      if (typingIndicator) typingIndicator.style.display = 'flex';
-
-      try {
-        const botResponse = await askSonic(userMsg);
-        
-        // Hide typing indicator
-        if (typingIndicator) typingIndicator.style.display = 'none';
-
-        await appendSonicMessage('bot', botResponse);
-        chatSessionHistory.push({ role: 'bot', content: botResponse });
-      } catch (err) {
-        if (typingIndicator) typingIndicator.style.display = 'none';
-        await appendSonicMessage('bot', `Sorry, I encountered an error: ${err.message}. Please check your connection and try again!`);
-      }
-    });
-  }
-
-  if (btnPrint) {
-    btnPrint.addEventListener('click', () => {
-      window.print();
-    });
-  }
-}
 
 // --- API SERVICE ---
 const isLocalhost = window.location.hostname === 'localhost' || 
@@ -1023,18 +478,10 @@ function updateNavbar() {
   const adminTab = document.getElementById('nav-admin');
   const mobMenu = document.getElementById('mobile-nav-menu');
   const floatingContributeBtn = document.getElementById('btn-floating-contribute');
-  const floatingSonicBtn = document.getElementById('btn-floating-sonic');
-
   if (currentUser && currentUser.role === 'student') {
     if (floatingContributeBtn) floatingContributeBtn.style.display = 'flex';
   } else {
     if (floatingContributeBtn) floatingContributeBtn.style.display = 'none';
-  }
-
-  if (currentUser) {
-    if (floatingSonicBtn) floatingSonicBtn.style.display = 'flex';
-  } else {
-    if (floatingSonicBtn) floatingSonicBtn.style.display = 'none';
   }
 
   if (currentUser) {
@@ -1109,6 +556,9 @@ function updateNavbar() {
           <a href="#/contributors" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="trophy" style="width: 14px; height: 14px; color: var(--primary);"></i> Top Contributors
           </a>
+          <a href="javascript:void(0)" onclick="downloadUserManual(); document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+            <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i> Download Manual
+          </a>
           <a href="#/reset-password" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="key-round" style="width: 14px; height: 14px; color: var(--primary);"></i> Reset Password
           </a>
@@ -1151,25 +601,7 @@ function updateNavbar() {
     document.getElementById('btn-logout').addEventListener('click', () => {
       api.logout();
       currentUser = null;
-      chatSessionHistory = [];
-      hasChatHistory = false;
-      const container = document.getElementById('sonic-messages');
-      if (container) {
-        container.innerHTML = `
-          <!-- System / Welcome Message -->
-          <div class="message-bubble system" style="align-self: flex-start; max-width: 85%; background: var(--white); border: 1px solid var(--border-color); border-radius: 0 16px 16px 16px; padding: 12px 16px; box-shadow: var(--shadow-sm); display: flex; gap: 10px;">
-            <div style="font-size: 18px; margin-top: 2px;">âš¡</div>
-            <div>
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">SONIC</div>
-              <div style="font-size: 13px; color: var(--text-main); line-height: 1.5;" class="chat-text">
-                Hello! I am **SONIC**, your personal AI study assistant. I'm here to help you solve academic problems, understand concepts, and prepare for exams.
-                <br/><br/>
-                <em>Please note: I am restricted to study-related questions only. How can I help you today?</em>
-              </div>
-            </div>
-          </div>
-        `;
-      }
+
       updateNavbar();
       navigate('#/');
     });
@@ -1501,10 +933,6 @@ async function router() {
     window.location.hash = '#/';
     setTimeout(() => showPrivacyModal(), 100);
     return;
-  } else if (hash === '#/sonic') {
-    document.getElementById('view-sonic').style.display = 'block';
-    const container = document.getElementById('sonic-messages');
-    if (container) container.scrollTop = container.scrollHeight;
   } else {
     document.getElementById('view-home').style.display = 'block';
     await renderHomeView();
@@ -1527,7 +955,6 @@ async function router() {
     else if (hash === '#/reset-password') titleEl.textContent = 'Reset Password';
     else if (hash === '#/terms') titleEl.textContent = 'Terms';
     else if (hash === '#/privacy') titleEl.textContent = 'Privacy';
-    else if (hash === '#/sonic') titleEl.textContent = 'Sonic AI';
     else titleEl.textContent = 'Study Hub';
   }
 
@@ -1540,10 +967,8 @@ async function router() {
 
   if (adSpace) adSpace.style.display = 'none';
 
-  if (hash !== '#/sonic') {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-  }
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
 
   refreshIcons();
 }
@@ -3287,6 +2712,10 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="trophy"></i><span>Top Contributors</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
+        <a href="javascript:void(0)" onclick="downloadUserManual()" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="file-text"></i><span>Download Manual</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
         <a href="#/reset-password" class="profile-menu-item">
           <div class="item-left"><i data-lucide="key-round"></i><span>Reset Password</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -3532,6 +2961,403 @@ function showPrivacyModal() {
     if (footerBtn) footerBtn.onclick = closeFn;
     modal.onclick = (e) => { if (e.target === modal) closeFn(); };
   }
+}
+
+async function downloadUserManual() {
+  const { jsPDF } = window.jspdf;
+  
+  const loadImg = (src) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  };
+
+  const [imgProfile, imgFolders, imgResources, imgNotes] = await Promise.all([
+    loadImg('media_1786884488200.jpg'),
+    loadImg('media_1786884488206.jpg'),
+    loadImg('media_1786884488213.jpg'),
+    loadImg('media_1786884488234.jpg')
+  ]);
+
+  const doc = new jsPDF('p', 'mm', 'a4'); // A4 size: 210mm x 297mm
+  
+  // Custom Color Constants (RGB)
+  const PRIMARY = [79, 70, 229];    // Indigo (#4f46e5)
+  const PRIMARY_DARK = [55, 48, 163]; // Dark Indigo
+  const SECONDARY = [5, 150, 105];   // Emerald Green (#059669)
+  const TEXT_MAIN = [30, 41, 59];    // Slate 800
+  const TEXT_MUTED = [100, 116, 139]; // Slate 500
+  const WHITE = [255, 255, 255];
+  
+  // Helper: Draw Header & Footer for pages (except Page 1)
+  function drawPageTemplate(pageNum, totalPages) {
+    // Header bar
+    doc.setFillColor(...PRIMARY);
+    doc.rect(0, 0, 210, 12, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...WHITE);
+    doc.text('STUDYHUB - ACADEMIC PORTAL & CENTRAL LIBRARY GUIDE', 15, 8);
+    
+    // Footer bar
+    doc.setFillColor(...TEXT_MAIN);
+    doc.rect(0, 287, 210, 10, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...WHITE);
+    doc.text('StudyHub Official User Manual', 15, 293.5);
+    doc.text(`Page ${pageNum} of ${totalPages}`, 180, 293.5);
+  }
+
+  // Helper: Draw section title
+  function drawSectionHeader(title, x, y) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(...PRIMARY_DARK);
+    doc.text(title, x, y);
+    
+    // Draw horizontal colored accent line below title
+    doc.setFillColor(...SECONDARY);
+    doc.rect(x, y + 1.5, 45, 0.8, 'F');
+    return y + 8;
+  }
+  
+  // Helper: Print wrapped text line by line
+  function printWrappedText(doc, text, x, y, maxW, lineHeight = 6) {
+    const lines = doc.splitTextToSize(text, maxW);
+    lines.forEach(line => {
+      doc.text(line, x, y);
+      y += lineHeight;
+    });
+    return y; // returns the new Y coordinate!
+  }
+  
+  // ----------------------------------------------------
+  // PAGE 1: COVER PAGE
+  // ----------------------------------------------------
+  // Top Banner
+  doc.setFillColor(...PRIMARY);
+  doc.rect(0, 0, 210, 110, 'F');
+  
+  // Large Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(36);
+  doc.setTextColor(...WHITE);
+  doc.text('StudyHub', 20, 45);
+  
+  // Tagline/Subtitle
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(14);
+  doc.setTextColor(224, 231, 255); // Light indigo
+  doc.text('Official Platform User Manual & Contribution Guide', 20, 58);
+  
+  // Accent Bar
+  doc.setFillColor(...SECONDARY);
+  doc.rect(20, 68, 60, 2.5, 'F');
+  
+  // Metadata block in banner
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(10);
+  doc.setTextColor(199, 210, 254);
+  doc.text('Version 1.0.5  |  A4 Practical Ready  |  Active Resource Hub', 20, 85);
+  
+  // Bottom Content: Welcome message and table of contents
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(...TEXT_MAIN);
+  doc.text('Welcome to StudyHub', 20, 130);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...TEXT_MAIN);
+  let yPos = 138;
+  const introText = "StudyHub is a modern, student-centric digital library and study platform. This document serves as your guide to getting the most out of our centralized resource bank, folders directory, and built-in A4 file tools.";
+  yPos = printWrappedText(doc, introText, 20, yPos, 170, 6);
+  
+  // Table of Contents block
+  yPos += 10;
+  doc.setFillColor(248, 250, 252); // light slate gray
+  doc.rect(20, yPos, 170, 68, 'F');
+  doc.rect(20, yPos, 170, 68, 'S'); // border
+  
+  yPos += 8;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('TABLE OF CONTENTS', 28, yPos);
+  
+  yPos += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...TEXT_MAIN);
+  
+  const tocItems = [
+    { page: 'Page 2', title: '1. App Navigation & Core Features (Notes, PYQs, and Resources)' },
+    { page: 'Page 2', title: '2. Built-in Practical File Generators & Scan Filters' },
+    { page: 'Page 3', title: '3. Uploading & Downloading Rules (Students, Teachers, Admins)' },
+    { page: 'Page 3', title: '4. Contribution Leaderboard & Points Structure' },
+    { page: 'Page 4', title: '5. About StudyHub (Overview, Problems Statement, Solution & Credits)' },
+    { page: 'Page 5', title: '6. User Interface Visual Tour & Screenshot Gallery' }
+  ];
+  
+  tocItems.forEach(item => {
+    doc.text(item.title, 28, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text(item.page, 168, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 8;
+  });
+  
+  // ----------------------------------------------------
+  // PAGE 2: FEATURES & TOOLS
+  // ----------------------------------------------------
+  doc.addPage();
+  drawPageTemplate(2, 5);
+  
+  yPos = 25;
+  yPos = drawSectionHeader('1. Core Features & Navigation', 20, yPos);
+  yPos += 2;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('Subject-Wise Lecture Notes & PYQs:', 20, yPos);
+  yPos += 5;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const notesText = "StudyHub categorizes study materials into notes and previous year question papers. You can select semesters, browse subject folders, like documents for quick reference, and filter files instantly. All files load and view in-browser or download with one tap.";
+  yPos = printWrappedText(doc, notesText, 20, yPos, 170, 5);
+  yPos += 5;
+  
+  yPos = drawSectionHeader('2. Practical File Generators & Tools', 20, yPos);
+  yPos += 2;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const generatorText = "Under \'File Tools\', students can generate custom, A4-ready practical cover pages (Lab Front Pages) and index sheets in PDF format. The platform also offers image-to-PDF compilation, PDF compression, PDF merging/splitting, crop margin guides, and scans grayscale/black-and-white filters.";
+  yPos = printWrappedText(doc, generatorText, 20, yPos, 170, 5);
+  
+  // Embed screenshots side-by-side on page 2
+  yPos += 8;
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...TEXT_MUTED);
+  doc.text('Figure 1: Subject Directories & Resource Categories', 20, yPos);
+  
+  if (imgFolders) {
+    doc.addImage(imgFolders, 'JPEG', 20, yPos + 4, 75, 125);
+  }
+  if (imgResources) {
+    doc.addImage(imgResources, 'JPEG', 115, yPos + 4, 75, 125);
+  }
+  
+  // ----------------------------------------------------
+  // PAGE 3: RULES & GUIDELINES
+  // ----------------------------------------------------
+  doc.addPage();
+  drawPageTemplate(3, 5);
+  
+  yPos = 25;
+  yPos = drawSectionHeader('3. Upload & Download Rules', 20, yPos);
+  yPos += 2;
+  
+  // Rules Box (Student)
+  doc.setFillColor(240, 253, 250); // Emerald 50
+  doc.rect(20, yPos, 90, 48, 'F');
+  doc.rect(20, yPos, 90, 48, 'S');
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...SECONDARY);
+  doc.text('For Students:', 24, yPos + 6);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const studentRules = [
+    "- Only upload high-quality, clear scans of notes, lab manuals, and previous year papers.",
+    "- Contributions do not go live instantly. They require review and approval from a Teacher or Admin.",
+    "- For every successfully approved contribution, you receive 1 point on the Leaderboard.",
+    "- Do not upload copyrighted books, promotional content, or duplicate/corrupt PDFs."
+  ];
+  let subY = yPos + 12;
+  studentRules.forEach(rule => {
+    subY = printWrappedText(doc, rule, 24, subY, 82, 4.5);
+  });
+  yPos += 53;
+  
+  // Rules Box (Teacher/Educator)
+  doc.setFillColor(239, 246, 255); // Blue 50
+  doc.rect(20, yPos, 90, 40, 'F');
+  doc.rect(20, yPos, 90, 40, 'S');
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...PRIMARY);
+  doc.text('For Teachers (Educators):', 24, yPos + 6);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const teacherRules = [
+    "- Uploaded resources go live instantly, bypass review gates, and display with the \'Educator\' label.",
+    "- Access the Educator Dashboard to monitor your resource likes, uploads count, and total page views.",
+    "- Create and manage course folders, roadmaps, and textbooks."
+  ];
+  subY = yPos + 12;
+  teacherRules.forEach(rule => {
+    subY = printWrappedText(doc, rule, 24, subY, 82, 4.5);
+  });
+  yPos += 45;
+  
+  // Rules Box (Admin)
+  doc.setFillColor(254, 242, 242); // Red 50
+  doc.rect(20, yPos, 90, 40, 'F');
+  doc.rect(20, yPos, 90, 40, 'S');
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(220, 38, 38);
+  doc.text('For Administrators:', 24, yPos + 6);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const adminRules = [
+    "- Approve or reject pending student contributions under the approvals panel.",
+    "- Manage the student/educator directories and reset user passwords if needed.",
+    "- Issue server-wide announcements, manage support tickets, and configure app themes."
+  ];
+  subY = yPos + 12;
+  adminRules.forEach(rule => {
+    subY = printWrappedText(doc, rule, 24, subY, 82, 4.5);
+  });
+  yPos += 45;
+  
+  yPos = drawSectionHeader('4. Leaderboard & Contribution Points', 20, yPos);
+  yPos += 2;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const leaderboardText = "Under \'Top Contributors\' page, students are ranked by approved uploads points. Each live upload awards 1 point. While leaderboard names and positions are public to all, detailed uploads count and exact points are visible only to Admins/Superadmins.";
+  yPos = printWrappedText(doc, leaderboardText, 20, yPos, 90, 4.5);
+  
+  // Embed profile view screenshot on right side of Page 3
+  if (imgProfile) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...TEXT_MUTED);
+    doc.text('Figure 2: User Account & Profile Sections', 120, 25);
+    doc.addImage(imgProfile, 'JPEG', 120, 28, 70, 140);
+  }
+  
+  // ----------------------------------------------------
+  // PAGE 4: ABOUT STUDYHUB (PASTED HTML CONTENT)
+  // ----------------------------------------------------
+  doc.addPage();
+  drawPageTemplate(4, 5);
+  
+  yPos = 25;
+  yPos = drawSectionHeader('5. About StudyHub', 20, yPos);
+  yPos += 2;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('PLATFORM OVERVIEW:', 20, yPos);
+  yPos += 5;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...TEXT_MAIN);
+  const aboutOverview = "StudyHub is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for university and college students, StudyHub serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. Beyond being a repository, StudyHub integrates intelligent features to guide students through their academic journey.";
+  yPos = printWrappedText(doc, aboutOverview, 20, yPos, 170, 4.5);
+  yPos += 4;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('THE PROBLEM STATEMENT:', 20, yPos);
+  yPos += 5;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...TEXT_MAIN);
+  const aboutProblem = "Navigating college academics is often harder than it needs to be due to several persistent challenges: Lack of Organized Study Resources: Lecture slides, notes, and study material are usually scattered across different chats, emails, and drives. Students spend valuable time searching for resources instead of studying them. Difficulty Finding PYQs: Previous Year Questions are critical for exam preparation, yet they are rarely cataloged systematically, leaving students guessing about past trends. Lack of Centralized Guidance: Without a single platform, juniors struggle to seek guidance from seniors, leading to a disconnect and unnecessary stress during exams.";
+  yPos = printWrappedText(doc, aboutProblem, 20, yPos, 170, 4.5);
+  yPos += 4;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('OUR SOLUTION:', 20, yPos);
+  yPos += 5;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...TEXT_MAIN);
+  const aboutSolution = "StudyHub solves these pain points by offering a unified, clean, and accessible portal: One-Click Access: Streamlined storage allows students to access notes and files instantly without jumping between platforms. Systematic Archives: Categorized and semester-wise sorted papers make finding PYQs completely effortless. Organized & Responsive Interface: A user-friendly, responsive Single Page Application (SPA) designed to work beautifully on both desktop and mobile devices. Community-Driven Support: Built by seniors who understand the curriculum, ensuring the resources are always relevant and accurate.";
+  yPos = printWrappedText(doc, aboutSolution, 20, yPos, 170, 4.5);
+  yPos += 4;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('OWNERSHIP & ROLES:', 20, yPos);
+  yPos += 5;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...TEXT_MAIN);
+  doc.text('Ankit Ghugtyal - Founder & Developer', 25, yPos);
+  doc.text('Abhay Chandra Joshi - Content Curator', 25, yPos + 4.5);
+  doc.text('Adarsh Singh Chaudhary - Community Manager', 25, yPos + 9);
+  doc.text('Shreya Tamta - Platform Coordinator', 25, yPos + 13.5);
+  yPos += 20;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...PRIMARY_DARK);
+  doc.text('HOW TO CONTRIBUTE:', 20, yPos);
+  yPos += 5;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...TEXT_MAIN);
+  const aboutContribute = "We believe StudyHub belongs to the student community. If you want to help grow the platform, improve the resources, or fix a bug, here is how you can contribute: Fork the Repository: Create a personal copy of the repository on your GitHub account. Add or Improve Resources: Add high-quality study materials, missing PYQs, or clean lecture notes. Submit a Pull Request: Submit your changes back to the main repository for review. Our team will review and merge it.";
+  yPos = printWrappedText(doc, aboutContribute, 20, yPos, 170, 4.5);
+  
+  // ----------------------------------------------------
+  // PAGE 5: VISUAL TOUR & NOTES VIEW SCREENSHOT
+  // ----------------------------------------------------
+  doc.addPage();
+  drawPageTemplate(5, 5);
+  
+  yPos = 25;
+  yPos = drawSectionHeader('6. User Interface Visual Tour', 20, yPos);
+  yPos += 2;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...TEXT_MAIN);
+  const tourText = "Below is the main document listing page where students can view academic papers, likes, and upload details. StudyHub is fully responsive and adjusts fluidly to provide a native mobile app experience on smaller devices.";
+  yPos = printWrappedText(doc, tourText, 20, yPos, 170, 5);
+  
+  if (imgNotes) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...TEXT_MUTED);
+    doc.text('Figure 3: Document Catalog & Downloads Layout', 65, yPos + 6);
+    doc.addImage(imgNotes, 'JPEG', 65, yPos + 10, 80, 150);
+  }
+  
+  // Save PDF
+  doc.save('StudyHub_User_Manual.pdf');
 }
 
 function showAboutModal() {
@@ -6751,25 +6577,7 @@ function initEventHandlers() {
     if (logoutBtn) {
       api.logout();
       currentUser = null;
-      chatSessionHistory = [];
-      hasChatHistory = false;
-      const container = document.getElementById('sonic-messages');
-      if (container) {
-        container.innerHTML = `
-          <!-- System / Welcome Message -->
-          <div class="message-bubble system" style="align-self: flex-start; max-width: 85%; background: var(--white); border: 1px solid var(--border-color); border-radius: 0 16px 16px 16px; padding: 12px 16px; box-shadow: var(--shadow-sm); display: flex; gap: 10px;">
-            <div style="font-size: 18px; margin-top: 2px;">⚡</div>
-            <div>
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">SONIC</div>
-              <div style="font-size: 13px; color: var(--text-main); line-height: 1.5;" class="chat-text">
-                Hello! I am **SONIC**, your personal AI study assistant. I'm here to help you solve academic problems, understand concepts, and prepare for exams.
-                <br/><br/>
-                <em>Please note: I am restricted to study-related questions only. How can I help you today?</em>
-              </div>
-            </div>
-          </div>
-        `;
-      }
+
       updateNavbar();
       navigate('#/');
       return;
@@ -6912,6 +6720,10 @@ function initEventHandlers() {
       updateNavbar();
       startNotificationPolling();
       navigate('#/');
+      if (res.isNewUser) {
+        // Automatically download user manual for new users
+        downloadUserManual();
+      }
     } catch (err) {
       errorAlert.textContent = err.message || 'Failed to login';
       errorAlert.style.display = 'block';
@@ -7110,6 +6922,8 @@ function initEventHandlers() {
         updateNavbar();
         startNotificationPolling();
         navigate('#/');
+        // Automatically download user manual for new users
+        downloadUserManual();
       }
     } catch (err) {
       errorAlert.textContent = err.message || 'Failed to sign up';
@@ -8129,7 +7943,6 @@ async function initApp() {
   updateNavbar();
   initEventHandlers();
 
-  initSonicEventHandlers();
   initContributionEventHandlers();
   initEditorEventHandlers();
   initReviewEventHandlers();
