@@ -621,26 +621,26 @@ function updateNavbar() {
         <i data-lucide="phone" style="width: 12px; height: 12px;"></i> ${escapeHTML(currentUser.phone)}
       </div>
       <div class="mobile-nav-links">
-        <a href="#/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
-        <a href="#/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
-        <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
-        <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
-        <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
-        <a href="#/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
-        <a href="#/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
+        <a href="/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
+        <a href="/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
+        <a href="/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
+        <a href="/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
+        <a href="/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
+        <a href="/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
+        <a href="/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
         <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-contribute"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute</a>
 
         ${currentUser.role === 'student' ? `
-          <a href="#/my-contributions" class="mobile-nav-link" id="mob-nav-my-contributions"><i data-lucide="award" style="width: 18px; height: 18px;"></i> My Contributions</a>
+          <a href="/my-contributions" class="mobile-nav-link" id="mob-nav-my-contributions"><i data-lucide="award" style="width: 18px; height: 18px;"></i> My Contributions</a>
         ` : ''}
         ${(currentUser.role === 'educator' || currentUser.role === 'admin' || currentUser.role === 'superadmin') ? `
-          <a href="#/my-uploads" class="mobile-nav-link" id="mob-nav-my-uploads"><i data-lucide="folder-heart" style="width: 18px; height: 18px;"></i> My Uploads</a>
+          <a href="/my-uploads" class="mobile-nav-link" id="mob-nav-my-uploads"><i data-lucide="folder-heart" style="width: 18px; height: 18px;"></i> My Uploads</a>
         ` : ''}
         ${currentUser.role === 'educator' ? `
-          <a href="#/teacher-dashboard" class="mobile-nav-link" id="mob-nav-teacher-dashboard"><i data-lucide="presentation" style="width: 18px; height: 18px;"></i> Teacher Dashboard</a>
+          <a href="/teacher-dashboard" class="mobile-nav-link" id="mob-nav-teacher-dashboard"><i data-lucide="presentation" style="width: 18px; height: 18px;"></i> Teacher Dashboard</a>
         ` : ''}
         ${(currentUser.role === 'admin' || currentUser.role === 'superadmin') ? `
-          <a href="#/admin" class="mobile-nav-link" id="mob-nav-admin"><i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i> Admin</a>
+          <a href="/admin" class="mobile-nav-link" id="mob-nav-admin"><i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i> Admin</a>
         ` : ''}
       </div>
       <button class="btn btn-primary btn-download-app-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; margin-top: auto; margin-bottom: 12px;">
@@ -695,19 +695,19 @@ function updateNavbar() {
         </button>
       </div>
       <div class="mobile-nav-links">
-        <a href="#/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
-        <a href="#/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
-        <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
-        <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
-        <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
-        <a href="#/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
+        <a href="/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
+        <a href="/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
+        <a href="/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
+        <a href="/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
+        <a href="/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
+        <a href="/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
       </div>
       <button class="btn btn-primary btn-download-app-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; margin-top: auto; margin-bottom: 12px;">
         <i data-lucide="smartphone" style="width: 18px; height: 18px;"></i> Download App
       </button>
       <div style="display: flex; gap: 8px; width: 100%;">
-        <a href="#/login" class="nav-link btn btn-secondary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Login</a>
-        <a href="#/signup" class="btn btn-primary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Sign Up</a>
+        <a href="/login" class="nav-link btn btn-secondary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Login</a>
+        <a href="/signup" class="btn btn-primary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Sign Up</a>
       </div>
     `;
 
@@ -725,47 +725,75 @@ function updateNavbar() {
   refreshIcons();
 }
 
-function handleAuthProtection(hash) {
-  const publicRoutes = ['#/', '#', '', '#/login', '#/signup', '#/notes', '#/papers', '#/resources', '#/generators', '#/support', '#/terms', '#/privacy', '#/contributors'];
-  if (!publicRoutes.includes(hash) && !currentUser) {
-    navigate('#/login');
+function handleAuthProtection(path) {
+  let cleanPath = path;
+  if (cleanPath.startsWith('#/')) {
+    cleanPath = cleanPath.slice(1);
+  } else if (cleanPath.startsWith('#')) {
+    cleanPath = cleanPath.slice(1);
+  }
+  cleanPath = cleanPath.split('?')[0];
+  if (cleanPath.endsWith('/') && cleanPath.length > 1) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+
+  const publicRoutes = ['/', '/login', '/signup', '/notes', '/papers', '/resources', '/generators', '/support', '/terms', '/privacy', '/contributors'];
+  if (!publicRoutes.includes(cleanPath) && !currentUser) {
+    navigate('/login');
     return false;
   }
-  if (hash === '#/admin' && currentUser && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
-    navigate('#/');
+  if (cleanPath.startsWith('/admin') && currentUser && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    navigate('/');
     return false;
   }
-  if (hash === '#/my-uploads' && currentUser && currentUser.role !== 'educator' && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
-    navigate('#/');
+  if (cleanPath === '/my-uploads' && currentUser && currentUser.role !== 'educator' && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    navigate('/');
     return false;
   }
-  if (hash === '#/my-contributions' && currentUser && currentUser.role !== 'student') {
-    navigate('#/');
+  if (cleanPath === '/my-contributions' && currentUser && currentUser.role !== 'student') {
+    navigate('/');
     return false;
   }
-  if (hash === '#/teacher-dashboard' && currentUser && currentUser.role !== 'educator') {
-    navigate('#/');
+  if (cleanPath === '/teacher-dashboard' && currentUser && currentUser.role !== 'educator') {
+    navigate('/');
     return false;
   }
   return true;
 }
 
-function navigate(hash) {
-  window.location.hash = hash;
+function navigate(path) {
+  let cleanPath = path;
+  if (cleanPath.startsWith('#/')) {
+    cleanPath = cleanPath.slice(1);
+  } else if (cleanPath.startsWith('#') && cleanPath.includes('/')) {
+    cleanPath = cleanPath.slice(1);
+  }
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+  history.pushState(null, '', cleanPath);
+  router();
 }
 
 function getHashQueryParams() {
+  const params = {};
+  const searchParams = new URLSearchParams(window.location.search);
+  for (const [key, value] of searchParams.entries()) {
+    params[key] = value;
+  }
   const hash = window.location.hash;
   const qIndex = hash.indexOf('?');
-  if (qIndex === -1) return {};
-  
-  const qStr = hash.slice(qIndex + 1);
-  const params = {};
-  const pairs = qStr.split('&');
-  for (const pair of pairs) {
-    const [key, value] = pair.split('=');
-    if (key) {
-      params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+  if (qIndex !== -1) {
+    const qStr = hash.slice(qIndex + 1);
+    const pairs = qStr.split('&');
+    for (const pair of pairs) {
+      const [key, value] = pair.split('=');
+      if (key) {
+        params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+      }
     }
   }
   return params;
@@ -773,33 +801,55 @@ function getHashQueryParams() {
 
 // --- ROUTER ENGINE ---
 async function router() {
-  if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#/') {
-    if (window.location.hash !== '#/') {
-      window.location.hash = '#/';
-    }
+  // Extract clean pathname (and support hash fallback for backwards compatibility)
+  let cleanPath = window.location.pathname || '/';
+  if (window.location.hash && window.location.hash.startsWith('#/')) {
+    cleanPath = window.location.hash.slice(1);
+  } else if (window.location.hash && window.location.hash.startsWith('#') && window.location.hash.includes('/')) {
+    cleanPath = window.location.hash.slice(1);
   }
-  const fullHash = window.location.hash || '#/';
-  const hash = fullHash.split('?')[0];
+  cleanPath = cleanPath.split('?')[0];
+  if (cleanPath.endsWith('/') && cleanPath.length > 1) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+
   const adSpace = document.getElementById('site-ad-space');
   if (adSpace) adSpace.style.display = 'none';
   
   // Update navbar active state
   document.querySelectorAll('.nav-links .nav-link').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === hash) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
+    let href = link.getAttribute('href');
+    if (href) {
+      if (href.startsWith('#/')) href = href.slice(1);
+      else if (href.startsWith('#')) href = href.slice(1);
+      if (!href.startsWith('/')) href = '/' + href;
+      href = href.split('?')[0];
+      
+      if (href === cleanPath) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
     }
   });
 
   // Update mobile navbar active state
   document.querySelectorAll('.mobile-nav-menu .mobile-nav-link').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === hash) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
+    let href = link.getAttribute('href');
+    if (href) {
+      if (href.startsWith('#/')) href = href.slice(1);
+      else if (href.startsWith('#')) href = href.slice(1);
+      if (!href.startsWith('/')) href = '/' + href;
+      href = href.split('?')[0];
+
+      if (href === cleanPath) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
     }
   });
 
@@ -815,21 +865,28 @@ async function router() {
   document.body.style.overflow = ''; // RESTORE PAGE SCROLL
 
   // Run protection check
-  if (!handleAuthProtection(hash)) return;
+  if (!handleAuthProtection(cleanPath)) return;
 
   // Update mobile bottom nav active state instantly before asynchronous loading
   document.querySelectorAll('.mobile-bottom-nav-item').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === hash) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
+    let href = link.getAttribute('href');
+    if (href) {
+      if (href.startsWith('#/')) href = href.slice(1);
+      else if (href.startsWith('#')) href = href.slice(1);
+      if (!href.startsWith('/')) href = '/' + href;
+      href = href.split('?')[0];
+
+      if (href === cleanPath) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
     }
   });
 
   const bottomNav = document.querySelector('.mobile-bottom-nav');
   if (bottomNav) {
-    if (hash === '#/login' || hash === '#/signup') {
+    if (cleanPath === '/login' || cleanPath === '/signup') {
       bottomNav.style.setProperty('display', 'none', 'important');
     } else {
       bottomNav.style.removeProperty('display');
@@ -846,43 +903,43 @@ async function router() {
   // Close any open modals when navigating
   closeAllModals();
 
-  if (!hash || hash === '#/' || hash === '#' || hash === '') {
+  if (cleanPath === '/' || cleanPath === '') {
     document.getElementById('view-home').style.display = 'block';
     await renderHomeView();
-  } else if (hash === '#/login') {
-    if (currentUser) return navigate('#/');
+  } else if (cleanPath === '/login') {
+    if (currentUser) return navigate('/');
     document.getElementById('view-login').style.display = 'block';
     document.getElementById('login-error-alert').style.display = 'none';
-  } else if (hash === '#/signup') {
-    if (currentUser) return navigate('#/');
+  } else if (cleanPath === '/signup') {
+    if (currentUser) return navigate('/');
     document.getElementById('view-signup').style.display = 'block';
     document.getElementById('signup-error-alert').style.display = 'none';
     document.getElementById('signup-success-alert').style.display = 'none';
     document.getElementById('form-signup').style.display = 'block';
-  } else if (hash === '#/notes') {
+  } else if (cleanPath === '/notes') {
     document.getElementById('view-notes').style.display = 'block';
     await renderNotesView();
-  } else if (hash === '#/papers') {
+  } else if (cleanPath === '/papers') {
     document.getElementById('view-papers').style.display = 'block';
     await renderPapersView();
-  } else if (hash === '#/resources') {
+  } else if (cleanPath === '/resources') {
     document.getElementById('view-resources').style.display = 'block';
     await renderResourcesView();
-  } else if (hash.startsWith('#/admin')) {
+  } else if (cleanPath.startsWith('/admin')) {
     const isMobile = window.innerWidth <= 768;
     if (!isMobile) {
-      if (hash === '#/admin/approvals') {
-        return navigate('#/admin?tab=pending');
-      } else if (hash === '#/admin/users') {
-        return navigate('#/admin?tab=users');
-      } else if (hash === '#/admin/reviews') {
-        return navigate('#/admin?tab=reviews');
-      } else if (hash === '#/admin/contributions' || hash === '#/admin/support' || hash === '#/admin/notifications') {
-        return navigate('#/admin');
+      if (cleanPath === '/admin/approvals') {
+        return navigate('/admin?tab=pending');
+      } else if (cleanPath === '/admin/users') {
+        return navigate('/admin?tab=users');
+      } else if (cleanPath === '/admin/reviews') {
+        return navigate('/admin?tab=reviews');
+      } else if (cleanPath === '/admin/contributions' || cleanPath === '/admin/support' || cleanPath === '/admin/notifications') {
+        return navigate('/admin');
       }
     } else {
-      if (hash === '#/admin' || hash === '#/admin/') {
-        return navigate('#/admin/approvals');
+      if (cleanPath === '/admin' || cleanPath === '/admin/') {
+        return navigate('/admin/approvals');
       }
     }
     directoryVisibleCount = 5;
@@ -890,47 +947,47 @@ async function router() {
     notificationsVisibleCount = 5;
     reviewsVisibleCount = 5;
     document.getElementById('view-admin').style.display = 'block';
-    await renderAdminDashboardView(hash);
-  } else if (hash === '#/my-uploads') {
+    await renderAdminDashboardView(cleanPath);
+  } else if (cleanPath === '/my-uploads') {
     document.getElementById('view-my-uploads').style.display = 'block';
     await renderMyUploadsView();
-  } else if (hash === '#/my-contributions') {
+  } else if (cleanPath === '/my-contributions') {
     document.getElementById('view-my-contributions').style.display = 'block';
     await renderMyContributionsView();
-  } else if (hash === '#/contributors') {
+  } else if (cleanPath === '/contributors') {
     document.getElementById('view-contributors').style.display = 'block';
     await renderContributorsView();
-  } else if (hash === '#/support') {
+  } else if (cleanPath === '/support') {
     document.getElementById('view-support').style.display = 'block';
     await renderSupportView();
-  } else if (hash === '#/reviews') {
+  } else if (cleanPath === '/reviews') {
     document.getElementById('view-reviews').style.display = 'block';
     await renderReviewsView();
-  } else if (hash === '#/generators') {
+  } else if (cleanPath === '/generators') {
     document.getElementById('view-generators').style.display = 'block';
     await renderGeneratorsView();
-  } else if (hash === '#/teacher-dashboard') {
+  } else if (cleanPath === '/teacher-dashboard') {
     document.getElementById('view-teacher-dashboard').style.display = 'block';
     await renderTeacherDashboardView();
-  } else if (hash === '#/reset-password') {
+  } else if (cleanPath === '/reset-password') {
     document.getElementById('view-reset-password').style.display = 'block';
     document.getElementById('reset-password-error-alert').style.display = 'none';
     document.getElementById('reset-password-success-alert').style.display = 'none';
     document.getElementById('reset-old-password').value = '';
     document.getElementById('reset-new-password').value = '';
     document.getElementById('reset-confirm-password').value = '';
-  } else if (hash === '#/profile') {
+  } else if (cleanPath === '/profile') {
     document.getElementById('view-profile').style.display = 'block';
     renderProfileView();
-  } else if (hash === '#/appearance') {
+  } else if (cleanPath === '/appearance') {
     document.getElementById('view-appearance').style.display = 'block';
     renderAppearanceView();
-  } else if (hash === '#/terms') {
-    window.location.hash = '#/';
+  } else if (cleanPath === '/terms') {
+    navigate('/');
     setTimeout(() => showTermsModal(), 100);
     return;
-  } else if (hash === '#/privacy') {
-    window.location.hash = '#/';
+  } else if (cleanPath === '/privacy') {
+    navigate('/');
     setTimeout(() => showPrivacyModal(), 100);
     return;
   } else {
@@ -941,20 +998,20 @@ async function router() {
   // Update mobile top bar page title
   const titleEl = document.getElementById('mobile-page-title');
   if (titleEl) {
-    if (hash === '#/' || hash === '#') titleEl.textContent = 'Study Hub';
-    else if (hash === '#/notes') titleEl.textContent = 'Notes';
-    else if (hash === '#/papers') titleEl.textContent = 'Papers';
-    else if (hash === '#/resources') titleEl.textContent = 'Resources';
-    else if (hash === '#/profile') titleEl.textContent = 'Profile';
-    else if (hash === '#/admin') titleEl.textContent = 'Admin';
-    else if (hash === '#/my-uploads') titleEl.textContent = 'My Uploads';
-    else if (hash === '#/my-contributions') titleEl.textContent = 'Contributions';
-    else if (hash === '#/support') titleEl.textContent = 'Support';
-    else if (hash === '#/reviews') titleEl.textContent = 'Reviews';
-    else if (hash === '#/generators') titleEl.textContent = 'File Tools';
-    else if (hash === '#/reset-password') titleEl.textContent = 'Reset Password';
-    else if (hash === '#/terms') titleEl.textContent = 'Terms';
-    else if (hash === '#/privacy') titleEl.textContent = 'Privacy';
+    if (cleanPath === '/' || cleanPath === '') titleEl.textContent = 'Study Hub';
+    else if (cleanPath === '/notes') titleEl.textContent = 'Notes';
+    else if (cleanPath === '/papers') titleEl.textContent = 'Papers';
+    else if (cleanPath === '/resources') titleEl.textContent = 'Resources';
+    else if (cleanPath === '/profile') titleEl.textContent = 'Profile';
+    else if (cleanPath === '/admin') titleEl.textContent = 'Admin';
+    else if (cleanPath === '/my-uploads') titleEl.textContent = 'My Uploads';
+    else if (cleanPath === '/my-contributions') titleEl.textContent = 'Contributions';
+    else if (cleanPath === '/support') titleEl.textContent = 'Support';
+    else if (cleanPath === '/reviews') titleEl.textContent = 'Reviews';
+    else if (cleanPath === '/generators') titleEl.textContent = 'File Tools';
+    else if (cleanPath === '/reset-password') titleEl.textContent = 'Reset Password';
+    else if (cleanPath === '/terms') titleEl.textContent = 'Terms';
+    else if (cleanPath === '/privacy') titleEl.textContent = 'Privacy';
     else titleEl.textContent = 'Study Hub';
   }
 
@@ -3553,10 +3610,17 @@ function showUserDeviceDetailsModal(u) {
 // 5. ADMIN DASHBOARD VIEW
 async function renderAdminDashboardView(currentHash) {
   if (!currentHash) {
-    currentHash = window.location.hash;
+    currentHash = window.location.pathname;
   }
-  if (!currentHash.startsWith('#/admin')) {
-    currentHash = '#/admin/approvals';
+  if (currentHash.startsWith('#/')) {
+    currentHash = currentHash.slice(1);
+  }
+  currentHash = currentHash.split('?')[0];
+  if (!currentHash.startsWith('/')) {
+    currentHash = '/' + currentHash;
+  }
+  if (!currentHash.startsWith('/admin')) {
+    currentHash = '/admin/approvals';
   }
 
   const roleLabel = document.getElementById('admin-panel-role-label');
@@ -3589,27 +3653,27 @@ async function renderAdminDashboardView(currentHash) {
       view.style.display = 'none';
     });
 
-    if (currentHash === '#/admin/approvals') {
+    if (currentHash === '/admin/approvals') {
       if (subpageTitle) subpageTitle.textContent = 'Pending Approvals';
       const view = document.getElementById('admin-section-approvals');
       if (view) view.style.display = 'block';
-    } else if (currentHash === '#/admin/users') {
+    } else if (currentHash === '/admin/users') {
       if (subpageTitle) subpageTitle.textContent = 'User Directory';
       const view = document.getElementById('admin-section-users');
       if (view) view.style.display = 'block';
-    } else if (currentHash === '#/admin/contributions') {
+    } else if (currentHash === '/admin/contributions') {
       if (subpageTitle) subpageTitle.textContent = 'Pending Contributions';
       const view = document.getElementById('admin-section-contributions');
       if (view) view.style.display = 'block';
-    } else if (currentHash === '#/admin/support') {
+    } else if (currentHash === '/admin/support') {
       if (subpageTitle) subpageTitle.textContent = 'Help & Support';
       const view = document.getElementById('admin-section-support');
       if (view) view.style.display = 'block';
-    } else if (currentHash === '#/admin/notifications') {
+    } else if (currentHash === '/admin/notifications') {
       if (subpageTitle) subpageTitle.textContent = 'Sent Notifications';
       const view = document.getElementById('admin-section-notifications');
       if (view) view.style.display = 'block';
-    } else if (currentHash === '#/admin/reviews') {
+    } else if (currentHash === '/admin/reviews') {
       if (subpageTitle) subpageTitle.textContent = 'User Reviews';
       const view = document.getElementById('admin-section-reviews');
       if (view) view.style.display = 'block';
@@ -6523,8 +6587,29 @@ function initEventHandlers() {
     });
   }
 
-  // Hash Routing
+  // History and Hash Routing
+  window.addEventListener('popstate', router);
   window.addEventListener('hashchange', router);
+
+  // Global click interceptor for clean pathname routing
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (link) {
+      const href = link.getAttribute('href');
+      if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('tel:') && !link.hasAttribute('download') && link.getAttribute('target') !== '_blank') {
+        const isRoute = href.startsWith('/') || href.startsWith('#/');
+        if (isRoute) {
+          e.stopPropagation();
+          e.preventDefault();
+          let targetPath = href;
+          if (targetPath.startsWith('#/')) {
+            targetPath = targetPath.slice(1);
+          }
+          navigate(targetPath);
+        }
+      }
+    }
+  });
 
   // Footer Year
   const footerYear = document.getElementById('footer-year');
