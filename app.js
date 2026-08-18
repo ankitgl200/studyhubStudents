@@ -5467,6 +5467,11 @@ const Meniscus = {
       cleanPath = '/' + cleanPath;
     }
 
+    // Map sub-sections to Profile tab
+    if (cleanPath.startsWith('/admin') || cleanPath === '/my-uploads' || cleanPath === '/my-contributions' || cleanPath === '/teacher-dashboard' || cleanPath === '/reset-password') {
+      cleanPath = '/profile';
+    }
+
     const activeIndex = tabs.findIndex(tab => {
       let href = tab.getAttribute('href');
       if (href) {
@@ -5509,6 +5514,11 @@ function updateMobileBottomNavPosition() {
   }
   if (!cleanPath.startsWith('/')) {
     cleanPath = '/' + cleanPath;
+  }
+
+  // Map sub-sections to Profile tab
+  if (cleanPath.startsWith('/admin') || cleanPath === '/my-uploads' || cleanPath === '/my-contributions' || cleanPath === '/teacher-dashboard' || cleanPath === '/reset-password') {
+    cleanPath = '/profile';
   }
 
   const activeIndex = tabs.findIndex(tab => {
