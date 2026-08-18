@@ -1,4 +1,4 @@
-# StudyHub
+# BTKIT StudyHub
 
 > Empowering students with centralized academic resources and intelligent study tools.
 
@@ -6,7 +6,7 @@
 
 ## 📖 About StudyHub
 
-**StudyHub** is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for university and college students, StudyHub serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. 
+**StudyHub** is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for BTKIT students, StudyHub serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. 
 
 Beyond being a repository, StudyHub integrates intelligent features to guide students through their academic journey:
 * **Subject-Wise Notes**: Comprehensive and high-quality lecture notes structured for easy understanding.
