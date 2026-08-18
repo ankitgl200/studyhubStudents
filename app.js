@@ -603,7 +603,7 @@ function updateNavbar() {
       currentUser = null;
 
       updateNavbar();
-      navigate('#/');
+      navigate('/');
     });
 
     // Populate Mobile Menu
@@ -667,7 +667,7 @@ function updateNavbar() {
       currentUser = null;
       document.body.style.overflow = '';
       updateNavbar();
-      navigate('#/');
+      navigate('/');
     });
 
   } else {
@@ -681,8 +681,8 @@ function updateNavbar() {
     // Populate Desktop Auth State (Logged out)
     container.innerHTML = `
       <div style="display: flex; gap: 8px; margin-left: 12px;">
-        <a href="#/login" class="nav-link">Login</a>
-        <a href="#/signup" class="btn btn-primary btn-sm">Sign Up</a>
+        <a href="/login" class="nav-link">Login</a>
+        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
       </div>
     `;
 
@@ -2721,7 +2721,7 @@ function renderGPAThresholdsView(mountElement) {
 
 function renderProfileView() {
   if (!currentUser) {
-    navigate('#/login');
+    navigate('/login');
     return;
   }
 
@@ -5627,7 +5627,7 @@ async function renderReviewsView() {
   if (successAlert) successAlert.style.display = 'none';
 
   if (!currentUser) {
-    navigate('#/login');
+    navigate('/login');
     return;
   }
 
@@ -6749,12 +6749,12 @@ function initEventHandlers() {
       currentUser = null;
 
       updateNavbar();
-      navigate('#/');
+      navigate('/');
       return;
     }
 
     // Intercept terms of service link clicks
-    const termsLink = e.target.closest('a[href="#/terms"]');
+    const termsLink = e.target.closest('a[href="/terms"]');
     if (termsLink) {
       e.preventDefault();
       showTermsModal();
@@ -6762,7 +6762,7 @@ function initEventHandlers() {
     }
 
     // Intercept privacy policy link clicks
-    const privacyLink = e.target.closest('a[href="#/privacy"]');
+    const privacyLink = e.target.closest('a[href="/privacy"]');
     if (privacyLink) {
       e.preventDefault();
       showPrivacyModal();
@@ -6889,7 +6889,7 @@ function initEventHandlers() {
       currentUser = res.user;
       updateNavbar();
       startNotificationPolling();
-      navigate('#/');
+      navigate('/');
       if (res.isNewUser) {
         // Automatically download user manual for new users
         downloadUserManual();
@@ -7091,7 +7091,7 @@ function initEventHandlers() {
         currentUser = res.user;
         updateNavbar();
         startNotificationPolling();
-        navigate('#/');
+        navigate('/');
         // Automatically download user manual for new users
         downloadUserManual();
       }
