@@ -5349,9 +5349,20 @@ const Meniscus = {
       t.tabIndex = n === this.current ? 0 : -1;
     });
 
-    const targetHash = tabs[this.current].getAttribute('href');
-    if (window.location.hash !== targetHash) {
-      window.location.hash = targetHash;
+    const targetPath = tabs[this.current].getAttribute('href');
+    if (targetPath) {
+      let cleanTargetPath = targetPath;
+      if (cleanTargetPath.startsWith('#/')) cleanTargetPath = cleanTargetPath.slice(1);
+      else if (cleanTargetPath.startsWith('#')) cleanTargetPath = cleanTargetPath.slice(1);
+      if (!cleanTargetPath.startsWith('/')) cleanTargetPath = '/' + cleanTargetPath;
+      cleanTargetPath = cleanTargetPath.split('?')[0];
+
+      let currentPath = window.location.pathname || '/';
+      currentPath = currentPath.split('?')[0];
+
+      if (currentPath !== cleanTargetPath) {
+        navigate(targetPath);
+      }
     }
 
     if (focus) tabs[this.current].focus();
@@ -5375,8 +5386,8 @@ const Meniscus = {
     
     tabs.forEach((t, i) => {
       t.addEventListener('click', (e) => {
+        e.preventDefault();
         if (this.suppressClick) {
-          e.preventDefault();
           return;
         }
         this.select(i);
@@ -5442,10 +5453,36 @@ const Meniscus = {
     document.fonts?.ready.then(() => layout(false));
     
     // Sync initial state
-    const hash = window.location.hash || '#/';
-    const activeIndex = tabs.findIndex(tab => tab.getAttribute('href') === hash);
+    let cleanPath = window.location.pathname || '/';
+    if (window.location.hash && window.location.hash.startsWith('#/')) {
+      cleanPath = window.location.hash.slice(1);
+    } else if (window.location.hash && window.location.hash.startsWith('#') && window.location.hash.includes('/')) {
+      cleanPath = window.location.hash.slice(1);
+    }
+    cleanPath = cleanPath.split('?')[0];
+    if (cleanPath.endsWith('/') && cleanPath.length > 1) {
+      cleanPath = cleanPath.slice(0, -1);
+    }
+    if (!cleanPath.startsWith('/')) {
+      cleanPath = '/' + cleanPath;
+    }
+
+    const activeIndex = tabs.findIndex(tab => {
+      let href = tab.getAttribute('href');
+      if (href) {
+        if (href.startsWith('#/')) href = href.slice(1);
+        else if (href.startsWith('#')) href = href.slice(1);
+        if (!href.startsWith('/')) href = '/' + href;
+        href = href.split('?')[0];
+        return href === cleanPath;
+      }
+      return false;
+    });
+
     if (activeIndex !== -1 && this.G.slots.length > 0) {
       this.select(activeIndex, { animate: false });
+    } else {
+      this.select(2, { animate: false }); // Default to Home index
     }
   }
 };
@@ -5460,10 +5497,36 @@ function updateMobileBottomNavPosition() {
   
   if (Meniscus.G.slots.length === 0) return;
   
-  const hash = window.location.hash || '#/';
-  const activeIndex = tabs.findIndex(tab => tab.getAttribute('href') === hash);
+  let cleanPath = window.location.pathname || '/';
+  if (window.location.hash && window.location.hash.startsWith('#/')) {
+    cleanPath = window.location.hash.slice(1);
+  } else if (window.location.hash && window.location.hash.startsWith('#') && window.location.hash.includes('/')) {
+    cleanPath = window.location.hash.slice(1);
+  }
+  cleanPath = cleanPath.split('?')[0];
+  if (cleanPath.endsWith('/') && cleanPath.length > 1) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+
+  const activeIndex = tabs.findIndex(tab => {
+    let href = tab.getAttribute('href');
+    if (href) {
+      if (href.startsWith('#/')) href = href.slice(1);
+      else if (href.startsWith('#')) href = href.slice(1);
+      if (!href.startsWith('/')) href = '/' + href;
+      href = href.split('?')[0];
+      return href === cleanPath;
+    }
+    return false;
+  });
+
   if (activeIndex !== -1) {
     Meniscus.select(activeIndex);
+  } else {
+    Meniscus.select(2); // Default to Home index
   }
 }
 
@@ -6554,9 +6617,31 @@ function initEventHandlers() {
           if (errAlert) errAlert.style.display = 'none';
           modal.style.display = 'flex';
         }
-      } else {
-        e.stopPropagation();
+        return;
       }
+      
+      const link = e.target.closest('a');
+      if (link) {
+        const href = link.getAttribute('href');
+        if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('tel:') && !link.hasAttribute('download') && link.getAttribute('target') !== '_blank') {
+          const isRoute = href.startsWith('/') || href.startsWith('#/');
+          if (isRoute) {
+            e.preventDefault();
+            mobMenu.classList.remove('open');
+            mobOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+            
+            let targetPath = href;
+            if (targetPath.startsWith('#/')) {
+              targetPath = targetPath.slice(1);
+            }
+            navigate(targetPath);
+            return;
+          }
+        }
+      }
+      
+      e.stopPropagation();
     });
   }
 
