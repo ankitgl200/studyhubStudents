@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/((?!robots.txt|sitemap.xml|.*\\..*$).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
