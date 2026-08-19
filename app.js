@@ -5216,6 +5216,12 @@ const Meniscus = {
     const H = Math.round(r.height);
     if (W < 40 || H < 30) return false;
 
+    if (this._lastW === W && this._lastH === H) {
+      return true;
+    }
+    this._lastW = W;
+    this._lastH = H;
+
     const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
     this.G.slots = tabs.map((t) => {
       const b = t.getBoundingClientRect();
@@ -5468,7 +5474,14 @@ const Meniscus = {
     };
 
     layout(false);
-    new ResizeObserver(() => layout(false)).observe(dock);
+    let resizeRaf = 0;
+    new ResizeObserver(() => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        layout(false);
+        resizeRaf = 0;
+      });
+    }).observe(dock);
     document.fonts?.ready.then(() => layout(false));
     
     // Sync initial state
@@ -5553,9 +5566,9 @@ function updateMobileBottomNavPosition() {
   });
 
   if (activeIndex !== -1) {
-    Meniscus.select(activeIndex);
+    Meniscus.select(activeIndex, { animate: false });
   } else {
-    Meniscus.select(2); // Default to Home index
+    Meniscus.select(2, { animate: false }); // Default to Home index
   }
 }
 
