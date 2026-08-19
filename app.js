@@ -5362,7 +5362,22 @@ const Meniscus = {
       cleanTargetPath = cleanTargetPath.split('?')[0];
 
       let currentPath = window.location.pathname || '/';
+      if (window.location.hash && window.location.hash.startsWith('#/')) {
+        currentPath = window.location.hash.slice(1);
+      } else if (window.location.hash && window.location.hash.startsWith('#') && window.location.hash.includes('/')) {
+        currentPath = window.location.hash.slice(1);
+      }
       currentPath = currentPath.split('?')[0];
+      if (currentPath.endsWith('/') && currentPath.length > 1) {
+        currentPath = currentPath.slice(0, -1);
+      }
+      if (!currentPath.startsWith('/')) {
+        currentPath = '/' + currentPath;
+      }
+
+      if (currentPath.startsWith('/admin') || currentPath === '/my-uploads' || currentPath === '/my-contributions' || currentPath === '/teacher-dashboard' || currentPath === '/reset-password') {
+        currentPath = '/profile';
+      }
 
       if (currentPath !== cleanTargetPath) {
         navigate(targetPath);
