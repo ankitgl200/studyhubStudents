@@ -2755,17 +2755,17 @@ function renderProfileView() {
       </div>
       <div class="profile-menu-items">
         ${currentUser.role === 'student' ? `
-          <a href="#/my-contributions" class="profile-menu-item">
+          <a href="/my-contributions" class="profile-menu-item">
             <div class="item-left"><i data-lucide="award"></i><span>My Contributions</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
         ` : `
-          <a href="#/my-uploads" class="profile-menu-item">
+          <a href="/my-uploads" class="profile-menu-item">
             <div class="item-left"><i data-lucide="folder-heart"></i><span>My Uploads</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
         `}
-        <a href="#/contributors" class="profile-menu-item">
+        <a href="/contributors" class="profile-menu-item">
           <div class="item-left"><i data-lucide="trophy"></i><span>Top Contributors</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2773,11 +2773,11 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="file-text"></i><span>Download Manual</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="#/reset-password" class="profile-menu-item">
+        <a href="/reset-password" class="profile-menu-item">
           <div class="item-left"><i data-lucide="key-round"></i><span>Reset Password</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="#/reviews" class="profile-menu-item">
+        <a href="/reviews" class="profile-menu-item">
           <div class="item-left"><i data-lucide="star"></i><span>Write a Review</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2800,7 +2800,7 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="#/generators" class="profile-menu-item">
+        <a href="/generators" class="profile-menu-item">
           <div class="item-left"><i data-lucide="file-text"></i><span>File Tools</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2824,15 +2824,15 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="info"></i><span>About StudyHub</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="#/support" class="profile-menu-item">
+        <a href="/support" class="profile-menu-item">
           <div class="item-left"><i data-lucide="help-circle"></i><span>Help & Support</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="#/privacy" class="profile-menu-item">
+        <a href="/privacy" class="profile-menu-item">
           <div class="item-left"><i data-lucide="shield"></i><span>Privacy Policy</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="#/terms" class="profile-menu-item">
+        <a href="/terms" class="profile-menu-item">
           <div class="item-left"><i data-lucide="file-text"></i><span>Terms of Service</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2848,7 +2848,7 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="#/appearance" class="profile-menu-item">
+        <a href="/appearance" class="profile-menu-item">
           <div class="item-left"><i data-lucide="palette"></i><span>Change Theme & Font</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2902,48 +2902,48 @@ function renderProfileView() {
     `;
     if (isMobile) {
       html += `
-          <a href="#/admin/approvals" class="profile-menu-item">
+          <a href="/admin/approvals" class="profile-menu-item">
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Pending Approvals</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="#/admin/users" class="profile-menu-item">
+          <a href="/admin/users" class="profile-menu-item">
             <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>User Directory</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="#/admin/contributions" class="profile-menu-item">
+          <a href="/admin/contributions" class="profile-menu-item">
             <div class="item-left"><i data-lucide="upload-cloud" style="color: var(--danger);"></i><span>Pending Contributions</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="#/admin/support" class="profile-menu-item">
+          <a href="/admin/support" class="profile-menu-item">
             <div class="item-left"><i data-lucide="help-circle" style="color: var(--danger);"></i><span>Help & Support Requests</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
           ${(currentUser.role === 'superadmin' || currentUser.role === 'admin') ? `
-            <a href="#/admin/notifications" class="profile-menu-item">
+            <a href="/admin/notifications" class="profile-menu-item">
               <div class="item-left"><i data-lucide="mail" style="color: var(--danger);"></i><span>Sent Notifications</span></div>
               <i data-lucide="chevron-right" class="arrow-right"></i>
             </a>
           ` : ''}
-          <a href="#/admin/reviews" class="profile-menu-item">
+          <a href="/admin/reviews" class="profile-menu-item">
             <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
       `;
     } else {
       html += `
-          <a href="#/admin" class="profile-menu-item">
+          <a href="/admin" class="profile-menu-item">
             <div class="item-left"><i data-lucide="shield-alert" style="color: var(--danger);"></i><span>Admin Dashboard</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="#/admin?tab=users" class="profile-menu-item">
+          <a href="/admin?tab=users" class="profile-menu-item">
             <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>Manage Users</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="#/admin?tab=pending" class="profile-menu-item">
+          <a href="/admin?tab=pending" class="profile-menu-item">
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Teacher Approval</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="#/admin?tab=reviews" class="profile-menu-item">
+          <a href="/admin?tab=reviews" class="profile-menu-item">
             <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
@@ -8682,7 +8682,7 @@ function initThemeToggleHandler() {
 function applyTheme(theme, animate = true) {
   const linkId = 'theme-stylesheet';
   let link = document.getElementById(linkId);
-  const href = theme === 'modern' ? 'modern.css?v=1.0.5' : 'old.css?v=1.0.5';
+  const href = theme === 'modern' ? '/modern.css?v=1.0.5' : '/old.css?v=1.0.5';
 
   localStorage.setItem('studyhub-ui-theme', theme);
 
