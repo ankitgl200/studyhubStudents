@@ -4386,17 +4386,17 @@ async function renderAdminDashboardView(currentHash) {
       ]);
     } else {
       // Mobile: Fetch ONLY the active section's data
-      if (currentHash === '#/admin/approvals') {
+      if (currentHash === '/admin/approvals') {
         await fetchApprovals();
-      } else if (currentHash === '#/admin/users') {
+      } else if (currentHash === '/admin/users') {
         await fetchUsers();
-      } else if (currentHash === '#/admin/contributions') {
+      } else if (currentHash === '/admin/contributions') {
         await fetchContributions();
-      } else if (currentHash === '#/admin/support') {
+      } else if (currentHash === '/admin/support') {
         await fetchSupport();
-      } else if (currentHash === '#/admin/notifications') {
+      } else if (currentHash === '/admin/notifications') {
         await fetchNotifications();
-      } else if (currentHash === '#/admin/reviews') {
+      } else if (currentHash === '/admin/reviews') {
         await fetchReviews();
       }
     }
