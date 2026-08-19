@@ -621,26 +621,26 @@ function updateNavbar() {
         <i data-lucide="phone" style="width: 12px; height: 12px;"></i> ${escapeHTML(currentUser.phone)}
       </div>
       <div class="mobile-nav-links">
-        <a href="/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
-        <a href="/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
-        <a href="/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
-        <a href="/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
-        <a href="/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
-        <a href="/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
-        <a href="/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
+        <a href="#/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
+        <a href="#/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
+        <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
+        <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
+        <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
+        <a href="#/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
+        <a href="#/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
         <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-contribute"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute</a>
 
         ${currentUser.role === 'student' ? `
-          <a href="/my-contributions" class="mobile-nav-link" id="mob-nav-my-contributions"><i data-lucide="award" style="width: 18px; height: 18px;"></i> My Contributions</a>
+          <a href="#/my-contributions" class="mobile-nav-link" id="mob-nav-my-contributions"><i data-lucide="award" style="width: 18px; height: 18px;"></i> My Contributions</a>
         ` : ''}
         ${(currentUser.role === 'educator' || currentUser.role === 'admin' || currentUser.role === 'superadmin') ? `
-          <a href="/my-uploads" class="mobile-nav-link" id="mob-nav-my-uploads"><i data-lucide="folder-heart" style="width: 18px; height: 18px;"></i> My Uploads</a>
+          <a href="#/my-uploads" class="mobile-nav-link" id="mob-nav-my-uploads"><i data-lucide="folder-heart" style="width: 18px; height: 18px;"></i> My Uploads</a>
         ` : ''}
         ${currentUser.role === 'educator' ? `
-          <a href="/teacher-dashboard" class="mobile-nav-link" id="mob-nav-teacher-dashboard"><i data-lucide="presentation" style="width: 18px; height: 18px;"></i> Teacher Dashboard</a>
+          <a href="#/teacher-dashboard" class="mobile-nav-link" id="mob-nav-teacher-dashboard"><i data-lucide="presentation" style="width: 18px; height: 18px;"></i> Teacher Dashboard</a>
         ` : ''}
         ${(currentUser.role === 'admin' || currentUser.role === 'superadmin') ? `
-          <a href="/admin" class="mobile-nav-link" id="mob-nav-admin"><i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i> Admin</a>
+          <a href="#/admin" class="mobile-nav-link" id="mob-nav-admin"><i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i> Admin</a>
         ` : ''}
       </div>
       <button class="btn btn-primary btn-download-app-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; margin-top: auto; margin-bottom: 12px;">
@@ -681,8 +681,8 @@ function updateNavbar() {
     // Populate Desktop Auth State (Logged out)
     container.innerHTML = `
       <div style="display: flex; gap: 8px; margin-left: 12px;">
-        <a href="/login" class="nav-link">Login</a>
-        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
+        <a href="#/login" class="nav-link">Login</a>
+        <a href="#/signup" class="btn btn-primary btn-sm">Sign Up</a>
       </div>
     `;
 
@@ -695,19 +695,19 @@ function updateNavbar() {
         </button>
       </div>
       <div class="mobile-nav-links">
-        <a href="/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
-        <a href="/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
-        <a href="/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
-        <a href="/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
-        <a href="/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
-        <a href="/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
+        <a href="#/" class="mobile-nav-link" id="mob-nav-home"><i data-lucide="home" style="width: 18px; height: 18px;"></i> Home</a>
+        <a href="#/notes" class="mobile-nav-link" id="mob-nav-notes"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Notes</a>
+        <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
+        <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
+        <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
+        <a href="#/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
       </div>
       <button class="btn btn-primary btn-download-app-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; margin-top: auto; margin-bottom: 12px;">
         <i data-lucide="smartphone" style="width: 18px; height: 18px;"></i> Download App
       </button>
       <div style="display: flex; gap: 8px; width: 100%;">
-        <a href="/login" class="nav-link btn btn-secondary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Login</a>
-        <a href="/signup" class="btn btn-primary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Sign Up</a>
+        <a href="#/login" class="nav-link btn btn-secondary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Login</a>
+        <a href="#/signup" class="btn btn-primary" style="flex: 1; text-align: center; justify-content: center; padding: 10px 0;">Sign Up</a>
       </div>
     `;
 
@@ -767,15 +767,19 @@ function handleAuthProtection(path) {
 function navigate(path) {
   let cleanPath = path;
   if (cleanPath.startsWith('#/')) {
-    cleanPath = cleanPath.slice(1);
+    cleanPath = cleanPath.slice(2);
   } else if (cleanPath.startsWith('#') && cleanPath.includes('/')) {
     cleanPath = cleanPath.slice(1);
   }
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = '/' + cleanPath;
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.slice(1);
   }
-  history.pushState(null, '', cleanPath);
-  router();
+  const newHash = '#/' + cleanPath;
+  if (window.location.hash === newHash) {
+    router();
+  } else {
+    window.location.hash = newHash;
+  }
 }
 
 function getHashQueryParams() {
@@ -2755,17 +2759,17 @@ function renderProfileView() {
       </div>
       <div class="profile-menu-items">
         ${currentUser.role === 'student' ? `
-          <a href="/my-contributions" class="profile-menu-item">
+          <a href="#/my-contributions" class="profile-menu-item">
             <div class="item-left"><i data-lucide="award"></i><span>My Contributions</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
         ` : `
-          <a href="/my-uploads" class="profile-menu-item">
+          <a href="#/my-uploads" class="profile-menu-item">
             <div class="item-left"><i data-lucide="folder-heart"></i><span>My Uploads</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
         `}
-        <a href="/contributors" class="profile-menu-item">
+        <a href="#/contributors" class="profile-menu-item">
           <div class="item-left"><i data-lucide="trophy"></i><span>Top Contributors</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2773,11 +2777,11 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="file-text"></i><span>Download Manual</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="/reset-password" class="profile-menu-item">
+        <a href="#/reset-password" class="profile-menu-item">
           <div class="item-left"><i data-lucide="key-round"></i><span>Reset Password</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="/reviews" class="profile-menu-item">
+        <a href="#/reviews" class="profile-menu-item">
           <div class="item-left"><i data-lucide="star"></i><span>Write a Review</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2800,7 +2804,7 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="/generators" class="profile-menu-item">
+        <a href="#/generators" class="profile-menu-item">
           <div class="item-left"><i data-lucide="file-text"></i><span>File Tools</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2824,15 +2828,15 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="info"></i><span>About StudyHub</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="/support" class="profile-menu-item">
+        <a href="#/support" class="profile-menu-item">
           <div class="item-left"><i data-lucide="help-circle"></i><span>Help & Support</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="/privacy" class="profile-menu-item">
+        <a href="#/privacy" class="profile-menu-item">
           <div class="item-left"><i data-lucide="shield"></i><span>Privacy Policy</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="/terms" class="profile-menu-item">
+        <a href="#/terms" class="profile-menu-item">
           <div class="item-left"><i data-lucide="file-text"></i><span>Terms of Service</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2848,7 +2852,7 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="/appearance" class="profile-menu-item">
+        <a href="#/appearance" class="profile-menu-item">
           <div class="item-left"><i data-lucide="palette"></i><span>Change Theme & Font</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
@@ -2902,48 +2906,48 @@ function renderProfileView() {
     `;
     if (isMobile) {
       html += `
-          <a href="/admin/approvals" class="profile-menu-item">
+          <a href="#/admin/approvals" class="profile-menu-item">
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Pending Approvals</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="/admin/users" class="profile-menu-item">
+          <a href="#/admin/users" class="profile-menu-item">
             <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>User Directory</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="/admin/contributions" class="profile-menu-item">
+          <a href="#/admin/contributions" class="profile-menu-item">
             <div class="item-left"><i data-lucide="upload-cloud" style="color: var(--danger);"></i><span>Pending Contributions</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="/admin/support" class="profile-menu-item">
+          <a href="#/admin/support" class="profile-menu-item">
             <div class="item-left"><i data-lucide="help-circle" style="color: var(--danger);"></i><span>Help & Support Requests</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
           ${(currentUser.role === 'superadmin' || currentUser.role === 'admin') ? `
-            <a href="/admin/notifications" class="profile-menu-item">
+            <a href="#/admin/notifications" class="profile-menu-item">
               <div class="item-left"><i data-lucide="mail" style="color: var(--danger);"></i><span>Sent Notifications</span></div>
               <i data-lucide="chevron-right" class="arrow-right"></i>
             </a>
           ` : ''}
-          <a href="/admin/reviews" class="profile-menu-item">
+          <a href="#/admin/reviews" class="profile-menu-item">
             <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
       `;
     } else {
       html += `
-          <a href="/admin" class="profile-menu-item">
+          <a href="#/admin" class="profile-menu-item">
             <div class="item-left"><i data-lucide="shield-alert" style="color: var(--danger);"></i><span>Admin Dashboard</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="/admin?tab=users" class="profile-menu-item">
+          <a href="#/admin?tab=users" class="profile-menu-item">
             <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>Manage Users</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="/admin?tab=pending" class="profile-menu-item">
+          <a href="#/admin?tab=pending" class="profile-menu-item">
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Teacher Approval</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
-          <a href="/admin?tab=reviews" class="profile-menu-item">
+          <a href="#/admin?tab=reviews" class="profile-menu-item">
             <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
