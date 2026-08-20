@@ -5349,7 +5349,7 @@ const Meniscus = {
     this.run();
   },
 
-  select(i, { focus = false, animate = true } = {}) {
+  select(i, { focus = false, animate = true, triggerNavigate = true } = {}) {
     const tabs = [...document.querySelectorAll('.mobile-bottom-nav-item')];
     if (tabs.length === 0) return;
     this.current = (i + tabs.length) % tabs.length;
@@ -5359,34 +5359,41 @@ const Meniscus = {
       t.tabIndex = n === this.current ? 0 : -1;
     });
 
-    const targetPath = tabs[this.current].getAttribute('href');
-    if (targetPath) {
-      let cleanTargetPath = targetPath;
-      if (cleanTargetPath.startsWith('#/')) cleanTargetPath = cleanTargetPath.slice(1);
-      else if (cleanTargetPath.startsWith('#')) cleanTargetPath = cleanTargetPath.slice(1);
-      if (!cleanTargetPath.startsWith('/')) cleanTargetPath = '/' + cleanTargetPath;
-      cleanTargetPath = cleanTargetPath.split('?')[0];
+    if (triggerNavigate) {
+      const targetPath = tabs[this.current].getAttribute('href');
+      if (targetPath) {
+        let cleanTargetPath = targetPath;
+        if (cleanTargetPath.startsWith('#/')) cleanTargetPath = cleanTargetPath.slice(1);
+        else if (cleanTargetPath.startsWith('#')) cleanTargetPath = cleanTargetPath.slice(1);
+        if (!cleanTargetPath.startsWith('/')) cleanTargetPath = '/' + cleanTargetPath;
+        cleanTargetPath = cleanTargetPath.split('?')[0];
 
-      let currentPath = window.location.pathname || '/';
-      if (window.location.hash && window.location.hash.startsWith('#/')) {
-        currentPath = window.location.hash.slice(1);
-      } else if (window.location.hash && window.location.hash.startsWith('#') && window.location.hash.includes('/')) {
-        currentPath = window.location.hash.slice(1);
-      }
-      currentPath = currentPath.split('?')[0];
-      if (currentPath.endsWith('/') && currentPath.length > 1) {
-        currentPath = currentPath.slice(0, -1);
-      }
-      if (!currentPath.startsWith('/')) {
-        currentPath = '/' + currentPath;
-      }
+        let currentPath = window.location.pathname || '/';
+        if (window.location.hash && window.location.hash.startsWith('#/')) {
+          currentPath = window.location.hash.slice(1);
+        } else if (window.location.hash && window.location.hash.startsWith('#') && window.location.hash.includes('/')) {
+          currentPath = window.location.hash.slice(1);
+        }
+        currentPath = currentPath.split('?')[0];
+        if (currentPath.endsWith('/') && currentPath.length > 1) {
+          currentPath = currentPath.slice(0, -1);
+        }
+        if (!currentPath.startsWith('/')) {
+          currentPath = '/' + currentPath;
+        }
 
-      if (currentPath.startsWith('/admin') || currentPath === '/my-uploads' || currentPath === '/my-contributions' || currentPath === '/teacher-dashboard' || currentPath === '/reset-password') {
-        currentPath = '/profile';
-      }
+        const profileRoutes = [
+          '/profile', '/reset-password', '/appearance', '/reviews', 
+          '/contributors', '/my-uploads', '/my-contributions', 
+          '/teacher-dashboard', '/support', '/generators', '/privacy', '/terms'
+        ];
+        if (currentPath.startsWith('/admin') || profileRoutes.includes(currentPath)) {
+          currentPath = '/profile';
+        }
 
-      if (currentPath !== cleanTargetPath) {
-        navigate(targetPath);
+        if (currentPath !== cleanTargetPath) {
+          navigate(targetPath);
+        }
       }
     }
 
@@ -5500,7 +5507,12 @@ const Meniscus = {
     }
 
     // Map sub-sections to Profile tab
-    if (cleanPath.startsWith('/admin') || cleanPath === '/my-uploads' || cleanPath === '/my-contributions' || cleanPath === '/teacher-dashboard' || cleanPath === '/reset-password') {
+    const profileRoutes = [
+      '/profile', '/reset-password', '/appearance', '/reviews', 
+      '/contributors', '/my-uploads', '/my-contributions', 
+      '/teacher-dashboard', '/support', '/generators', '/privacy', '/terms'
+    ];
+    if (cleanPath.startsWith('/admin') || profileRoutes.includes(cleanPath)) {
       cleanPath = '/profile';
     }
 
@@ -5517,9 +5529,9 @@ const Meniscus = {
     });
 
     if (activeIndex !== -1 && this.G.slots.length > 0) {
-      this.select(activeIndex, { animate: false });
+      this.select(activeIndex, { animate: false, triggerNavigate: false });
     } else {
-      this.select(2, { animate: false }); // Default to Home index
+      this.select(2, { animate: false, triggerNavigate: false }); // Default to Home index
     }
   }
 };
@@ -5549,7 +5561,12 @@ function updateMobileBottomNavPosition() {
   }
 
   // Map sub-sections to Profile tab
-  if (cleanPath.startsWith('/admin') || cleanPath === '/my-uploads' || cleanPath === '/my-contributions' || cleanPath === '/teacher-dashboard' || cleanPath === '/reset-password') {
+  const profileRoutes = [
+    '/profile', '/reset-password', '/appearance', '/reviews', 
+    '/contributors', '/my-uploads', '/my-contributions', 
+    '/teacher-dashboard', '/support', '/generators', '/privacy', '/terms'
+  ];
+  if (cleanPath.startsWith('/admin') || profileRoutes.includes(cleanPath)) {
     cleanPath = '/profile';
   }
 
@@ -5566,9 +5583,9 @@ function updateMobileBottomNavPosition() {
   });
 
   if (activeIndex !== -1) {
-    Meniscus.select(activeIndex, { animate: false });
+    Meniscus.select(activeIndex, { animate: false, triggerNavigate: false });
   } else {
-    Meniscus.select(2, { animate: false }); // Default to Home index
+    Meniscus.select(2, { animate: false, triggerNavigate: false }); // Default to Home index
   }
 }
 
