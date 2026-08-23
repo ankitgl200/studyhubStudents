@@ -35,8 +35,70 @@ function ensurePuterLoaded() {
 
 
 
+// --- SKELETON LOADING TEMPLATE GENERATORS ---
+function getLeaderboardSkeleton() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      ${[1, 2, 3].map(() => `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--white); font-size: 13px;">
+          <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+            <div class="skeleton" style="width: 24px; height: 16px; border-radius: 4px;"></div>
+            <div class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
 
+function getAnnouncementsSkeleton() {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      ${[1, 2].map(() => `
+        <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div class="skeleton" style="width: 45%; height: 20px; border-radius: 4px;"></div>
+          <div class="skeleton" style="width: 25%; height: 12px; border-radius: 4px;"></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="skeleton" style="width: 95%; height: 14px; border-radius: 4px;"></div>
+            <div class="skeleton" style="width: 75%; height: 14px; border-radius: 4px;"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
 
+function getGridSkeleton(count = 4) {
+  return `
+    <div class="folder-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; width: 100%;">
+      ${Array.from({ length: count }).map(() => `
+        <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); background: var(--white);">
+          <div class="skeleton" style="width: 32px; height: 32px; border-radius: 50%;"></div>
+          <div class="skeleton" style="flex: 1; height: 16px; border-radius: 4px;"></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function getListSkeleton(count = 3) {
+  return `
+    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+      ${Array.from({ length: count }).map(() => `
+        <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); background: var(--white);">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div class="skeleton" style="width: 60%; height: 18px; border-radius: 4px;"></div>
+            <div class="skeleton" style="width: 15%; height: 14px; border-radius: 4px;"></div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <div class="skeleton" style="width: 30%; height: 14px; border-radius: 4px;"></div>
+            <div class="skeleton" style="width: 20%; height: 14px; border-radius: 4px;"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
 
 // --- API SERVICE ---
 const isLocalhost = window.location.hostname === 'localhost' || 
@@ -1064,7 +1126,7 @@ async function renderHomeView() {
   // Load and render teacher rankings on the leaderboard card
   const leaderboardList = document.getElementById('teacher-ranking-list');
   if (leaderboardList) {
-    leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">Loading leaderboard...</div>';
+    leaderboardList.innerHTML = getLeaderboardSkeleton();
     api.getTeacherRanking()
       .then(ranking => {
         const topRanking = ranking.slice(0, 3);
@@ -1142,7 +1204,7 @@ async function renderHomeView() {
       });
   }
 
-  container.innerHTML = `<div class="empty-state">Loading announcements...</div>`;
+  container.innerHTML = getAnnouncementsSkeleton();
 
   try {
     const list = await api.getAnnouncements();
@@ -1265,7 +1327,7 @@ async function renderNotesView() {
   // 2. Render content body
   if (!currentNotesFolder) {
     // Folders Grid View
-    content.innerHTML = `<div class="empty-state">Loading subject folders...</div>`;
+    content.innerHTML = getGridSkeleton();
     try {
       const folders = await api.getFolders('notes');
       if (folders.length === 0) {
@@ -1346,7 +1408,7 @@ async function renderNotesView() {
     }
   } else {
     // Documents list view inside folder
-    content.innerHTML = `<div class="empty-state">Loading notes...</div>`;
+    content.innerHTML = getListSkeleton();
     try {
       const docs = await api.getDocuments('notes', currentNotesFolder.id);
       if (docs.length === 0) {
@@ -1521,7 +1583,7 @@ async function renderPapersView() {
   // Render Content
   if (!currentPapersFolder) {
     // Folders Grid View
-    content.innerHTML = `<div class="empty-state">Loading papers subject folders...</div>`;
+    content.innerHTML = getGridSkeleton();
     try {
       const folders = await api.getFolders('papers');
       if (folders.length === 0) {
@@ -1602,7 +1664,7 @@ async function renderPapersView() {
     }
   } else {
     // Documents list inside folder
-    content.innerHTML = `<div class="empty-state">Loading papers...</div>`;
+    content.innerHTML = getListSkeleton();
     try {
       const docs = await api.getDocuments('paper', currentPapersFolder.id);
 
@@ -1982,7 +2044,7 @@ async function renderResourcesView() {
 
   } else if (currentResourcesSection === 'syllabus') {
     // Syllabus Documents View
-    content.innerHTML = `<div class="empty-state">Loading syllabus...</div>`;
+    content.innerHTML = getListSkeleton();
     try {
       const docs = await api.getDocuments('syllabus');
       if (docs.length === 0) {
@@ -2088,7 +2150,7 @@ async function renderResourcesView() {
 
   } else if (currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive') {
     // Folders Grid View for Lab Manuals, Books or Competitive Exams
-    content.innerHTML = `<div class="empty-state">Loading subject folders...</div>`;
+    content.innerHTML = getGridSkeleton();
     try {
       const folders = await api.getFolders(currentResourcesSection);
       if (folders.length === 0) {
@@ -2173,7 +2235,7 @@ async function renderResourcesView() {
 
   } else if (currentResourcesSection === 'lab_manuals_folder' || currentResourcesSection === 'books_folder' || currentResourcesSection === 'competitive_folder') {
     // Documents inside specific Lab Manual, Book or Competitive Exam folder
-    content.innerHTML = `<div class="empty-state">Loading files...</div>`;
+    content.innerHTML = getListSkeleton();
     let docType = 'book';
     if (currentResourcesSection === 'lab_manuals_folder') {
       docType = 'lab_manual';
@@ -2288,7 +2350,7 @@ async function renderResourcesView() {
     }
 
   } else if (currentResourcesSection === 'roadmaps') {
-    content.innerHTML = `<div class="empty-state">Loading roadmaps...</div>`;
+    content.innerHTML = getGridSkeleton();
     const parentId = currentResourcesFolder ? currentResourcesFolder.id : 'null';
 
     try {
@@ -3752,7 +3814,7 @@ async function renderAdminDashboardView(currentHash) {
 
   try {
     const fetchApprovals = async () => {
-      pendingContainer.innerHTML = '<div class="empty-state">Loading approvals...</div>';
+      pendingContainer.innerHTML = getListSkeleton();
       const pending = await api.getPendingUsers();
       pendingCount.textContent = pending.length;
 
@@ -3817,7 +3879,7 @@ async function renderAdminDashboardView(currentHash) {
     };
 
     const fetchUsers = async () => {
-      allContainer.innerHTML = '<div class="empty-state">Loading users...</div>';
+      allContainer.innerHTML = getListSkeleton();
       const all = await api.getAllUsers();
 
       // Sort users descending by their date of joining (newest first)
@@ -4058,7 +4120,7 @@ async function renderAdminDashboardView(currentHash) {
       const helpRequestsCount = document.getElementById('support-requests-count');
 
       if (helpRequestsContainer && helpRequestsCount) {
-        helpRequestsContainer.innerHTML = '<div class="empty-state">Loading support requests...</div>';
+        helpRequestsContainer.innerHTML = getListSkeleton();
 
         try {
           const tickets = await api.getHelpRequests();
@@ -4189,7 +4251,7 @@ async function renderAdminDashboardView(currentHash) {
 
       if ((currentUser.role === 'superadmin' || currentUser.role === 'admin') && superadminMessagesSection && superadminMessagesContainer && superadminMessagesCount) {
         superadminMessagesSection.style.display = 'block';
-        superadminMessagesContainer.innerHTML = '<div class="empty-state">Loading sent messages...</div>';
+        superadminMessagesContainer.innerHTML = getListSkeleton();
 
         try {
           const notifications = await api.getAllNotifications();
@@ -4325,7 +4387,7 @@ async function renderAdminDashboardView(currentHash) {
       const reviewsAverage = document.getElementById('admin-reviews-average');
 
       if (reviewsContainer && reviewsCount && reviewsAverage) {
-        reviewsContainer.innerHTML = '<div class="empty-state">Loading reviews...</div>';
+        reviewsContainer.innerHTML = getListSkeleton();
 
         try {
           const reviews = await api.getAllReviews();
@@ -4948,7 +5010,7 @@ async function renderMyUploadsView() {
   const container = document.getElementById('my-uploads-list-container');
   if (!container) return;
 
-  container.innerHTML = '<div class="empty-state"><div style="width: 30px; height: 30px; border: 3px solid var(--primary-accent); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>Loading your uploads...</div>';
+  container.innerHTML = getListSkeleton();
 
   try {
     myUploadsDocsList = await api.getMyUploads();
@@ -8270,7 +8332,7 @@ async function renderTeacherDashboardView() {
   statsOwnUploads.textContent = '...';
   statsOwnLikes.textContent = '...';
   statsTotalTeacherUploads.textContent = '...';
-  rankingListContainer.innerHTML = '<div class="empty-state">Loading rankings and stats...</div>';
+  rankingListContainer.innerHTML = getListSkeleton();
 
   try {
     const stats = await api.getTeacherStats();
@@ -8331,7 +8393,7 @@ async function renderPendingContributions() {
   const pendingDocsContainer = document.getElementById('pending-docs-list-container');
   if (!pendingDocsContainer) return;
 
-  pendingDocsContainer.innerHTML = '<div class="empty-state">Loading pending contributions...</div>';
+  pendingDocsContainer.innerHTML = getListSkeleton();
 
   try {
     const pendingDocs = await api.getPendingDocuments();
@@ -8684,7 +8746,7 @@ async function renderMyContributionsView() {
         Your Contribution Submissions
       </h3>
       <div id="student-contributions-list" class="docs-list">
-        <div class="empty-state">Loading your contributions...</div>
+        ${getListSkeleton()}
       </div>
     </div>
   `;
