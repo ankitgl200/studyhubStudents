@@ -1108,7 +1108,29 @@ async function renderHomeView() {
       .then(stats => {
         const count = stats.totalResources || 0;
         const roundedCount = Math.floor(count / 10) * 10;
-        statResourcesEl.textContent = `${roundedCount}+`;
+        
+        // Count Up Animation
+        if (roundedCount <= 0) {
+          statResourcesEl.textContent = '0+';
+        } else {
+          const duration = 1200; // 1.2 seconds duration
+          const startTime = performance.now();
+          
+          const animateCount = (now) => {
+            const progress = Math.min((now - startTime) / duration, 1);
+            // easeOutQuad curve for smooth deceleration
+            const easeProgress = progress * (2 - progress);
+            const current = Math.floor(easeProgress * roundedCount);
+            statResourcesEl.textContent = `${current}+`;
+            
+            if (progress < 1) {
+              requestAnimationFrame(animateCount);
+            } else {
+              statResourcesEl.textContent = `${roundedCount}+`;
+            }
+          };
+          requestAnimationFrame(animateCount);
+        }
         
         const rating = stats.averageRating || 4.8;
         statRatingEl.textContent = rating.toFixed(1);
