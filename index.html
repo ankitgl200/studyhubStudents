@@ -154,6 +154,12 @@
     width: 50px;
     height: 50px;
   }
+  .site-stats-card:hover {
+    background-color: var(--primary-accent) !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md) !important;
+  }
 </style>
 
 <body>
@@ -326,16 +332,50 @@
               </div>
             </div>
 
-            <!-- Teacher Leaderboard Card -->
-            <div class="why-card" id="teacher-ranking-card">
-              <h3 style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="award" style="color: var(--warning); width: 22px; height: 22px;"></i>
-                Teacher Leaderboard
-              </h3>
-              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Ranked by uploads and likes points</p>
-              <div id="teacher-ranking-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 230px; overflow-y: auto; padding-right: 8px;">
-                <!-- Populated dynamically via JS -->
+            <!-- Right Side Container: Leaderboard + Stats -->
+            <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; align-self: start;">
+              <!-- Teacher Leaderboard Card -->
+              <div class="why-card" id="teacher-ranking-card" style="margin: 0; padding: 28px 32px;">
+                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 12px;">
+                  <i data-lucide="award" style="color: var(--warning); width: 22px; height: 22px;"></i>
+                  Teacher Leaderboard
+                </h3>
+                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Ranked by uploads and likes points</p>
+                <div id="teacher-ranking-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 230px; overflow-y: auto; padding-right: 8px;">
+                  <!-- Populated dynamically via JS -->
+                </div>
               </div>
+
+              <!-- Quick Stats / Reviews Card -->
+              <a href="#/reviews" class="why-card site-stats-card" id="site-stats-card" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; text-decoration: none; color: inherit; transition: var(--transition); border: 1px solid rgba(30, 86, 160, 0.08); background: var(--white); cursor: pointer; box-shadow: var(--shadow-sm);">
+                <!-- Left Side: Resources Count -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="background-color: var(--primary-accent); color: var(--primary); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="folder-open" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div>
+                    <h4 id="stat-resources-count" style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; line-height: 1.2;">Counting...</h4>
+                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Total Resources Shared</p>
+                  </div>
+                </div>
+
+                <!-- Divider -->
+                <div style="width: 1px; height: 32px; background-color: var(--border-color);"></div>
+
+                <!-- Right Side: User Review -->
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                  <div>
+                    <h4 style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; line-height: 1.2; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                      <span id="stat-average-rating">4.8</span>
+                      <i data-lucide="star" style="width: 14px; height: 14px; fill: var(--warning); color: var(--warning);"></i>
+                    </h4>
+                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Average User Rating</p>
+                  </div>
+                  <div style="background-color: #fef9c3; color: #ca8a04; padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                  </div>
+                </div>
+              </a>
             </div>
           </section>
 
