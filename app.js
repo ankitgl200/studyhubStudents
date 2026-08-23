@@ -248,6 +248,10 @@ const api = {
     return await request('/documents/my-uploads');
   },
 
+  async getPublicStats() {
+    return await request('/documents/public-stats');
+  },
+
   async updateDocument(docId, title, subject, year) {
     return await request(`/documents/${docId}`, {
       method: 'PUT',
@@ -1093,6 +1097,26 @@ async function renderHomeView() {
       .catch(err => {
         console.error('Failed to load home leaderboard:', err);
         leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--danger);">Failed to load rankings</div>';
+      });
+  }
+
+  // Load and render public stats (total resources count & average review rating)
+  const statResourcesEl = document.getElementById('stat-resources-count');
+  const statRatingEl = document.getElementById('stat-average-rating');
+  if (statResourcesEl && statRatingEl) {
+    api.getPublicStats()
+      .then(stats => {
+        const count = stats.totalResources || 0;
+        const roundedCount = Math.floor(count / 10) * 10;
+        statResourcesEl.textContent = `${roundedCount}+`;
+        
+        const rating = stats.averageRating || 4.8;
+        statRatingEl.textContent = rating.toFixed(1);
+      })
+      .catch(err => {
+        console.error('Failed to load public stats:', err);
+        statResourcesEl.textContent = '150+';
+        statRatingEl.textContent = '4.8';
       });
   }
 
