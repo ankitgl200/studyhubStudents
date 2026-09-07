@@ -159,16 +159,68 @@ const api = {
     return res;
   },
 
-  async signup(name, phone, password, role) {
+  async signup(name, phone, email, password, role) {
     const res = await request('/auth/signup', {
       method: 'POST',
-      body: { name, phone, password, role }
+      body: { name, phone, email, password, role }
     });
     if (res.token) {
       localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(res.user));
     }
     return res;
+  },
+
+  async updateEmail(email) {
+    const res = await request('/auth/email', {
+      method: 'PUT',
+      body: { email }
+    });
+    if (res.user) {
+      currentUser = res.user;
+      localStorage.setItem('user', JSON.stringify(res.user));
+    }
+    return res;
+  },
+
+  async forgotPassword(phone) {
+    return await request('/auth/forgot-password', {
+      method: 'POST',
+      body: { phone }
+    });
+  },
+
+  async verifyResetOtp(phone, otp, newPassword = null, confirmPassword = null) {
+    const payload = { phone, otp };
+    if (newPassword && confirmPassword) {
+      payload.newPassword = newPassword;
+      payload.confirmPassword = confirmPassword;
+    }
+    return await request('/auth/verify-reset-otp', {
+      method: 'POST',
+      body: payload
+    });
+  },
+
+  async resetPasswordFinal(resetToken, newPassword, confirmPassword, phone = null) {
+    return await request('/auth/reset-password-final', {
+      method: 'POST',
+      body: { resetToken, newPassword, confirmPassword, phone }
+    });
+  },
+
+  async adminUpdateUserEmail(userId, email) {
+    return await request(`/auth/users/${userId}/email`, {
+      method: 'PUT',
+      body: { email }
+    });
+  },
+
+  async adminUpdateUserEmailByPhone(phone, email) {
+    return await request(`/auth/users/by-phone/${encodeURIComponent(phone)}/email`, {
+      method: 'PUT',
+      body: { email }
+    });
   },
 
   logout() {
@@ -340,10 +392,10 @@ const api = {
   },
 
   // Help & Support API
-  async submitHelpRequest(subject, message, name = null, phone = null, role = null) {
+  async submitHelpRequest(subject, message, name = null, phone = null, role = null, requestedEmail = null) {
     return await request('/help', {
       method: 'POST',
-      body: { subject, message, name, phone, role }
+      body: { subject, message, name, phone, role, requestedEmail }
     });
   },
 
@@ -604,6 +656,24 @@ function updateNavbar() {
               <i data-lucide="phone" style="width: 12px; height: 12px;"></i>
               ${escapeHTML(currentUser.phone)}
             </div>
+            ${currentUser.email ? `
+              <div class="profile-email" style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 5px;">
+                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;" title="${escapeHTML(currentUser.email)}">
+                  <i data-lucide="mail" style="width: 12px; height: 12px; flex-shrink: 0; color: var(--primary);"></i>
+                  <span style="overflow: hidden; text-overflow: ellipsis;">${escapeHTML(currentUser.email)}</span>
+                </div>
+              </div>
+            ` : `
+              <div class="profile-email" style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 5px;">
+                <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 165px;" title="No email added">
+                  <i data-lucide="mail" style="width: 12px; height: 12px; flex-shrink: 0; color: var(--primary);"></i>
+                  <span style="overflow: hidden; text-overflow: ellipsis; color: #ef4444; font-style: italic;">No email added</span>
+                </div>
+                <button type="button" class="btn-open-update-email" style="padding: 2px 7px; font-size: 10px; font-weight: 700; border-radius: 4px; background: var(--primary); color: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; transition: var(--transition);" title="Link your email">
+                  + Add Email
+                </button>
+              </div>
+            `}
           </div>
           <div class="profile-role-container" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 12px;">
             <span class="profile-role-label" style="color: var(--text-muted); font-weight: 500; text-transform: uppercase;">Role:</span>
@@ -806,7 +876,7 @@ function handleAuthProtection(path) {
     cleanPath = '/' + cleanPath;
   }
 
-  const publicRoutes = ['/', '/login', '/signup', '/notes', '/papers', '/resources', '/generators', '/support', '/terms', '/privacy', '/contributors'];
+  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/notes', '/papers', '/resources', '/generators', '/support', '/terms', '/privacy', '/contributors'];
   if (!publicRoutes.includes(cleanPath) && !currentUser) {
     navigate('/login');
     return false;
@@ -956,7 +1026,7 @@ async function router() {
 
   const bottomNav = document.querySelector('.mobile-bottom-nav');
   if (bottomNav) {
-    if (cleanPath === '/login' || cleanPath === '/signup') {
+    if (cleanPath === '/login' || cleanPath === '/signup' || cleanPath === '/forgot-password') {
       bottomNav.style.setProperty('display', 'none', 'important');
     } else {
       bottomNav.style.removeProperty('display');
@@ -980,6 +1050,9 @@ async function router() {
     if (currentUser) return navigate('/');
     document.getElementById('view-login').style.display = 'block';
     document.getElementById('login-error-alert').style.display = 'none';
+  } else if (cleanPath === '/forgot-password') {
+    document.getElementById('view-forgot-password').style.display = 'block';
+    renderForgotPasswordView();
   } else if (cleanPath === '/signup') {
     if (currentUser) return navigate('/');
     document.getElementById('view-signup').style.display = 'block';
@@ -2848,7 +2921,21 @@ function renderProfileView() {
         ${escapeHTML(currentUser.name.charAt(0).toUpperCase())}
       </div>
       <h3 style="color: white; margin: 0; font-size: 19px; font-weight: 700;">${escapeHTML(capitalizeName(currentUser.name))}</h3>
-      <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin: 4px 0 10px 0;">${escapeHTML(currentUser.phone)}</p>
+      <p style="color: rgba(255, 255, 255, 0.85); font-size: 13px; margin: 4px 0 2px 0;">${escapeHTML(currentUser.phone)}</p>
+      ${currentUser.email ? `
+        <div style="color: rgba(255, 255, 255, 0.95); font-size: 13px; margin: 2px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+          <i data-lucide="mail" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+          <span>${escapeHTML(currentUser.email)}</span>
+        </div>
+      ` : `
+        <div style="color: rgba(255, 255, 255, 0.95); font-size: 13px; margin: 2px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+          <i data-lucide="mail" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+          <span style="opacity: 0.9; font-style: italic;">No email added</span>
+          <button type="button" class="btn-open-update-email" style="padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 12px; background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.45); color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; backdrop-filter: blur(4px);" title="Link your email">
+            + Add Email
+          </button>
+        </div>
+      `}
       <span style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
         ${currentUser.role === 'superadmin' ? 'SUPER ADMIN' : (currentUser.role === 'educator' ? 'TEACHER' : currentUser.role)}
       </span>
@@ -3955,6 +4042,7 @@ async function renderAdminDashboardView(currentHash) {
                   ` : ''}
                 </h5>
                 <p style="font-size: 12px;">Phone: ${escapeHTML(u.phone)}</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Email: ${u.email ? escapeHTML(u.email) : '<span style="color: #ef4444; font-style: italic; font-weight: 500;">No email linked</span>'}</p>
                 <div style="display: flex; gap: 6px; margin-top: 4px;">
                   <span class="user-tag" style="margin: 0; padding: 2px 6px; font-size: 10px; background-color: ${u.role === 'superadmin' ? '#fee2e2' : 'var(--primary-accent)'}; color: ${u.role === 'superadmin' ? '#ef4444' : 'var(--primary-dark)'};">
                     ${u.role === 'superadmin' ? 'Super Admin' : escapeHTML(u.role)}
@@ -3973,6 +4061,9 @@ async function renderAdminDashboardView(currentHash) {
                 ${u.id !== currentUser.id ? `
                   <button class="btn btn-secondary btn-sm btn-message-user" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: var(--primary-accent); color: var(--primary-dark); border-color: var(--primary-accent);" title="Send Notification Message">
                     <i data-lucide="bell" style="width: 12px; height: 12px;"></i> Message
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-admin-edit-email" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" data-phone="${escapeHTML(u.phone)}" data-email="${escapeHTML(u.email || '')}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: #ede9fe; color: #6d28d9; border-color: #ddd6fe;" title="Update user email">
+                    <i data-lucide="mail" style="width: 12px; height: 12px;"></i> Edit Email
                   </button>
                   <button class="btn btn-secondary btn-sm btn-admin-reset-password" data-id="${u.id}" data-name="${escapeHTML(capitalizeName(u.name))}" style="margin-right: 8px; font-size: 11px; padding: 4px 10px; display: flex; align-items: center; gap: 3px; background-color: #fef08a; color: #854d0e; border-color: #fef08a;" title="Reset user password to 123456">
                     <i data-lucide="key" style="width: 12px; height: 12px;"></i> Reset Password
@@ -4075,6 +4166,16 @@ async function renderAdminDashboardView(currentHash) {
           });
         });
 
+        document.querySelectorAll('.btn-admin-edit-email').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const userId = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const phone = btn.getAttribute('data-phone');
+            const email = btn.getAttribute('data-email');
+            openAdminEditEmailModal({ userId, phone, name, email });
+          });
+        });
+
         // Render Show More button for Directory if needed
         const dirShowMoreContainer = document.getElementById('directory-show-more-container');
         const dirRemaining = selectedUsers.length - directoryVisibleCount;
@@ -4161,6 +4262,17 @@ async function renderAdminDashboardView(currentHash) {
                   </div>
                   <div class="ticket-subject" style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">Subject: ${escapeHTML(t.subject)}</div>
                   <div class="ticket-message" style="font-size: 14px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap;">${escapeHTML(t.message)}</div>
+                  ${t.requestedEmail ? `
+                    <div style="margin-top: 10px; padding: 10px 14px; background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; font-size: 13px; color: #92400e; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                        <span>Requested Email: <strong>${escapeHTML(t.requestedEmail)}</strong></span>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-link-requested-email" data-phone="${escapeHTML(t.phone)}" data-name="${escapeHTML(t.name)}" data-email="${escapeHTML(t.requestedEmail)}" style="font-size: 12px; padding: 4px 10px; background: #d97706; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                        <i data-lucide="link" style="width: 12px; height: 12px;"></i> Link to Account
+                      </button>
+                    </div>
+                  ` : ''}
                   <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px;">
                     <button class="btn btn-secondary btn-sm btn-resolve-ticket" data-id="${t.id}" style="padding: 6px 12px; display: flex; align-items: center; gap: 4px;">
                       ${isResolved ? `
@@ -4215,6 +4327,16 @@ async function renderAdminDashboardView(currentHash) {
                   btn.innerHTML = originalHTML;
                   refreshIcons();
                 }
+              });
+            });
+
+            // Bind Link Requested Email handler
+            helpRequestsContainer.querySelectorAll('.btn-link-requested-email').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const phone = btn.getAttribute('data-phone');
+                const name = btn.getAttribute('data-name');
+                const email = btn.getAttribute('data-email');
+                openAdminEditEmailModal({ phone, name, email });
               });
             });
 
@@ -5264,12 +5386,54 @@ async function renderSupportView() {
     roleInput.required = true;
   }
 
-  // Prefill or clear inputs based on reason query parameter
+  // Handle reason query parameter and prefill fields
   const params = getHashQueryParams();
-  if (params.reason === 'forgot-password') {
+  const noticeBanner = document.getElementById('support-email-request-notice');
+  const reqEmailGroup = document.getElementById('support-requested-email-group');
+  const reqEmailInput = document.getElementById('support-requested-email');
+
+  if (params.reason === 'add-email') {
+    if (noticeBanner) noticeBanner.style.display = 'flex';
+    if (reqEmailGroup) reqEmailGroup.style.display = 'block';
+    if (reqEmailInput) {
+      reqEmailInput.value = '';
+      reqEmailInput.required = true;
+    }
+
+    if (params.name) {
+      nameInput.value = decodeURIComponent(params.name);
+      nameInput.disabled = true;
+    }
+    if (params.phone) {
+      phoneInput.value = decodeURIComponent(params.phone);
+      phoneInput.disabled = true;
+    }
+    if (params.role) {
+      let r = decodeURIComponent(params.role);
+      if (r === 'educator') r = 'Educator (Teacher)';
+      else if (r === 'superadmin') r = 'Super Admin';
+      roleInput.value = r;
+      roleInput.disabled = true;
+    }
+
+    document.getElementById('support-subject').value = 'Request to link email for password reset';
+    document.getElementById('support-message').value = 'Hello Admin,\n\nI need to reset my password, but my account does not have a registered email address. Please link my email address specified above to my account so I can receive the password reset OTP.\n\nThank you!';
+  } else if (params.reason === 'forgot-password') {
+    if (noticeBanner) noticeBanner.style.display = 'none';
+    if (reqEmailGroup) reqEmailGroup.style.display = 'none';
+    if (reqEmailInput) {
+      reqEmailInput.value = '';
+      reqEmailInput.required = false;
+    }
     document.getElementById('support-subject').value = 'Forgot Password Reset Request';
     document.getElementById('support-message').value = 'Hello, I forgot my password. Please reset my password to the default 123456. Thank you!';
   } else {
+    if (noticeBanner) noticeBanner.style.display = 'none';
+    if (reqEmailGroup) reqEmailGroup.style.display = 'none';
+    if (reqEmailInput) {
+      reqEmailInput.value = '';
+      reqEmailInput.required = false;
+    }
     document.getElementById('support-subject').value = '';
     document.getElementById('support-message').value = '';
   }
@@ -5782,6 +5946,755 @@ function updateStarRatingDisplay(rating, isHover = false) {
       }
     }
   });
+}
+
+// --- EMAIL LINK & UPDATE MODAL CONTROLLER ---
+let isEmailModalCompulsory = false;
+
+function checkCompulsoryEmail() {
+  if (currentUser && !currentUser.email) {
+    setTimeout(() => {
+      openEmailModal({ compulsory: true });
+    }, 250);
+  }
+}
+
+function openEmailModal({ compulsory = false } = {}) {
+  const modal = document.getElementById('modal-email');
+  const titleText = document.getElementById('modal-email-title-text');
+  const closeBtn = document.getElementById('modal-email-close');
+  const cancelBtn = document.getElementById('btn-modal-email-cancel');
+  const noticeEl = document.getElementById('modal-email-notice');
+  const errorEl = document.getElementById('modal-email-error');
+  const successEl = document.getElementById('modal-email-success');
+  const inputEmail = document.getElementById('input-modal-email');
+  const submitText = document.getElementById('text-modal-email-submit');
+
+  if (!modal || !inputEmail) return;
+
+  isEmailModalCompulsory = !!compulsory;
+
+  if (errorEl) errorEl.style.display = 'none';
+  if (successEl) successEl.style.display = 'none';
+
+  if (isEmailModalCompulsory) {
+    if (titleText) titleText.textContent = 'Link Email Address';
+    if (closeBtn) closeBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (noticeEl) noticeEl.style.display = 'flex';
+    if (submitText) submitText.textContent = 'Save Email';
+    inputEmail.value = '';
+  } else {
+    if (titleText) titleText.textContent = 'Update Email Address';
+    if (closeBtn) closeBtn.style.display = 'flex';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (noticeEl) noticeEl.style.display = 'none';
+    if (submitText) submitText.textContent = 'Update Email';
+    inputEmail.value = currentUser ? (currentUser.email || '') : '';
+  }
+
+  modal.style.display = 'flex';
+  refreshIcons();
+  setTimeout(() => inputEmail.focus(), 100);
+}
+
+function closeEmailModal() {
+  if (isEmailModalCompulsory && currentUser && !currentUser.email) {
+    return;
+  }
+  const modal = document.getElementById('modal-email');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function initEmailModalEventHandlers() {
+  const closeBtn = document.getElementById('modal-email-close');
+  const cancelBtn = document.getElementById('btn-modal-email-cancel');
+  const modal = document.getElementById('modal-email');
+  const form = document.getElementById('form-update-email');
+
+  if (closeBtn) closeBtn.addEventListener('click', closeEmailModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeEmailModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeEmailModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeEmailModal();
+      }
+    });
+  }
+
+  // Delegated click on Update buttons (PC dropdown & Mobile profile)
+  document.addEventListener('click', (e) => {
+    const updateBtn = e.target.closest('.btn-open-update-email');
+    if (updateBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const profileMenu = document.getElementById('profile-dropdown-menu');
+      if (profileMenu) profileMenu.classList.remove('show');
+      openEmailModal({ compulsory: false });
+    }
+  });
+
+  // Submit email update / link form
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const emailInput = document.getElementById('input-modal-email');
+      const errorEl = document.getElementById('modal-email-error');
+      const successEl = document.getElementById('modal-email-success');
+      const submitBtn = document.getElementById('btn-modal-email-submit');
+      const submitText = document.getElementById('text-modal-email-submit');
+
+      if (!emailInput) return;
+      const email = emailInput.value.trim();
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!email || !emailRegex.test(email)) {
+        if (errorEl) {
+          errorEl.textContent = 'Please enter a valid email address (e.g. example@gmail.com)';
+          errorEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (errorEl) errorEl.style.display = 'none';
+      if (successEl) successEl.style.display = 'none';
+
+      submitBtn.disabled = true;
+      const originalText = submitText ? submitText.textContent : 'Save Email';
+      if (submitText) submitText.textContent = 'Saving...';
+
+      try {
+        const res = await api.updateEmail(email);
+        if (res.user) {
+          currentUser = res.user;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        } else if (currentUser) {
+          currentUser.email = email.toLowerCase();
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+
+        isEmailModalCompulsory = false;
+
+        // Refresh UI
+        updateNavbar();
+        const profileView = document.getElementById('view-profile');
+        if (profileView && profileView.style.display !== 'none' && typeof renderProfileView === 'function') {
+          renderProfileView();
+        }
+
+        if (successEl) {
+          successEl.textContent = res.message || 'Email successfully saved!';
+          successEl.style.display = 'block';
+        }
+
+        setTimeout(() => {
+          closeEmailModal();
+        }, 700);
+      } catch (err) {
+        if (errorEl) {
+          errorEl.textContent = err.message || 'Failed to save email address';
+          errorEl.style.display = 'block';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        if (submitText) submitText.textContent = originalText;
+        refreshIcons();
+      }
+    });
+  }
+}
+
+// --- FORGOT PASSWORD CONTROLLER & EMAILJS ENGINE ---
+const EMAILJS_PUBLIC_KEY = "EADCytMay61qrmUUk";
+
+const forgotPasswordState = {
+  phone: '',
+  name: '',
+  email: '',
+  maskedEmail: '',
+  resetToken: null,
+  timerInterval: null,
+  countdown: 60
+};
+
+async function sendResetOtpEmail({ otp, name, email }) {
+  console.log(`[StudyHub Reset] Sending OTP to ${email}`);
+
+  if (typeof window.emailjs !== 'undefined') {
+    const templateParams = {
+      OTP: otp,
+      name: name,
+      email: email,
+    };
+
+    try {
+      return await window.emailjs.send("service_k0369d9", "template_axrwr8q", templateParams, EMAILJS_PUBLIC_KEY);
+    } catch (err) {
+      console.error('[EmailJS Send Error]', err);
+      throw new Error(`EmailJS Error: ${err.text || err.message || 'Failed to send OTP email'}. Check EmailJS configuration.`);
+    }
+  } else {
+    throw new Error('EmailJS SDK failed to load. Please check your internet connection.');
+  }
+}
+
+function getOtpBoxes() {
+  return Array.from(document.querySelectorAll('.otp-box'));
+}
+
+function getOtpValue() {
+  return getOtpBoxes().map(b => b.value.trim()).join('');
+}
+
+function clearOtpBoxes() {
+  const boxes = getOtpBoxes();
+  boxes.forEach(b => { b.value = ''; });
+  const first = document.querySelector('.otp-box[data-idx="0"]');
+  if (first) setTimeout(() => first.focus(), 100);
+}
+
+function renderForgotPasswordView() {
+  const stepPhone = document.getElementById('forgot-step-phone');
+  const stepOtp = document.getElementById('forgot-step-otp');
+  const stepNewPass = document.getElementById('forgot-step-newpass');
+
+  const phoneError = document.getElementById('forgot-phone-error-alert');
+  const otpError = document.getElementById('forgot-otp-error-alert');
+  const otpSuccess = document.getElementById('forgot-otp-success-alert');
+  const newPassError = document.getElementById('forgot-newpass-error-alert');
+  const newPassSuccess = document.getElementById('forgot-newpass-success-alert');
+
+  const phoneInput = document.getElementById('forgot-phone-input');
+  const newPassInput = document.getElementById('forgot-new-password');
+  const confirmPassInput = document.getElementById('forgot-confirm-password');
+
+  if (forgotPasswordState.timerInterval) {
+    clearInterval(forgotPasswordState.timerInterval);
+    forgotPasswordState.timerInterval = null;
+  }
+
+  if (stepPhone) stepPhone.style.display = 'block';
+  if (stepOtp) stepOtp.style.display = 'none';
+  if (stepNewPass) stepNewPass.style.display = 'none';
+
+  if (phoneError) phoneError.style.display = 'none';
+  if (otpError) otpError.style.display = 'none';
+  if (otpSuccess) otpSuccess.style.display = 'none';
+  if (newPassError) newPassError.style.display = 'none';
+  if (newPassSuccess) newPassSuccess.style.display = 'none';
+
+  if (phoneInput) {
+    phoneInput.value = currentUser ? currentUser.phone : '';
+  }
+
+  clearOtpBoxes();
+
+  if (newPassInput) {
+    newPassInput.value = '';
+    newPassInput.type = 'password';
+  }
+  if (confirmPassInput) {
+    confirmPassInput.value = '';
+    confirmPassInput.type = 'password';
+  }
+
+  forgotPasswordState.phone = currentUser ? currentUser.phone : '';
+  forgotPasswordState.name = currentUser ? currentUser.name : '';
+  forgotPasswordState.email = currentUser ? (currentUser.email || '') : '';
+  forgotPasswordState.maskedEmail = '';
+  forgotPasswordState.resetToken = null;
+
+  refreshIcons();
+}
+
+function startOtpResendTimer() {
+  if (forgotPasswordState.timerInterval) {
+    clearInterval(forgotPasswordState.timerInterval);
+  }
+
+  forgotPasswordState.countdown = 60;
+  const timerText = document.getElementById('forgot-otp-timer');
+  const timerCount = document.getElementById('forgot-timer-count');
+  const resendBtn = document.getElementById('btn-resend-forgot-otp');
+
+  if (timerText) timerText.style.display = 'inline';
+  if (timerCount) timerCount.textContent = '60';
+  if (resendBtn) resendBtn.style.display = 'none';
+
+  forgotPasswordState.timerInterval = setInterval(() => {
+    forgotPasswordState.countdown -= 1;
+    if (timerCount) timerCount.textContent = forgotPasswordState.countdown;
+
+    if (forgotPasswordState.countdown <= 0) {
+      clearInterval(forgotPasswordState.timerInterval);
+      forgotPasswordState.timerInterval = null;
+      if (timerText) timerText.style.display = 'none';
+      if (resendBtn) {
+        resendBtn.style.display = 'inline';
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend OTP';
+      }
+    }
+  }, 1000);
+}
+
+function initForgotPasswordEventHandlers() {
+  const formPhone = document.getElementById('form-forgot-phone');
+  const formOtp = document.getElementById('form-forgot-otp');
+  const formNewPass = document.getElementById('form-forgot-newpass');
+  const resendBtn = document.getElementById('btn-resend-forgot-otp');
+  const backToPhoneBtn = document.getElementById('btn-back-to-phone');
+  const showNewPassBtn = document.getElementById('btn-show-forgot-new-pass');
+  const showConfirmPassBtn = document.getElementById('btn-show-forgot-confirm-pass');
+  const otpBoxes = getOtpBoxes();
+
+  // Setup 6-box OTP behaviors (auto-advance, backspace, paste, arrow keys)
+  otpBoxes.forEach((box, idx) => {
+    box.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/\D/g, '');
+      e.target.value = val ? val.charAt(0) : '';
+
+      if (val && idx < otpBoxes.length - 1) {
+        otpBoxes[idx + 1].focus();
+        otpBoxes[idx + 1].select();
+      }
+    });
+
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        if (!e.target.value && idx > 0) {
+          otpBoxes[idx - 1].focus();
+          otpBoxes[idx - 1].value = '';
+        }
+      } else if (e.key === 'ArrowLeft' && idx > 0) {
+        otpBoxes[idx - 1].focus();
+      } else if (e.key === 'ArrowRight' && idx < otpBoxes.length - 1) {
+        otpBoxes[idx + 1].focus();
+      }
+    });
+
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+      const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+      if (!digits) return;
+
+      digits.split('').forEach((d, i) => {
+        if (otpBoxes[i]) {
+          otpBoxes[i].value = d;
+        }
+      });
+
+      const focusIdx = Math.min(digits.length, otpBoxes.length - 1);
+      otpBoxes[focusIdx].focus();
+    });
+  });
+
+  // STEP 1: Phone submission
+  if (formPhone) {
+    formPhone.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phoneInput = document.getElementById('forgot-phone-input');
+      const errorAlert = document.getElementById('forgot-phone-error-alert');
+      const submitBtn = document.getElementById('btn-send-forgot-otp');
+      const btnContent = document.getElementById('btn-send-forgot-otp-content');
+
+      if (!phoneInput) return;
+      const phone = phoneInput.value.trim();
+
+      if (!/^\d{10}$/.test(phone)) {
+        if (errorAlert) {
+          errorAlert.textContent = 'Please enter a valid 10-digit registered phone number.';
+          errorAlert.style.display = 'block';
+        }
+        return;
+      }
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      submitBtn.disabled = true;
+      const originalHTML = btnContent.innerHTML;
+      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Looking up account...';
+      refreshIcons();
+
+      try {
+        const res = await api.forgotPassword(phone);
+
+        if (!res.hasEmail) {
+          // No email registered in DB -> Navigate to Support Page with prefilled application
+          const supportUrl = `/support?reason=add-email&phone=${encodeURIComponent(phone)}&name=${encodeURIComponent(res.name || '')}&role=${encodeURIComponent(res.role || '')}`;
+          navigate(supportUrl);
+          return;
+        }
+
+        // Has email registered -> Send OTP via EmailJS
+        forgotPasswordState.phone = phone;
+        forgotPasswordState.name = res.name;
+        forgotPasswordState.email = res.email;
+        forgotPasswordState.maskedEmail = res.maskedEmail;
+
+        btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Sending Email OTP...';
+        refreshIcons();
+
+        await sendResetOtpEmail({
+          otp: res.otp,
+          name: res.name,
+          email: res.email
+        });
+
+        // Switch to Step 2 (Verify OTP only)
+        document.getElementById('forgot-step-phone').style.display = 'none';
+        document.getElementById('forgot-step-otp').style.display = 'block';
+        document.getElementById('forgot-step-newpass').style.display = 'none';
+        document.getElementById('forgot-masked-email').textContent = res.maskedEmail;
+
+        clearOtpBoxes();
+        startOtpResendTimer();
+        refreshIcons();
+      } catch (err) {
+        if (errorAlert) {
+          errorAlert.textContent = err.message || 'Failed to process forgot password request.';
+          errorAlert.style.display = 'block';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        btnContent.innerHTML = originalHTML;
+        refreshIcons();
+      }
+    });
+  }
+
+  // STEP 2: Verify OTP Only
+  if (formOtp) {
+    formOtp.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorAlert = document.getElementById('forgot-otp-error-alert');
+      const successAlert = document.getElementById('forgot-otp-success-alert');
+      const submitBtn = document.getElementById('btn-verify-forgot-otp');
+      const btnContent = document.getElementById('btn-verify-forgot-otp-content');
+
+      const otp = getOtpValue();
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (successAlert) successAlert.style.display = 'none';
+
+      if (!/^\d{6}$/.test(otp)) {
+        if (errorAlert) {
+          errorAlert.textContent = 'Please enter the complete 6-digit numeric OTP.';
+          errorAlert.style.display = 'block';
+        }
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalHTML = btnContent.innerHTML;
+      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Verifying OTP...';
+      refreshIcons();
+
+      try {
+        const res = await api.verifyResetOtp(forgotPasswordState.phone, otp);
+
+        if (forgotPasswordState.timerInterval) {
+          clearInterval(forgotPasswordState.timerInterval);
+          forgotPasswordState.timerInterval = null;
+        }
+
+        forgotPasswordState.resetToken = res.resetToken;
+
+        // Transition from Step 2 to Step 3 (Set New Password)
+        document.getElementById('forgot-step-otp').style.display = 'none';
+        document.getElementById('forgot-step-newpass').style.display = 'block';
+
+        const newPassInput = document.getElementById('forgot-new-password');
+        if (newPassInput) setTimeout(() => newPassInput.focus(), 100);
+        refreshIcons();
+      } catch (err) {
+        if (errorAlert) {
+          errorAlert.textContent = err.message || 'Failed to verify OTP.';
+          errorAlert.style.display = 'block';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        btnContent.innerHTML = originalHTML;
+        refreshIcons();
+      }
+    });
+  }
+
+  // STEP 3: Update Password (only after OTP is verified)
+  if (formNewPass) {
+    formNewPass.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassInput = document.getElementById('forgot-new-password');
+      const confirmPassInput = document.getElementById('forgot-confirm-password');
+      const errorAlert = document.getElementById('forgot-newpass-error-alert');
+      const successAlert = document.getElementById('forgot-newpass-success-alert');
+      const submitBtn = document.getElementById('btn-submit-reset-password');
+      const btnContent = document.getElementById('btn-submit-reset-password-content');
+
+      const newPassword = newPassInput ? newPassInput.value : '';
+      const confirmPassword = confirmPassInput ? confirmPassInput.value : '';
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (successAlert) successAlert.style.display = 'none';
+
+      if (newPassword.length < 6) {
+        if (errorAlert) {
+          errorAlert.textContent = 'New password must be at least 6 characters long.';
+          errorAlert.style.display = 'block';
+        }
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        if (errorAlert) {
+          errorAlert.textContent = 'Passwords do not match. Please verify and re-enter.';
+          errorAlert.style.display = 'block';
+        }
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalHTML = btnContent.innerHTML;
+      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Updating Password...';
+      refreshIcons();
+
+      try {
+        const res = await api.resetPasswordFinal(
+          forgotPasswordState.resetToken, 
+          newPassword, 
+          confirmPassword, 
+          forgotPasswordState.phone
+        );
+
+        if (successAlert) {
+          successAlert.innerHTML = `<strong>Success!</strong> ${res.message || 'Password updated successfully!'}`;
+          successAlert.style.display = 'block';
+        }
+
+        setTimeout(() => {
+          if (currentUser) {
+            navigate('/profile');
+          } else {
+            navigate('/login');
+          }
+        }, 1500);
+      } catch (err) {
+        if (errorAlert) {
+          errorAlert.textContent = err.message || 'Failed to update password.';
+          errorAlert.style.display = 'block';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        btnContent.innerHTML = originalHTML;
+        refreshIcons();
+      }
+    });
+  }
+
+  // Resend OTP button
+  if (resendBtn) {
+    resendBtn.addEventListener('click', async () => {
+      const errorAlert = document.getElementById('forgot-otp-error-alert');
+      const successAlert = document.getElementById('forgot-otp-success-alert');
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (successAlert) successAlert.style.display = 'none';
+
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'Sending...';
+
+      try {
+        const res = await api.forgotPassword(forgotPasswordState.phone);
+        await sendResetOtpEmail({
+          otp: res.otp,
+          name: res.name,
+          email: res.email
+        });
+
+        if (successAlert) {
+          successAlert.textContent = 'A new 6-digit verification code has been sent to your email.';
+          successAlert.style.display = 'block';
+        }
+        clearOtpBoxes();
+        startOtpResendTimer();
+      } catch (err) {
+        if (errorAlert) {
+          errorAlert.textContent = err.message || 'Failed to resend OTP.';
+          errorAlert.style.display = 'block';
+        }
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend OTP';
+      }
+    });
+  }
+
+  // Back to Phone Step
+  if (backToPhoneBtn) {
+    backToPhoneBtn.addEventListener('click', () => {
+      renderForgotPasswordView();
+    });
+  }
+
+  // Password visibility toggles
+  if (showNewPassBtn) {
+    showNewPassBtn.addEventListener('click', () => {
+      const input = document.getElementById('forgot-new-password');
+      const icon = showNewPassBtn.querySelector('i');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+      }
+      refreshIcons();
+    });
+  }
+
+  if (showConfirmPassBtn) {
+    showConfirmPassBtn.addEventListener('click', () => {
+      const input = document.getElementById('forgot-confirm-password');
+      const icon = showConfirmPassBtn.querySelector('i');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+      }
+      refreshIcons();
+    });
+  }
+}
+
+// --- ADMIN EDIT USER EMAIL MODAL CONTROLLER ---
+function openAdminEditEmailModal({ userId, phone, name, email }) {
+  const modal = document.getElementById('modal-admin-edit-email');
+  const errorAlert = document.getElementById('admin-edit-email-error');
+  const successAlert = document.getElementById('admin-edit-email-success');
+  const idInput = document.getElementById('admin-edit-email-user-id');
+  const phoneInput = document.getElementById('admin-edit-email-user-phone');
+  const nameEl = document.getElementById('admin-edit-email-user-name');
+  const phoneEl = document.getElementById('admin-edit-email-user-phone-display');
+  const emailInput = document.getElementById('admin-edit-email-input');
+
+  if (!modal) return;
+
+  if (errorAlert) errorAlert.style.display = 'none';
+  if (successAlert) successAlert.style.display = 'none';
+
+  if (idInput) idInput.value = userId || '';
+  if (phoneInput) phoneInput.value = phone || '';
+  if (nameEl) nameEl.textContent = capitalizeName(name || 'User');
+  if (phoneEl) phoneEl.textContent = phone || 'N/A';
+  if (emailInput) {
+    emailInput.value = email || '';
+    setTimeout(() => emailInput.focus(), 150);
+  }
+
+  modal.style.display = 'flex';
+  refreshIcons();
+}
+
+function closeAdminEditEmailModal() {
+  const modal = document.getElementById('modal-admin-edit-email');
+  if (modal) modal.style.display = 'none';
+}
+
+function initAdminEmailModalEventHandlers() {
+  const modal = document.getElementById('modal-admin-edit-email');
+  const closeBtn = document.getElementById('modal-admin-edit-email-close');
+  const cancelBtn = document.getElementById('btn-admin-edit-email-cancel');
+  const form = document.getElementById('form-admin-edit-email');
+
+  if (closeBtn) closeBtn.addEventListener('click', closeAdminEditEmailModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeAdminEditEmailModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeAdminEditEmailModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeAdminEditEmailModal();
+      }
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById('admin-edit-email-user-id').value;
+      const phone = document.getElementById('admin-edit-email-user-phone').value;
+      const emailInput = document.getElementById('admin-edit-email-input');
+      const errorAlert = document.getElementById('admin-edit-email-error');
+      const successAlert = document.getElementById('admin-edit-email-success');
+      const submitBtn = document.getElementById('btn-admin-edit-email-submit');
+
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (successAlert) successAlert.style.display = 'none';
+
+      if (!email || !emailRegex.test(email)) {
+        if (errorAlert) {
+          errorAlert.textContent = 'Please enter a valid email address.';
+          errorAlert.style.display = 'block';
+        }
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalHTML = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Saving...';
+      refreshIcons();
+
+      try {
+        let res;
+        if (userId) {
+          res = await api.adminUpdateUserEmail(userId, email);
+        } else if (phone) {
+          res = await api.adminUpdateUserEmailByPhone(phone, email);
+        } else {
+          throw new Error('Missing user ID or phone number.');
+        }
+
+        if (successAlert) {
+          successAlert.textContent = res.message || 'Email updated successfully!';
+          successAlert.style.display = 'block';
+        }
+
+        // Refresh admin dashboard to show updated email
+        setTimeout(async () => {
+          closeAdminEditEmailModal();
+          if (typeof renderAdminDashboardView === 'function') {
+            await renderAdminDashboardView();
+          }
+        }, 800);
+      } catch (err) {
+        if (errorAlert) {
+          errorAlert.textContent = err.message || 'Failed to update email.';
+          errorAlert.style.display = 'block';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHTML;
+        refreshIcons();
+      }
+    });
+  }
 }
 
 async function renderReviewsView() {
@@ -7057,6 +7970,7 @@ function initEventHandlers() {
       updateNavbar();
       startNotificationPolling();
       navigate('/');
+      checkCompulsoryEmail();
       if (res.isNewUser) {
         // Automatically download user manual for new users
         downloadUserManual();
@@ -7208,6 +8122,14 @@ function initEventHandlers() {
     });
   }
 
+  // Forgot password button on reset-password page
+  const btnResetForgot = document.getElementById('btn-reset-page-forgot');
+  if (btnResetForgot) {
+    btnResetForgot.addEventListener('click', () => {
+      navigate('/forgot-password');
+    });
+  }
+
   // 3. SIGNUP FORM
   const signupForm = document.getElementById('form-signup');
   const roleSelect = document.getElementById('signup-role');
@@ -7228,6 +8150,7 @@ function initEventHandlers() {
     e.preventDefault();
     const name = document.getElementById('signup-name').value.trim();
     const phone = document.getElementById('signup-phone').value.trim();
+    const email = document.getElementById('signup-email') ? document.getElementById('signup-email').value.trim() : '';
     const password = document.getElementById('signup-password').value;
     const role = roleSelect ? roleSelect.value : 'student';
 
@@ -7248,8 +8171,17 @@ function initEventHandlers() {
       return;
     }
 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      errorAlert.textContent = 'Please enter a valid email address (e.g. example@gmail.com)';
+      errorAlert.style.display = 'block';
+      btnContent.innerHTML = '<i data-lucide="user-plus" style="width:18px;height:18px;"></i> Register';
+      refreshIcons();
+      return;
+    }
+
     try {
-      const res = await api.signup(name, phone, password, role);
+      const res = await api.signup(name, phone, email, password, role);
       if (res.requiresApproval) {
         successText.textContent = res.message;
         successAlert.style.display = 'flex';
@@ -7964,6 +8896,21 @@ function initEventHandlers() {
       errorAlert.style.display = 'none';
       successAlert.style.display = 'none';
 
+      const reqEmailGroup = document.getElementById('support-requested-email-group');
+      const isAddEmailRequest = reqEmailGroup && reqEmailGroup.style.display !== 'none';
+      let requestedEmail = null;
+
+      if (isAddEmailRequest) {
+        const reqEmailInput = document.getElementById('support-requested-email');
+        requestedEmail = reqEmailInput ? reqEmailInput.value.trim().toLowerCase() : '';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!requestedEmail || !emailRegex.test(requestedEmail)) {
+          errorAlert.textContent = 'Please enter a valid email address to link to your account.';
+          errorAlert.style.display = 'block';
+          return;
+        }
+      }
+
       if (!subject || !message) {
         errorAlert.textContent = 'Subject and message are required';
         errorAlert.style.display = 'block';
@@ -7980,8 +8927,25 @@ function initEventHandlers() {
         const phone = document.getElementById('support-user-phone').value.trim();
         const role = document.getElementById('support-user-role').value.trim();
 
-        await api.submitHelpRequest(subject, message, name, phone, role);
-        successAlert.textContent = 'Your help and support request has been submitted successfully!';
+        await api.submitHelpRequest(subject, message, name, phone, role, requestedEmail);
+        
+        if (isAddEmailRequest) {
+          successAlert.innerHTML = `
+            <div style="font-size: 14px; line-height: 1.5;">
+              <strong style="display: block; margin-bottom: 4px;">Application Submitted Successfully!</strong>
+              Your application is submitted. Our admin team will update your email in the system. Please try resetting your password again in 2 days.
+              <div style="margin-top: 12px;">
+                <a href="#/login" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-weight: 600;">
+                  <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Login
+                </a>
+              </div>
+            </div>
+          `;
+          const reqEmailInput = document.getElementById('support-requested-email');
+          if (reqEmailInput) reqEmailInput.value = '';
+        } else {
+          successAlert.textContent = 'Your help and support request has been submitted successfully!';
+        }
         successAlert.style.display = 'block';
         document.getElementById('support-subject').value = '';
         document.getElementById('support-message').value = '';
@@ -8283,6 +9247,9 @@ async function initApp() {
   initContributionEventHandlers();
   initEditorEventHandlers();
   initReviewEventHandlers();
+  initEmailModalEventHandlers();
+  initForgotPasswordEventHandlers();
+  initAdminEmailModalEventHandlers();
 
   // Update mobile bottom nav position on window resizing
   window.addEventListener('resize', updateMobileBottomNavPosition);
@@ -8300,6 +9267,9 @@ async function initApp() {
   
   // Run routing trigger
   await router();
+
+  // Check if logged-in account needs to link an email address
+  checkCompulsoryEmail();
 }
 
 // Launch app
