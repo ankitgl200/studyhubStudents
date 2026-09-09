@@ -184,28 +184,35 @@ const api = {
   },
 
   async forgotPassword(phone) {
-    return await request('/auth/forgot-password', {
+    return await request('/auth/request-otp', {
       method: 'POST',
       body: { phone }
     });
   },
 
-  async verifyResetOtp(phone, otp, newPassword = null, confirmPassword = null) {
-    const payload = { phone, otp };
+  async resendOtp(verificationId) {
+    return await request('/auth/resend-otp', {
+      method: 'POST',
+      body: { verificationId }
+    });
+  },
+
+  async verifyResetOtp(verificationId, otp, newPassword = null, confirmPassword = null) {
+    const payload = { verificationId, otp };
     if (newPassword && confirmPassword) {
       payload.newPassword = newPassword;
       payload.confirmPassword = confirmPassword;
     }
-    return await request('/auth/verify-reset-otp', {
+    return await request('/auth/verify-otp', {
       method: 'POST',
       body: payload
     });
   },
 
-  async resetPasswordFinal(resetToken, newPassword, confirmPassword, phone = null) {
+  async resetPasswordFinal(resetToken, newPassword, confirmPassword) {
     return await request('/auth/reset-password-final', {
       method: 'POST',
-      body: { resetToken, newPassword, confirmPassword, phone }
+      body: { resetToken, newPassword, confirmPassword }
     });
   },
 
@@ -6113,39 +6120,14 @@ function initEmailModalEventHandlers() {
   }
 }
 
-// --- FORGOT PASSWORD CONTROLLER & EMAILJS ENGINE ---
-const EMAILJS_PUBLIC_KEY = "EADCytMay61qrmUUk";
-
+// --- FORGOT PASSWORD CONTROLLER (SERVER-AUTHORITATIVE) ---
 const forgotPasswordState = {
-  phone: '',
-  name: '',
-  email: '',
+  verificationId: null,
   maskedEmail: '',
   resetToken: null,
   timerInterval: null,
   countdown: 60
 };
-
-async function sendResetOtpEmail({ otp, name, email }) {
-  console.log(`[StudyHub Reset] Sending OTP to ${email}`);
-
-  if (typeof window.emailjs !== 'undefined') {
-    const templateParams = {
-      OTP: otp,
-      name: name,
-      email: email,
-    };
-
-    try {
-      return await window.emailjs.send("service_k0369d9", "template_axrwr8q", templateParams, EMAILJS_PUBLIC_KEY);
-    } catch (err) {
-      console.error('[EmailJS Send Error]', err);
-      throw new Error(`EmailJS Error: ${err.text || err.message || 'Failed to send OTP email'}. Check EmailJS configuration.`);
-    }
-  } else {
-    throw new Error('EmailJS SDK failed to load. Please check your internet connection.');
-  }
-}
 
 function getOtpBoxes() {
   return Array.from(document.querySelectorAll('.otp-box'));
@@ -6207,32 +6189,30 @@ function renderForgotPasswordView() {
     confirmPassInput.type = 'password';
   }
 
-  forgotPasswordState.phone = currentUser ? currentUser.phone : '';
-  forgotPasswordState.name = currentUser ? currentUser.name : '';
-  forgotPasswordState.email = currentUser ? (currentUser.email || '') : '';
+  forgotPasswordState.verificationId = null;
   forgotPasswordState.maskedEmail = '';
   forgotPasswordState.resetToken = null;
 
   refreshIcons();
 }
 
-function startOtpResendTimer() {
+function startOtpResendTimer(seconds = 60) {
   if (forgotPasswordState.timerInterval) {
     clearInterval(forgotPasswordState.timerInterval);
   }
 
-  forgotPasswordState.countdown = 60;
+  forgotPasswordState.countdown = seconds;
   const timerText = document.getElementById('forgot-otp-timer');
   const timerCount = document.getElementById('forgot-timer-count');
   const resendBtn = document.getElementById('btn-resend-forgot-otp');
 
   if (timerText) timerText.style.display = 'inline';
-  if (timerCount) timerCount.textContent = '60';
+  if (timerCount) timerCount.textContent = String(seconds);
   if (resendBtn) resendBtn.style.display = 'none';
 
   forgotPasswordState.timerInterval = setInterval(() => {
     forgotPasswordState.countdown -= 1;
-    if (timerCount) timerCount.textContent = forgotPasswordState.countdown;
+    if (timerCount) timerCount.textContent = String(forgotPasswordState.countdown);
 
     if (forgotPasswordState.countdown <= 0) {
       clearInterval(forgotPasswordState.timerInterval);
@@ -6241,7 +6221,7 @@ function startOtpResendTimer() {
       if (resendBtn) {
         resendBtn.style.display = 'inline';
         resendBtn.disabled = false;
-        resendBtn.textContent = 'Resend OTP';
+        resendBtn.textContent = 'Resend Code';
       }
     }
   }, 1000);
@@ -6299,7 +6279,53 @@ function initForgotPasswordEventHandlers() {
     });
   });
 
-  // STEP 1: Phone submission
+  // Password visibility toggles for Step 3
+  if (showNewPassBtn) {
+    showNewPassBtn.addEventListener('click', () => {
+      const input = document.getElementById('forgot-new-password');
+      const icon = showNewPassBtn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      refreshIcons();
+    });
+  }
+
+  if (showConfirmPassBtn) {
+    showConfirmPassBtn.addEventListener('click', () => {
+      const input = document.getElementById('forgot-confirm-password');
+      const icon = showConfirmPassBtn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      refreshIcons();
+    });
+  }
+
+  // Back to phone button
+  if (backToPhoneBtn) {
+    backToPhoneBtn.addEventListener('click', () => {
+      document.getElementById('forgot-step-phone').style.display = 'block';
+      document.getElementById('forgot-step-otp').style.display = 'none';
+      document.getElementById('forgot-step-newpass').style.display = 'none';
+      if (forgotPasswordState.timerInterval) {
+        clearInterval(forgotPasswordState.timerInterval);
+        forgotPasswordState.timerInterval = null;
+      }
+      clearOtpBoxes();
+      refreshIcons();
+    });
+  }
+
+  // STEP 1: Phone submission (Requests OTP from Server)
   if (formPhone) {
     formPhone.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -6311,7 +6337,7 @@ function initForgotPasswordEventHandlers() {
       if (!phoneInput) return;
       const phone = phoneInput.value.trim();
 
-      if (!/^\d{10}$/.test(phone)) {
+      if (!/^\d{10,15}$/.test(phone)) {
         if (errorAlert) {
           errorAlert.textContent = 'Please enter a valid 10-digit registered phone number.';
           errorAlert.style.display = 'block';
@@ -6322,7 +6348,7 @@ function initForgotPasswordEventHandlers() {
       if (errorAlert) errorAlert.style.display = 'none';
       submitBtn.disabled = true;
       const originalHTML = btnContent.innerHTML;
-      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Looking up account...';
+      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Dispathing code...';
       refreshIcons();
 
       try {
@@ -6335,33 +6361,22 @@ function initForgotPasswordEventHandlers() {
           return;
         }
 
-        // Has email registered -> Send OTP via EmailJS
-        forgotPasswordState.phone = phone;
-        forgotPasswordState.name = res.name;
-        forgotPasswordState.email = res.email;
-        forgotPasswordState.maskedEmail = res.maskedEmail;
+        // Store server-issued verification session ID
+        forgotPasswordState.verificationId = res.verificationId;
+        forgotPasswordState.maskedEmail = res.maskedEmail || 'registered email';
 
-        btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Sending Email OTP...';
-        refreshIcons();
-
-        await sendResetOtpEmail({
-          otp: res.otp,
-          name: res.name,
-          email: res.email
-        });
-
-        // Switch to Step 2 (Verify OTP only)
+        // Switch to Step 2 (Verify OTP)
         document.getElementById('forgot-step-phone').style.display = 'none';
         document.getElementById('forgot-step-otp').style.display = 'block';
         document.getElementById('forgot-step-newpass').style.display = 'none';
-        document.getElementById('forgot-masked-email').textContent = res.maskedEmail;
+        document.getElementById('forgot-masked-email').textContent = forgotPasswordState.maskedEmail;
 
         clearOtpBoxes();
-        startOtpResendTimer();
+        startOtpResendTimer(res.cooldownSeconds || 60);
         refreshIcons();
       } catch (err) {
         if (errorAlert) {
-          errorAlert.textContent = err.message || 'Failed to process forgot password request.';
+          errorAlert.textContent = err.message || 'Failed to process verification request.';
           errorAlert.style.display = 'block';
         }
       } finally {
@@ -6372,7 +6387,7 @@ function initForgotPasswordEventHandlers() {
     });
   }
 
-  // STEP 2: Verify OTP Only
+  // STEP 2: Verify OTP Only (Server-authoritative check)
   if (formOtp) {
     formOtp.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -6388,7 +6403,7 @@ function initForgotPasswordEventHandlers() {
 
       if (!/^\d{6}$/.test(otp)) {
         if (errorAlert) {
-          errorAlert.textContent = 'Please enter the complete 6-digit numeric OTP.';
+          errorAlert.textContent = 'Please enter the complete 6-digit numeric verification code.';
           errorAlert.style.display = 'block';
         }
         return;
@@ -6396,11 +6411,11 @@ function initForgotPasswordEventHandlers() {
 
       submitBtn.disabled = true;
       const originalHTML = btnContent.innerHTML;
-      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Verifying OTP...';
+      btnContent.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 18px; height: 18px;"></i> Verifying Code...';
       refreshIcons();
 
       try {
-        const res = await api.verifyResetOtp(forgotPasswordState.phone, otp);
+        const res = await api.verifyResetOtp(forgotPasswordState.verificationId, otp);
 
         if (forgotPasswordState.timerInterval) {
           clearInterval(forgotPasswordState.timerInterval);
@@ -6418,7 +6433,7 @@ function initForgotPasswordEventHandlers() {
         refreshIcons();
       } catch (err) {
         if (errorAlert) {
-          errorAlert.textContent = err.message || 'Failed to verify OTP.';
+          errorAlert.textContent = err.message || 'Verification code failed. Please check the code and try again.';
           errorAlert.style.display = 'block';
         }
       } finally {
@@ -6429,7 +6444,7 @@ function initForgotPasswordEventHandlers() {
     });
   }
 
-  // STEP 3: Update Password (only after OTP is verified)
+  // STEP 3: Update Password (Submits verified resetToken)
   if (formNewPass) {
     formNewPass.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -6471,8 +6486,7 @@ function initForgotPasswordEventHandlers() {
         const res = await api.resetPasswordFinal(
           forgotPasswordState.resetToken, 
           newPassword, 
-          confirmPassword, 
-          forgotPasswordState.phone
+          confirmPassword
         );
 
         if (successAlert) {
@@ -6489,7 +6503,7 @@ function initForgotPasswordEventHandlers() {
         }, 1500);
       } catch (err) {
         if (errorAlert) {
-          errorAlert.textContent = err.message || 'Failed to update password.';
+          errorAlert.textContent = err.message || 'Failed to update password. Please try resetting your password again.';
           errorAlert.style.display = 'block';
         }
       } finally {
@@ -6500,7 +6514,7 @@ function initForgotPasswordEventHandlers() {
     });
   }
 
-  // Resend OTP button
+  // Resend Code button (Calls Server-Side Resend API)
   if (resendBtn) {
     resendBtn.addEventListener('click', async () => {
       const errorAlert = document.getElementById('forgot-otp-error-alert');
@@ -6512,26 +6526,21 @@ function initForgotPasswordEventHandlers() {
       resendBtn.textContent = 'Sending...';
 
       try {
-        const res = await api.forgotPassword(forgotPasswordState.phone);
-        await sendResetOtpEmail({
-          otp: res.otp,
-          name: res.name,
-          email: res.email
-        });
+        const res = await api.resendOtp(forgotPasswordState.verificationId);
 
         if (successAlert) {
-          successAlert.textContent = 'A new 6-digit verification code has been sent to your email.';
+          successAlert.textContent = res.message || 'A new verification code has been dispatched to your email.';
           successAlert.style.display = 'block';
         }
         clearOtpBoxes();
-        startOtpResendTimer();
+        startOtpResendTimer(res.cooldownSeconds || 60);
       } catch (err) {
         if (errorAlert) {
-          errorAlert.textContent = err.message || 'Failed to resend OTP.';
+          errorAlert.textContent = err.message || 'Failed to resend code.';
           errorAlert.style.display = 'block';
         }
         resendBtn.disabled = false;
-        resendBtn.textContent = 'Resend OTP';
+        resendBtn.textContent = 'Resend Code';
       }
     });
   }
