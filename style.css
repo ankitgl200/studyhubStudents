@@ -2640,7 +2640,154 @@ body, input, select, textarea, button {
   }
 }
 
+/* ============================================================
+   DESKTOP SCROLL BOTTOM DOCK — shown via anime.js when user scrolls
+   ============================================================ */
+@media (min-width: 769px) {
+  .mobile-bottom-nav.desktop-scrolled-show {
+    --rise: 0px !important;
+    --t: 0 !important;
+    display: flex !important;
+    position: fixed !important;
+    bottom: 26px !important;
+    left: 20px !important;
+    right: 20px !important;
+    margin: 0 auto !important;
+    width: calc(100% - 40px) !important;
+    max-width: 580px !important;
+    height: 74px !important;
+    padding: 6px 14px !important;
+    z-index: 9999 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border-radius: 24px !important;
+    box-shadow: 
+      0 20px 48px -10px rgba(15, 23, 42, 0.22),
+      0 10px 24px -6px rgba(15, 23, 42, 0.12),
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 2px 6px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    align-items: center !important;
+    justify-content: space-evenly !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    touch-action: auto !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+  }
 
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 !important;
+    height: 100% !important;
+    min-width: 72px !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    padding: 6px 12px !important;
+    border-radius: 16px !important;
+    z-index: 2 !important;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    gap: 3px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    box-sizing: border-box !important;
+  }
 
+  .mobile-bottom-nav.desktop-scrolled-show .tab__icon {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    width: 24px !important;
+    height: 24px !important;
+    color: #64748b !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    opacity: 1 !important;
+    margin: 0 auto !important;
+  }
 
+  .mobile-bottom-nav.desktop-scrolled-show .tab__icon svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
 
+  .mobile-bottom-nav.desktop-scrolled-show .tab__label {
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.2px !important;
+    color: #64748b !important;
+    margin-top: 0 !important;
+    opacity: 1 !important;
+    display: block !important;
+    transition: all 0.22s ease !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Hover state on tabs */
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item:hover {
+    background: var(--primary-accent, rgba(79, 70, 229, 0.08)) !important;
+    transform: translateY(-2px) !important;
+  }
+
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item:hover .tab__icon {
+    color: var(--primary, #4f46e5) !important;
+    transform: scale(1.1) !important;
+  }
+
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item:hover .tab__label {
+    color: var(--primary, #4f46e5) !important;
+  }
+
+  /* Active / Selected Tab State - highlighted pill */
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item[aria-selected="true"],
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item.active {
+    background: var(--primary-accent, rgba(79, 70, 229, 0.12)) !important;
+    border: 1px solid rgba(79, 70, 229, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12) !important;
+  }
+
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item[aria-selected="true"] .tab__icon,
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item.active .tab__icon {
+    color: var(--primary, #4f46e5) !important;
+    transform: scale(1.12) !important;
+  }
+
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item[aria-selected="true"] .tab__label,
+  .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item.active .tab__label {
+    color: var(--primary, #4f46e5) !important;
+    font-weight: 700 !important;
+  }
+
+  .mobile-bottom-nav.desktop-scrolled-show .dock__skin,
+  .mobile-bottom-nav.desktop-scrolled-show .dock__bead,
+  .mobile-bottom-nav.desktop-scrolled-show .dock__cast {
+    display: none !important;
+  }
+
+  .navbar.scrolled {
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  .navbar.scrolled #desktop-nav-links {
+    pointer-events: none !important;
+  }
+}
