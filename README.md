@@ -48,7 +48,7 @@ StudyHub is built and maintained by a dedicated team committed to improving the 
 * **Soham Joshi** — Co-Founder
 * **Abhay Chandra Joshi** — Content Curator
 * **Adarsh Singh Chaudhary** — Community Manager
-* **Aditya Maurya** — Simulation Developer
+* **Aditya Maurya** — Simulation Developer (Simulink Owner)
 
 ---
 
