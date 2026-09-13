@@ -293,6 +293,10 @@ const api = {
     return await request(url);
   },
 
+  async getAllFolders(type) {
+    return await request(type ? `/folders?type=${type}` : '/folders');
+  },
+
   async createFolder(name, type, parentId = null) {
     return await request('/folders', {
       method: 'POST',
@@ -690,7 +694,40 @@ function updateNavbar() {
             </span>
           </div>
 
-          <!-- Academic Sections & Utilities (Excluding buttons already visible in the navigation bar) -->
+          <!-- Quick Navigation Shortcuts (for desktop scroll & easy access) -->
+          <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px;">
+            <a href="#/support" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+              <i data-lucide="help-circle" style="width: 14px; height: 14px; color: var(--primary);"></i> Help &amp; Support
+            </a>
+            <a href="#/generators" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+              <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i> File Tools
+            </a>
+            ${currentUser.role === 'student' ? `
+              <a href="#/my-contributions" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+                <i data-lucide="award" style="width: 14px; height: 14px; color: var(--primary);"></i> My Contributions
+              </a>
+            ` : ''}
+            ${(currentUser.role === 'educator' || currentUser.role === 'admin' || currentUser.role === 'superadmin') ? `
+              <a href="#/my-uploads" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+                <i data-lucide="folder-heart" style="width: 14px; height: 14px; color: var(--primary);"></i> My Uploads
+              </a>
+            ` : ''}
+            ${currentUser.role === 'educator' ? `
+              <a href="#/teacher-dashboard" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+                <i data-lucide="presentation" style="width: 14px; height: 14px; color: var(--primary);"></i> Teacher Dashboard
+              </a>
+            ` : ''}
+            ${(currentUser.role === 'admin' || currentUser.role === 'superadmin') ? `
+              <a href="#/admin" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+                <i data-lucide="shield-alert" style="width: 14px; height: 14px; color: var(--primary);"></i> Admin Dashboard
+              </a>
+            ` : ''}
+            <a href="javascript:void(0)" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link btn-download-app-trigger" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--primary); font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+              <i data-lucide="smartphone" style="width: 14px; height: 14px; color: var(--primary);"></i> Download App
+            </a>
+          </div>
+
+          <!-- Academic Sections & Utilities -->
           <a href="javascript:void(0)" onclick="showAboutModal(); document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="info" style="width: 14px; height: 14px; color: var(--primary);"></i> About StudyHub
           </a>
@@ -867,6 +904,186 @@ function updateNavbar() {
     }
   }
   refreshIcons();
+}
+
+// ----------------------------------------------------------------
+// DESKTOP SCROLL NAV — Instant, fluid, cancelable anime.js engine
+// ----------------------------------------------------------------
+function initDesktopScrollNav() {
+  const navbar   = document.querySelector('.navbar');
+  const navLinks = document.getElementById('desktop-nav-links');
+  const dock     = document.getElementById('dock');
+  if (!navbar || !navLinks || !dock) return;
+
+  const SCROLL_THRESHOLD = 50;
+  let currentState = 'top'; // 'top' or 'dock'
+
+  function getVisibleLinks() {
+    return Array.from(navLinks.querySelectorAll('.nav-link')).filter(l => {
+      const s = window.getComputedStyle(l);
+      return s.display !== 'none';
+    });
+  }
+
+  function setNavState(targetState) {
+    if (window.innerWidth < 769) return;
+    if (currentState === targetState) return;
+    currentState = targetState;
+
+    const links = getVisibleLinks();
+
+    // Cancel all current animations on these elements to prevent getting stuck
+    anime.remove(links);
+    anime.remove(dock);
+
+    if (targetState === 'dock') {
+      // 1. Prepare DOM
+      navbar.classList.add('scrolled');
+      dock.classList.add('desktop-scrolled-show');
+      updateDockActiveTab();
+
+      // Measure center for left-to-center / right-to-center convergence
+      const navRect = navLinks.getBoundingClientRect();
+      const navCenterX = navRect.left + navRect.width / 2;
+      const offsets = links.map(link => {
+        const rect = link.getBoundingClientRect();
+        const linkCenterX = rect.left + rect.width / 2;
+        return navCenterX - linkCenterX;
+      });
+
+      // Animate buttons to center and slide down
+      anime({
+        targets: links,
+        translateX: (el, i) => offsets[i] || 0,
+        translateY: 30,
+        opacity: [1, 0],
+        scale: [1, 0.8],
+        duration: 160,
+        easing: 'easeInQuad',
+        complete: () => {
+          if (currentState === 'dock') {
+            navLinks.style.visibility = 'hidden';
+            navLinks.style.display = 'none';
+          }
+        }
+      });
+
+      // Animate bottom dock up
+      anime({
+        targets: dock,
+        translateY: ['60px', '0px'],
+        opacity: [0, 1],
+        duration: 200,
+        easing: 'easeOutCubic'
+      });
+
+    } else {
+      // Return to 'top' desktop navbar state
+      navLinks.style.display = '';
+      navLinks.style.visibility = '';
+      navbar.classList.remove('scrolled');
+
+      // Animate dock down and remove
+      anime({
+        targets: dock,
+        translateY: [0, '60px'],
+        opacity: [1, 0],
+        duration: 140,
+        easing: 'easeInQuad',
+        complete: () => {
+          if (currentState === 'top') {
+            dock.classList.remove('desktop-scrolled-show');
+            dock.style.transform = '';
+            dock.style.opacity = '';
+          }
+        }
+      });
+
+      // Animate top nav buttons springing back out into position
+      anime({
+        targets: links,
+        translateX: 0,
+        translateY: 0,
+        scale: 1,
+        opacity: 1,
+        duration: 180,
+        easing: 'easeOutBack',
+        complete: () => {
+          if (currentState === 'top') {
+            links.forEach(l => {
+              l.style.transform = '';
+              l.style.opacity = '';
+            });
+          }
+        }
+      });
+    }
+  }
+
+  // Use requestAnimationFrame for immediate, non-laggy, non-dropping scroll response
+  let ticking = false;
+  function onScroll() {
+    if (window.innerWidth < 769) return;
+    const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+
+    if (scrollY > SCROLL_THRESHOLD) {
+      setNavState('dock');
+    } else {
+      setNavState('top');
+    }
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(onScroll);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // Initial check on load
+  onScroll();
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth < 769) {
+      currentState = 'top';
+      dock.classList.remove('desktop-scrolled-show');
+      navbar.classList.remove('scrolled');
+      navLinks.style.visibility = '';
+      getVisibleLinks().forEach(l => {
+        anime.remove(l);
+        l.style.transform = '';
+        l.style.opacity = '';
+      });
+      anime.remove(dock);
+      dock.style.transform = '';
+      dock.style.opacity = '';
+    } else {
+      onScroll();
+    }
+  });
+
+  // Active tab highlight
+  function updateDockActiveTab() {
+    const hash = window.location.hash || '#/';
+    const tabMap = {
+      '#/': 'bottom-nav-home',
+      '#/notes': 'bottom-nav-notes',
+      '#/papers': 'bottom-nav-papers',
+      '#/resources': 'bottom-nav-resources',
+      '#/profile': 'bottom-nav-profile'
+    };
+    dock.querySelectorAll('.mobile-bottom-nav-item').forEach(t => t.removeAttribute('aria-selected'));
+    const activeId = tabMap[hash];
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el) el.setAttribute('aria-selected', 'true');
+    }
+  }
+
+  window.addEventListener('hashchange', updateDockActiveTab);
+  updateDockActiveTab();
 }
 
 function handleAuthProtection(path) {
@@ -1392,7 +1609,11 @@ async function renderNotesView() {
           <button class="btn btn-primary" id="btn-notes-upload" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload Note (PDF)
           </button>
-        ` : ''}
+        ` : (currentUser && currentUser.role === 'student' ? `
+          <button class="btn btn-primary" id="btn-notes-contribute-folder" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Contribute
+          </button>
+        ` : '')}
       </div>
     `;
 
@@ -1401,6 +1622,12 @@ async function renderNotesView() {
     if (isStaff) {
       document.getElementById('btn-notes-upload').addEventListener('click', () => {
         openUploadModal('notes', currentNotesFolder.id, currentNotesFolder.name);
+      });
+    }
+    const notesContributeBtn = document.getElementById('btn-notes-contribute-folder');
+    if (notesContributeBtn) {
+      notesContributeBtn.addEventListener('click', () => {
+        if (window.openContributeModal) window.openContributeModal('notes', currentNotesFolder.id);
       });
     }
   }
@@ -1648,7 +1875,11 @@ async function renderPapersView() {
           <button class="btn btn-primary" id="btn-papers-upload" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload PYQ (PDF)
           </button>
-        ` : ''}
+        ` : (currentUser && currentUser.role === 'student' ? `
+          <button class="btn btn-primary" id="btn-papers-contribute-folder" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Contribute
+          </button>
+        ` : '')}
       </div>
     `;
 
@@ -1657,6 +1888,12 @@ async function renderPapersView() {
     if (isStaff) {
       document.getElementById('btn-papers-upload').addEventListener('click', () => {
         openUploadModal('paper', currentPapersFolder.id, currentPapersFolder.name);
+      });
+    }
+    const papersContributeBtn = document.getElementById('btn-papers-contribute-folder');
+    if (papersContributeBtn) {
+      papersContributeBtn.addEventListener('click', () => {
+        if (window.openContributeModal) window.openContributeModal('papers', currentPapersFolder.id);
       });
     }
   }
@@ -1995,7 +2232,11 @@ async function renderResourcesView() {
           <button class="btn btn-primary" id="btn-resources-upload" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload Simulation / PDF
           </button>
-        ` : ''}
+        ` : (!isStaff && currentUser && currentUser.role === 'student' && (currentResourcesFolder || currentResourcesSection === 'syllabus') ? `
+          <button class="btn btn-primary" id="btn-resources-contribute-folder" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Contribute
+          </button>
+        ` : '')}
       </div>
     `;
   }
@@ -2059,6 +2300,20 @@ async function renderResourcesView() {
         folderName = currentResourcesFolder.name;
       }
       openUploadModal(docType, folderId, folderName);
+    });
+  }
+
+  const resContributeBtn = document.getElementById('btn-resources-contribute-folder');
+  if (resContributeBtn) {
+    resContributeBtn.addEventListener('click', () => {
+      let cat = 'lab_manuals';
+      if (currentResourcesSection.startsWith('books')) cat = 'books';
+      else if (currentResourcesSection.startsWith('simulations') || currentResourcesSection.startsWith('roadmaps')) cat = 'simulations';
+      else if (currentResourcesSection.startsWith('competitive')) cat = 'competitive';
+      else if (currentResourcesSection === 'syllabus') cat = 'syllabus';
+      if (window.openContributeModal) {
+        window.openContributeModal(cat, currentResourcesFolder ? currentResourcesFolder.id : null);
+      }
     });
   }
 
@@ -9287,6 +9542,9 @@ async function initApp() {
 
   // Update mobile bottom nav position on window resizing
   window.addEventListener('resize', updateMobileBottomNavPosition);
+
+  // Initialize PC navbar scroll animation (anime.js powered)
+  initDesktopScrollNav();
   
   // Initialize Color Theme & Font Style from localStorage
   const savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
@@ -9514,37 +9772,110 @@ function initContributionEventHandlers() {
     if (contributeModal) contributeModal.style.display = 'none';
   };
 
+  async function populateFoldersForCategory(category, preselectedFolderId = null) {
+    if (!subjectSelect) return;
+    subjectSelect.disabled = true;
+    subjectSelect.innerHTML = '<option value="" disabled selected>Loading folders...</option>';
+
+    if (!category) {
+      subjectSelect.innerHTML = '<option value="" disabled selected>Select Target Folder</option>';
+      return;
+    }
+
+    try {
+      if (category === 'syllabus') {
+        subjectSelect.innerHTML = '<option value="general" selected>General Syllabus (No Folder Required)</option>';
+        subjectSelect.disabled = false;
+        return;
+      }
+
+      // Fetch all folders for this category
+      const folders = await api.getAllFolders(category);
+      if (!folders || folders.length === 0) {
+        subjectSelect.innerHTML = `<option value="general" selected>General / Root ${escapeHTML(capitalizeName(category))} (No Subfolder)</option>`;
+        subjectSelect.disabled = false;
+      } else {
+        let optionsHTML = '<option value="" disabled selected>Select Target Folder</option>';
+        folders.forEach(f => {
+          const isSelected = preselectedFolderId && String(f.id) === String(preselectedFolderId);
+          optionsHTML += `<option value="${f.id}" ${isSelected ? 'selected' : ''}>${escapeHTML(f.name)}</option>`;
+        });
+        subjectSelect.innerHTML = optionsHTML;
+        subjectSelect.disabled = false;
+        if (preselectedFolderId) {
+          subjectSelect.value = preselectedFolderId;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load folders for category:', err);
+      subjectSelect.innerHTML = '<option value="" disabled selected>Error loading folders</option>';
+    }
+  }
+
+  function openContributeModal(targetCategory = null, targetFolderId = null) {
+    if (!contributeModal) return;
+    contributeModal.style.display = 'flex';
+    if (errorAlert) errorAlert.style.display = 'none';
+    if (successAlert) successAlert.style.display = 'none';
+    if (contributeForm) contributeForm.reset();
+
+    // Populate contributor name
+    const contributorNameInput = document.getElementById('contribute-user-name');
+    if (contributorNameInput && currentUser) {
+      contributorNameInput.value = currentUser.name;
+    }
+
+    // Populate academic years
+    if (yearSelect) {
+      const years = getAcademicYears();
+      yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+    }
+
+    // Reset tab states
+    contributeSourceMode = 'file';
+    if (tabFile) tabFile.classList.add('active');
+    if (tabLink) tabLink.classList.remove('active');
+    if (groupFile) groupFile.style.display = 'block';
+    if (groupLink) groupLink.style.display = 'none';
+    if (fileLabel) fileLabel.textContent = 'Click to browse files';
+
+    // Auto-detect current active view and folder context if not explicitly provided
+    let autoCat = targetCategory;
+    let autoFolderId = targetFolderId;
+    if (!autoCat) {
+      if (currentNotesFolder) {
+        autoCat = 'notes';
+        autoFolderId = currentNotesFolder.id;
+      } else if (currentPapersFolder) {
+        autoCat = 'papers';
+        autoFolderId = currentPapersFolder.id;
+      } else if (currentResourcesFolder) {
+        if (currentResourcesSection.startsWith('lab_manuals')) autoCat = 'lab_manuals';
+        else if (currentResourcesSection.startsWith('books')) autoCat = 'books';
+        else if (currentResourcesSection.startsWith('simulations') || currentResourcesSection.startsWith('roadmaps')) autoCat = 'simulations';
+        else if (currentResourcesSection.startsWith('competitive')) autoCat = 'competitive';
+        autoFolderId = currentResourcesFolder.id;
+      } else if (currentResourcesSection === 'syllabus') {
+        autoCat = 'syllabus';
+      }
+    }
+
+    if (autoCat && categorySelect) {
+      categorySelect.value = autoCat;
+      populateFoldersForCategory(autoCat, autoFolderId);
+    } else if (subjectSelect) {
+      subjectSelect.disabled = true;
+      subjectSelect.innerHTML = '<option value="" disabled selected>Select Target Folder</option>';
+    }
+
+    refreshIcons();
+  }
+
+  window.openContributeModal = openContributeModal;
+
   if (floatingBtn) {
     floatingBtn.addEventListener('click', () => {
-      if (contributeModal) contributeModal.style.display = 'flex';
-      if (errorAlert) errorAlert.style.display = 'none';
-      if (successAlert) successAlert.style.display = 'none';
-      if (contributeForm) contributeForm.reset();
-      
-      // Populate contributor name
-      const contributorNameInput = document.getElementById('contribute-user-name');
-      if (contributorNameInput && currentUser) {
-        contributorNameInput.value = currentUser.name;
-      }
-
-      // Populate academic years
-      if (yearSelect) {
-        const years = getAcademicYears();
-        yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-      }
-
-      // Reset tab states
-      contributeSourceMode = 'file';
-      if (tabFile) tabFile.classList.add('active');
-      if (tabLink) tabLink.classList.remove('active');
-      if (groupFile) groupFile.style.display = 'block';
-      if (groupLink) groupLink.style.display = 'none';
-      if (fileLabel) fileLabel.textContent = 'Click to browse files';
-      if (subjectSelect) {
-        subjectSelect.disabled = true;
-        subjectSelect.innerHTML = '<option value="" disabled selected>Select Subject Folder</option>';
-      }
-      refreshIcons();
+      openContributeModal();
     });
   }
 
@@ -9552,23 +9883,8 @@ function initContributionEventHandlers() {
   if (cancelBtn) cancelBtn.addEventListener('click', closeContribute);
 
   if (categorySelect && subjectSelect) {
-    categorySelect.addEventListener('change', async () => {
-      const category = categorySelect.value;
-      subjectSelect.disabled = true;
-      subjectSelect.innerHTML = '<option value="" disabled selected>Loading subjects...</option>';
-      try {
-        const folders = await api.getFolders(category);
-        if (folders.length === 0) {
-          subjectSelect.innerHTML = '<option value="" disabled selected>No subjects available</option>';
-        } else {
-          subjectSelect.innerHTML = '<option value="" disabled selected>Select Subject Folder</option>' +
-            folders.map(f => `<option value="${f.id}">${escapeHTML(f.name)}</option>`).join('');
-          subjectSelect.disabled = false;
-        }
-      } catch (err) {
-        subjectSelect.innerHTML = '<option value="" disabled selected>Error loading subjects</option>';
-        console.error('Failed to load folders for category:', err);
-      }
+    categorySelect.addEventListener('change', () => {
+      populateFoldersForCategory(categorySelect.value);
     });
   }
 
@@ -9626,9 +9942,15 @@ function initContributionEventHandlers() {
       let docType = 'notes';
       if (category === 'papers') docType = 'paper';
       else if (category === 'lab_manuals') docType = 'lab_manual';
+      else if (category === 'books') docType = 'book';
+      else if (category === 'simulations' || category === 'roadmaps') docType = 'simulation';
+      else if (category === 'competitive') docType = 'competitive';
+      else if (category === 'syllabus') docType = 'syllabus';
 
       const folderOption = subjectSelect.options[subjectSelect.selectedIndex];
-      const subject = folderOption ? folderOption.text : '';
+      const subject = (folderOption && folderOption.value !== 'general')
+        ? folderOption.text
+        : (categorySelect.options[categorySelect.selectedIndex] ? categorySelect.options[categorySelect.selectedIndex].text : category);
 
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -9843,7 +10165,7 @@ function initThemeToggleHandler() {
 function applyTheme(theme, animate = true) {
   const linkId = 'theme-stylesheet';
   let link = document.getElementById(linkId);
-  const href = theme === 'modern' ? '/modern.css?v=1.0.5' : '/old.css?v=1.0.5';
+  const href = theme === 'modern' ? '/modern.css?v=1.0.7' : '/old.css?v=1.0.7';
 
   localStorage.setItem('studyhub-ui-theme', theme);
 
