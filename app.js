@@ -1261,6 +1261,7 @@ async function router() {
 
   // Toggle page visibility
   document.querySelectorAll('.page-view').forEach(view => {
+    if (view.id === 'view-loading') return;
     view.style.display = 'none';
     view.classList.remove('route-enter');
   });
@@ -2773,8 +2774,7 @@ async function renderResourcesView() {
                 </button>
 
                 <div class="doc-actions" style="position: relative;">
-                  <a href="${doc.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</a>
-                  <a href="${API_BASE}/documents/download/${doc.id}?token=${localStorage.getItem('token')}" download="${escapeHTML(doc.fileName)}" class="btn btn-primary btn-sm"><i data-lucide="download" style="width:14px;height:14px;"></i> Download</a>
+                  <a href="${doc.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</a>
                   <div class="more-options-container" style="position: relative; display: inline-block;">
                     <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                       <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -9489,8 +9489,12 @@ async function initApp() {
     currentResourcesSection = savedResourcesSection === 'roadmaps' ? 'simulations' : savedResourcesSection;
   }
 
+  // Initialize and run the elegant cursive calligraphy loading animation
+  const loaderAnimPromise = initCursiveLoader();
+
   const token = localStorage.getItem('token');
-  document.getElementById('view-loading').style.display = 'flex';
+  const loaderEl = document.getElementById('view-loading');
+  if (loaderEl) loaderEl.style.display = 'flex';
   const adSpace = document.getElementById('site-ad-space');
   if (adSpace) adSpace.style.display = 'none';
 
@@ -9527,8 +9531,6 @@ async function initApp() {
   api.getFolders('notes')
     .then(list => { notesFoldersList = list; })
     .catch(err => console.error('Failed pre-loading subjects list', err));
-
-  document.getElementById('view-loading').style.display = 'none';
   
   updateNavbar();
   initEventHandlers();
@@ -9557,11 +9559,121 @@ async function initApp() {
     initThemeToggleHandler();
   }
   
-  // Run routing trigger
+  // Run routing trigger to render current view behind loading screen
   await router();
 
   // Check if logged-in account needs to link an email address
   checkCompulsoryEmail();
+
+  // Ensure handwriting animation and initial float finish smoothly before transitioning
+  try {
+    await loaderAnimPromise;
+  } catch (e) {}
+
+  // Smooth cinematic GSAP fade-out transition into the website
+  if (loaderEl && typeof gsap !== 'undefined') {
+    gsap.to(loaderEl, {
+      opacity: 0,
+      scale: 1.02,
+      duration: 0.55,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        const wrapper = document.getElementById('sh-cursive-wrapper');
+        if (wrapper) gsap.killTweensOf(wrapper);
+        loaderEl.style.display = 'none';
+        loaderEl.style.opacity = '0';
+        if (adSpace) adSpace.style.display = '';
+      }
+    });
+  } else if (loaderEl) {
+    loaderEl.style.display = 'none';
+    if (adSpace) adSpace.style.display = '';
+  }
+}
+
+let cursiveLoaderPromise = null;
+let animStarted = false;
+
+function initCursiveLoader() {
+  if (cursiveLoaderPromise) return cursiveLoaderPromise;
+
+  cursiveLoaderPromise = new Promise(resolve => {
+    function start() {
+      if (animStarted) return;
+      animStarted = true;
+
+      const clipRect = document.getElementById('sh-clip-rect');
+      const penTip = document.getElementById('sh-pen-tip');
+      const subtitle = document.getElementById('sh-loader-subtitle');
+      const wrapper = document.getElementById('sh-cursive-wrapper');
+
+      if (!clipRect || !penTip || !wrapper || typeof gsap === 'undefined') {
+        resolve();
+        return;
+      }
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          resolve();
+        }
+      });
+
+      // Pen tracer starts at the letter 'S' (16%)
+      tl.set(penTip, { left: '16%', top: '50%', opacity: 1, scale: 0.5 })
+        .to(penTip, { scale: 1, duration: 0.2, ease: "back.out(2)" })
+        // 1. Handwriting animation: sweep clip rect across letters while pen traces wave
+        .to(clipRect, {
+          attr: { width: 480 },
+          duration: 1.6,
+          ease: "power1.inOut"
+        }, "-=0.1")
+        .to(penTip, {
+          left: '84%',
+          duration: 1.6,
+          ease: "power1.inOut"
+        }, "<")
+        // Micro-oscillations on pen tip vertical to simulate writing strokes
+        .to(penTip, {
+          y: "-=13",
+          repeat: 7,
+          yoyo: true,
+          duration: 0.1,
+          ease: "sine.inOut"
+        }, "<")
+        // Pen tip flourish fade out
+        .to(penTip, {
+          opacity: 0,
+          scale: 2.2,
+          duration: 0.3,
+          ease: "power2.out"
+        })
+        // Subtitle soft fade in
+        .to(subtitle, {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: "power2.out"
+        }, "-=0.2")
+        // Start continuous gentle floating and breathing pulse
+        .call(() => {
+          gsap.to(wrapper, {
+            y: -7,
+            scale: 1.02,
+            duration: 1.6,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+          });
+        }, null, "-=0.2");
+    }
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(start);
+    }
+    setTimeout(start, 250);
+  });
+
+  return cursiveLoaderPromise;
 }
 
 // Launch app
