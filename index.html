@@ -77,14 +77,14 @@
 
     gtag('config', 'G-MLBCW8QCG1');
   </script>
-  <link id="theme-stylesheet" rel="stylesheet" href="/old.css?v=1.0.5">
+  <link id="theme-stylesheet" rel="stylesheet" href="/old.css?v=1.0.7">
   <script>
     (function() {
       // 1. UI Layout Theme
       var savedUiTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
       var themeLink = document.getElementById('theme-stylesheet');
       if (themeLink) {
-        themeLink.setAttribute('href', savedUiTheme === 'modern' ? '/modern.css?v=1.0.5' : '/old.css?v=1.0.5');
+        themeLink.setAttribute('href', savedUiTheme === 'modern' ? '/modern.css?v=1.0.7' : '/old.css?v=1.0.7');
       }
 
       // 2. Color Theme Palette (9 Light Themes)
@@ -188,6 +188,314 @@
     background: linear-gradient(90deg, #334155 25%, #475569 37%, #334155 63%) !important;
     background-size: 400% 100% !important;
   }
+
+
+  /* Desktop Scrolled Bottom Dock Styling — Bigger, Frosted Glass, Beautiful Active Badges */
+  @media (min-width: 769px) {
+    .mobile-bottom-nav.desktop-scrolled-show {
+      --rise: 0px !important;
+      --t: 0 !important;
+      display: flex !important;
+      position: fixed !important;
+      bottom: 26px !important;
+      left: 20px !important;
+      right: 20px !important;
+      margin: 0 auto !important;
+      width: calc(100% - 40px) !important;
+      max-width: 580px !important;
+      height: 74px !important;
+      padding: 6px 14px !important;
+      z-index: 9999 !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      backdrop-filter: blur(24px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+      border-radius: 24px !important;
+      box-shadow: 
+        0 20px 48px -10px rgba(15, 23, 42, 0.22),
+        0 10px 24px -6px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 2px 6px rgba(0, 0, 0, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
+      align-items: center !important;
+      justify-content: space-evenly !important;
+      pointer-events: auto !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      touch-action: auto !important;
+      gap: 6px !important;
+      box-sizing: border-box !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex: 1 !important;
+      height: 100% !important;
+      min-width: 72px !important;
+      text-decoration: none !important;
+      cursor: pointer !important;
+      padding: 6px 12px !important;
+      border-radius: 16px !important;
+      z-index: 2 !important;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      gap: 3px !important;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      box-sizing: border-box !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .tab__icon {
+      position: static !important;
+      transform: none !important;
+      left: auto !important;
+      top: auto !important;
+      width: 24px !important;
+      height: 24px !important;
+      color: #64748b !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+      opacity: 1 !important;
+      margin: 0 auto !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .tab__icon svg {
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .tab__label {
+      position: static !important;
+      transform: none !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.2px !important;
+      color: #64748b !important;
+      margin-top: 0 !important;
+      opacity: 1 !important;
+      display: block !important;
+      transition: all 0.22s ease !important;
+      text-align: center !important;
+      line-height: 1.2 !important;
+    }
+
+    /* Hover state on tabs */
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item:hover {
+      background: var(--primary-accent, rgba(79, 70, 229, 0.08)) !important;
+      transform: translateY(-2px) !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item:hover .tab__icon {
+      color: var(--primary, #4f46e5) !important;
+      transform: scale(1.1) !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item:hover .tab__label {
+      color: var(--primary, #4f46e5) !important;
+    }
+
+    /* Active / Selected Tab State - highlighted pill */
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item[aria-selected="true"],
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item.active {
+      background: var(--primary-accent, rgba(79, 70, 229, 0.12)) !important;
+      border: 1px solid rgba(79, 70, 229, 0.2) !important;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12) !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item[aria-selected="true"] .tab__icon,
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item.active .tab__icon {
+      color: var(--primary, #4f46e5) !important;
+      transform: scale(1.12) !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item[aria-selected="true"] .tab__label,
+    .mobile-bottom-nav.desktop-scrolled-show .mobile-bottom-nav-item.active .tab__label {
+      color: var(--primary, #4f46e5) !important;
+      font-weight: 700 !important;
+    }
+
+    .mobile-bottom-nav.desktop-scrolled-show .dock__skin,
+    .mobile-bottom-nav.desktop-scrolled-show .dock__bead,
+    .mobile-bottom-nav.desktop-scrolled-show .dock__cast {
+      display: none !important;
+    }
+
+    /* Desktop Top Navbar Transition & CodeHelp-style Floating Pill on Scroll */
+    .navbar {
+      transition: top 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  right 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-radius 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  padding 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  background 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* Single-line guarantee for Logo & Text */
+    .logo {
+      display: flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      min-width: max-content !important;
+    }
+
+    .logo span {
+      white-space: nowrap !important;
+      display: inline-block !important;
+      line-height: 1 !important;
+    }
+
+    /* Single-line guarantee for User Profile & Auth */
+    #nav-auth-container {
+      display: flex !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+      white-space: nowrap !important;
+    }
+
+    .profile-dropdown-wrapper {
+      flex-shrink: 0 !important;
+      white-space: nowrap !important;
+    }
+
+    .profile-dropdown-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+    }
+
+    .profile-dropdown-btn span {
+      white-space: nowrap !important;
+      display: inline-block !important;
+    }
+
+    /* Scrolled Navbar: Expanded length (1320px) to comfortably fit logo & user dropdown on 1 line */
+    .navbar.scrolled {
+      top: 14px !important;
+      left: 24px !important;
+      right: 24px !important;
+      margin: 0 auto !important;
+      width: calc(100% - 48px) !important;
+      max-width: 1320px !important;
+      height: 58px !important;
+      border-radius: 9999px !important;
+      padding: 0 28px !important;
+      z-index: 1000 !important;
+    }
+
+    .navbar.scrolled::after {
+      display: none !important;
+    }
+
+    .navbar.scrolled .logo {
+      gap: 10px !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+    }
+
+    .navbar.scrolled .logo-image {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+      flex-shrink: 0 !important;
+    }
+
+    .navbar.scrolled .logo span {
+      font-size: 19px !important;
+      white-space: nowrap !important;
+      display: inline-block !important;
+    }
+
+    .navbar.scrolled .profile-dropdown-btn {
+      padding: 6px 16px !important;
+      border-radius: 9999px !important;
+      font-size: 13px !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+    }
+
+    .navbar.scrolled .profile-dropdown-btn span {
+      max-width: none !important;
+      white-space: nowrap !important;
+    }
+
+    /* Collapse desktop nav links when in scrolled mode so only Logo & User Dropdown take full width */
+    .navbar.scrolled #desktop-nav-links {
+      max-width: 0 !important;
+      width: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: max-width 0.25s ease, opacity 0.16s ease !important;
+    }
+
+    /* UI Switcher Bar: EXACT same length, max-width, centering, and rounded pill style as the navbar */
+    .ui-switcher-bar {
+      position: fixed !important;
+      left: 24px !important;
+      right: 24px !important;
+      margin: 0 auto !important;
+      width: calc(100% - 48px) !important;
+      max-width: 1320px !important;
+      height: 44px !important;
+      border-radius: 9999px !important;
+      padding: 0 28px !important;
+      box-sizing: border-box !important;
+      z-index: 990 !important;
+      top: 88px !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      backdrop-filter: blur(20px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      box-shadow: 0 10px 28px -6px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03) !important;
+      transition: top 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  right 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-radius 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  background 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* When dark/modern theme is active, style UI switcher bar matching dark navbar */
+    [data-theme="dark"] .ui-switcher-bar,
+    .modern-theme .ui-switcher-bar {
+      background: rgba(24, 18, 70, 0.92) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 0 12px 32px -6px rgba(10, 7, 35, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+    }
+
+    /* When navbar is scrolled into floating pill, tuck switcher bar neatly right below it */
+    .navbar.scrolled ~ .ui-switcher-bar {
+      top: 78px !important;
+    }
+
+    .ui-switcher-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+    }
+  }
 </style>
 
 <body>
@@ -236,7 +544,7 @@
       <!-- Desktop Nav Links & Auth State Wrapper -->
       <div style="display: flex; align-items: center; gap: 16px;">
         <!-- Desktop Nav Links -->
-        <nav class="nav-links desktop-nav">
+        <nav class="nav-links desktop-nav" id="desktop-nav-links">
           <a href="#/" class="nav-link" id="nav-home">Home</a>
           <a href="#/notes" class="nav-link" id="nav-notes">Notes</a>
           <a href="#/papers" class="nav-link" id="nav-papers">Papers</a>
@@ -2139,19 +2447,23 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="contribute-category">Resource Category</label>
+          <label class="form-label" for="contribute-category">Resource Section / Category</label>
           <select id="contribute-category" class="form-select" required>
-            <option value="" disabled selected>Select Category</option>
+            <option value="" disabled selected>Select Section / Category</option>
             <option value="notes">Notes</option>
-            <option value="papers">Papers (PYQs)</option>
-            <option value="lab_manuals">Lab Manual</option>
+            <option value="papers">Previous Year Papers (PYQs)</option>
+            <option value="lab_manuals">Lab Manuals</option>
+            <option value="books">Books</option>
+            <option value="simulations">Simulations</option>
+            <option value="competitive">Competitive Exam PYQs</option>
+            <option value="syllabus">Syllabus</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="contribute-subject">Subject</label>
+          <label class="form-label" for="contribute-subject">Target Folder / Subject</label>
           <select id="contribute-subject" class="form-select" required disabled>
-            <option value="" disabled selected>Select Subject Folder</option>
+            <option value="" disabled selected>Select Target Folder</option>
             <!-- Subjects will be filled dynamically -->
           </select>
         </div>
@@ -2306,8 +2618,8 @@
     </div>
   </div>
 
-  <!-- Fixed Bottom Navigation Bar for Mobile -->
-  <nav class="mobile-bottom-nav dock" id="dock" style="display: none;">
+  <!-- Fixed Bottom Navigation Bar for Mobile and Scrolled Desktop -->
+  <nav class="mobile-bottom-nav dock" id="dock">
     <!-- Ambient liquid skin and bead -->
     <svg class="dock__skin" id="skin" aria-hidden="true" focusable="false" preserveAspectRatio="none">
       <defs>
@@ -2347,6 +2659,7 @@
     </a>
   </nav>
 
-  <script src="/app.js?v=1.0.5"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script src="/app.js?v=1.0.9"></script>
 </body>
 </html>
