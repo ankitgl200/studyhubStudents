@@ -66,6 +66,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
   <link rel="preconnect" href="https://js.puter.com">
   <!-- Google tag (gtag.js) -->
@@ -150,6 +151,142 @@
   </script>
 </head>
 <style>
+
+  /* Premium Calligraphy Loading Screen */
+  #view-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999999;
+    background: radial-gradient(circle at 50% 45%, #0d1527 0%, #050811 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 20px;
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .sh-loader-backdrop {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .sh-loader-glow-orb {
+    position: absolute;
+    width: 440px;
+    height: 220px;
+    background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.22) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 75%);
+    filter: blur(45px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sh-cursive-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 480px;
+    max-width: 90vw;
+    z-index: 1;
+    filter: drop-shadow(0 12px 28px rgba(37, 99, 235, 0.38))
+            drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45));
+    transform-origin: center center;
+  }
+
+  .sh-cursive-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .sh-studyhub-cursive {
+    font-family: 'Outfit', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 66px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    user-select: none;
+  }
+
+  .sh-depth-text {
+    fill: #091224;
+    opacity: 0.9;
+  }
+
+  .sh-main-text {
+    fill: url(#calligraphy-gradient);
+  }
+
+  .sh-glow-text {
+    fill: none;
+    stroke: url(#calligraphy-stroke-glow);
+    stroke-width: 2.8px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+    filter: url(#glow-blur);
+  }
+
+  .sh-highlight-text {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.45);
+    stroke-width: 0.6px;
+  }
+
+  .sh-pen-tip {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px 2px #ffffff, 0 0 20px 6px #60a5fa, 0 0 35px 12px rgba(129, 140, 248, 0.65);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    z-index: 3;
+  }
+
+  .sh-loader-subtitle {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    z-index: 1;
+  }
+
+  .sh-sub-line {
+    width: 32px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.35));
+  }
+
+  .sh-sub-line.right {
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.35), transparent);
+  }
+
+  .sh-sub-text {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: rgba(203, 213, 225, 0.75);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
   .logoimg img{
     width: 50px;
     height: 50px;
@@ -623,11 +760,68 @@
     <!-- Main Content Container -->
     <main class="main-content" id="main-mount">
       
-      <!-- LOADING SCREEN -->
-      <div id="view-loading" class="page-view" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
-        <div style="text-align: center;">
-          <div style="width: 40px; height: 40px; border: 4px solid var(--primary-accent); border-top-color: #1e56a0; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
-          <h3>Study Hub is loading...</h3>
+      <!-- LOADING SCREEN: Elegant Calligraphy Stroke & 3D Glow -->
+      <div id="view-loading">
+        <div class="sh-loader-backdrop">
+          <div class="sh-loader-glow-orb"></div>
+
+          <div class="sh-cursive-wrapper" id="sh-cursive-wrapper">
+            <svg class="sh-cursive-svg" viewBox="0 0 480 140" id="sh-cursive-svg" role="img" aria-label="StudyHub">
+              <defs>
+                <!-- Radiant Calligraphy Gradient -->
+                <linearGradient id="calligraphy-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="26%" stop-color="#eff6ff" />
+                  <stop offset="60%" stop-color="#93c5fd" />
+                  <stop offset="100%" stop-color="#3b82f6" />
+                </linearGradient>
+
+                <!-- Vibrant Aurora Stroke Glow -->
+                <linearGradient id="calligraphy-stroke-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#93c5fd" />
+                  <stop offset="50%" stop-color="#818cf8" />
+                  <stop offset="100%" stop-color="#38bdf8" />
+                </linearGradient>
+
+                <!-- Atmosphere Glow Filter -->
+                <filter id="glow-blur" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.8" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+
+                <!-- Progressive Handwriting Stroke Clip Path -->
+                <clipPath id="handwriting-clip">
+                  <rect id="sh-clip-rect" x="0" y="0" width="0" height="140" />
+                </clipPath>
+              </defs>
+
+              <!-- Subtle baseline guide for refined aesthetic -->
+              <line x1="60" y1="104" x2="420" y2="104" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="2 6" />
+
+              <!-- Clipped handwriting artwork with layered 3D depth and glow -->
+              <g clip-path="url(#handwriting-clip)">
+                <!-- 1. 3D Under-extrusion Shadow -->
+                <text x="241.5" y="72.5" class="sh-studyhub-cursive sh-depth-text">StudyHub</text>
+                <!-- 2. Neon Aura Glow -->
+                <text x="240" y="70" class="sh-studyhub-cursive sh-glow-text">StudyHub</text>
+                <!-- 3. Core Calligraphy Body -->
+                <text x="240" y="70" class="sh-studyhub-cursive sh-main-text">StudyHub</text>
+                <!-- 4. Crystal Surface Highlight -->
+                <text x="240" y="70" class="sh-studyhub-cursive sh-highlight-text">StudyHub</text>
+              </g>
+            </svg>
+            <div class="sh-pen-tip" id="sh-pen-tip"></div>
+          </div>
+
+          <!-- Subtitle Branding -->
+          <div class="sh-loader-subtitle" id="sh-loader-subtitle">
+            <div class="sh-sub-line"></div>
+            <div class="sh-sub-text">Academic Portal • BTKIT Dwarahat</div>
+            <div class="sh-sub-line right"></div>
+          </div>
         </div>
       </div>
 
@@ -2660,6 +2854,6 @@
   </nav>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-  <script src="/app.js?v=1.0.9"></script>
+  <script src="/app.js?v=1.1.3"></script>
 </body>
 </html>
