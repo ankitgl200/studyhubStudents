@@ -44,7 +44,8 @@ By centralizing knowledge, StudyHub levels the playing field, allowing every stu
 
 StudyHub is built and maintained by a dedicated team committed to improving the academic experience:
 
-* **Ankit Ghugtyal** — Founder & Developer
+* **Ankit Ghugtyal** — Co-Founder & Developer
+* **Soham Joshi** — Co-Founder
 * **Abhay Chandra Joshi** — Content Curator
 * **Adarsh Singh Chaudhary** — Community Manager
 * **Aditya Maurya** — Simulation Developer
