@@ -530,8 +530,9 @@ let editorImg = new Image(); // The original image object loaded into editor mem
 let currentNotesFolder = null;
 let currentPapersFolder = null;
 let currentResourcesFolder = null;
-let currentResourcesSection = 'root'; // 'root' | 'syllabus' | 'lab_manuals' | 'lab_manuals_folder' | 'books' | 'books_folder' | 'competitive' | 'competitive_folder' | 'calculator'
-let roadmapFolderStack = [];
+let currentResourcesSection = 'root'; // 'root' | 'syllabus' | 'lab_manuals' | 'lab_manuals_folder' | 'books' | 'books_folder' | 'simulations' | 'competitive' | 'competitive_folder' | 'calculator'
+let simulationFolderStack = [];
+let roadmapFolderStack = simulationFolderStack;
 let notesFoldersList = []; // Kept in memory to populate syllabus uploads
 let activeDirectoryTab = 'admin'; // 'admin' | 'teacher' | 'student'
 let adminUserSearchQuery = '';
@@ -1946,16 +1947,16 @@ async function renderResourcesView() {
   const isStaffOrEducator = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator');
 
   if (currentResourcesSection !== 'root') {
-    if (currentResourcesSection === 'roadmaps') {
+    if (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') {
       crumbsHTML += `
         <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
-        <span class="breadcrumb-item ${!currentResourcesFolder ? 'breadcrumb-active' : ''}" id="crumb-resources-section">Roadmaps</span>
+        <span class="breadcrumb-item ${!currentResourcesFolder ? 'breadcrumb-active' : ''}" id="crumb-resources-section">Simulations</span>
       `;
-      roadmapFolderStack.forEach((folder, idx) => {
-        const isLast = idx === roadmapFolderStack.length - 1;
+      simulationFolderStack.forEach((folder, idx) => {
+        const isLast = idx === simulationFolderStack.length - 1;
         crumbsHTML += `
           <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
-          <span class="breadcrumb-item ${isLast ? 'breadcrumb-active' : ''} roadmap-crumb-item" data-idx="${idx}" style="cursor: pointer;">
+          <span class="breadcrumb-item ${isLast ? 'breadcrumb-active' : ''} simulation-crumb-item" data-idx="${idx}" style="cursor: pointer;">
             ${escapeHTML(folder.name)}
           </span>
         `;
@@ -1985,14 +1986,14 @@ async function renderResourcesView() {
         <button class="btn btn-secondary" id="btn-resources-back">
           <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back
         </button>
-        ${(isAdmin && (currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive')) || (isStaffOrEducator && currentResourcesSection === 'roadmaps' && !currentResourcesFolder) ? `
+        ${(isAdmin && (currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive')) || (isStaffOrEducator && (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') && !currentResourcesFolder) ? `
           <button class="btn btn-primary" id="btn-resources-add-folder" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> Add Folder
           </button>
         ` : ''}
-        ${(isStaff && (currentResourcesSection === 'syllabus' || currentResourcesSection === 'lab_manuals_folder' || currentResourcesSection === 'books_folder' || currentResourcesSection === 'competitive_folder')) || (isStaffOrEducator && currentResourcesSection === 'roadmaps' && currentResourcesFolder) ? `
+        ${(isStaff && (currentResourcesSection === 'syllabus' || currentResourcesSection === 'lab_manuals_folder' || currentResourcesSection === 'books_folder' || currentResourcesSection === 'competitive_folder')) || (isStaffOrEducator && (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') && currentResourcesFolder) ? `
           <button class="btn btn-primary" id="btn-resources-upload" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload PDF
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload Simulation / PDF
           </button>
         ` : ''}
       </div>
@@ -2004,7 +2005,7 @@ async function renderResourcesView() {
 
   // Crumb clicks
   const crumbRoot = document.getElementById('crumb-resources-root');
-  if (crumbRoot) crumbRoot.addEventListener('click', () => { currentResourcesSection = 'root'; currentResourcesFolder = null; roadmapFolderStack = []; renderResourcesView(); });
+  if (crumbRoot) crumbRoot.addEventListener('click', () => { currentResourcesSection = 'root'; currentResourcesFolder = null; simulationFolderStack = []; roadmapFolderStack = []; renderResourcesView(); });
 
   const crumbSection = document.getElementById('crumb-resources-section');
   if (crumbSection) crumbSection.addEventListener('click', () => {
@@ -2012,16 +2013,18 @@ async function renderResourcesView() {
       currentResourcesSection = currentResourcesSection.replace('_folder', '');
     }
     currentResourcesFolder = null;
+    simulationFolderStack = [];
     roadmapFolderStack = [];
     renderResourcesView();
   });
 
   // Re-attach breadcrumbs stack handlers
-  document.querySelectorAll('.roadmap-crumb-item').forEach(crumb => {
+  document.querySelectorAll('.simulation-crumb-item, .roadmap-crumb-item').forEach(crumb => {
     crumb.addEventListener('click', () => {
       const idx = parseInt(crumb.getAttribute('data-idx'));
-      roadmapFolderStack = roadmapFolderStack.slice(0, idx + 1);
-      currentResourcesFolder = roadmapFolderStack[roadmapFolderStack.length - 1];
+      simulationFolderStack = simulationFolderStack.slice(0, idx + 1);
+      roadmapFolderStack = simulationFolderStack;
+      currentResourcesFolder = simulationFolderStack[simulationFolderStack.length - 1];
       renderResourcesView();
     });
   });
@@ -2050,8 +2053,8 @@ async function renderResourcesView() {
         docType = 'competitive';
         folderId = currentResourcesFolder.id;
         folderName = currentResourcesFolder.name;
-      } else if (currentResourcesSection === 'roadmaps') {
-        docType = 'roadmap';
+      } else if (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') {
+        docType = 'simulation';
         folderId = currentResourcesFolder.id;
         folderName = currentResourcesFolder.name;
       }
@@ -2062,10 +2065,10 @@ async function renderResourcesView() {
   // 3. Render content body
   if (currentResourcesSection === 'root') {
     content.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; padding: 10px 0;">
+      <div class="resources-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
         <div class="card resource-card-trigger" data-section="syllabus" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 30px;">
-          <div style="width: 60px; height: 60px; border-radius: 50%; background-color: var(--primary-accent); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-            <i data-lucide="compass" style="width: 32px; height: 32px;"></i>
+          <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #ede9fe; color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i data-lucide="graduation-cap" style="width: 32px; height: 32px;"></i>
           </div>
           <h3 style="color: var(--primary-dark); font-size: 20px; font-weight: 700; margin-bottom: 10px;">Syllabus</h3>
           <p style="color: var(--text-muted); font-size: 14px;">Access official university syllabus PDFs for all departments and semesters.</p>
@@ -2087,12 +2090,12 @@ async function renderResourcesView() {
           <p style="color: var(--text-muted); font-size: 14px;">Recommended textbooks, references, and digital libraries for engineering.</p>
         </div>
 
-        <div class="card resource-card-trigger" data-section="roadmaps" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 30px;">
+        <div class="card resource-card-trigger" data-section="simulations" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 30px;">
           <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #fae8ff; color: #a21caf; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-            <i data-lucide="map" style="width: 32px; height: 32px;"></i>
+            <i data-lucide="cpu" style="width: 32px; height: 32px;"></i>
           </div>
-          <h3 style="color: var(--primary-dark); font-size: 20px; font-weight: 700; margin-bottom: 10px;">Roadmaps</h3>
-          <p style="color: var(--text-muted); font-size: 14px;">Semester-wise maps, study routes, curriculum guides, and plans created by teachers & admins.</p>
+          <h3 style="color: var(--primary-dark); font-size: 20px; font-weight: 700; margin-bottom: 10px;">Simulations</h3>
+          <p style="color: var(--text-muted); font-size: 14px;">Interactive virtual labs, circuit simulations, engineering models, code demos, and visual experiments.</p>
         </div>
 
         <div class="card resource-card-trigger" data-section="competitive" style="cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 30px;">
@@ -2117,6 +2120,7 @@ async function renderResourcesView() {
       card.addEventListener('click', () => {
         currentResourcesSection = card.getAttribute('data-section');
         currentResourcesFolder = null;
+        simulationFolderStack = [];
         roadmapFolderStack = [];
         renderResourcesView();
       });
@@ -2429,23 +2433,32 @@ async function renderResourcesView() {
       content.innerHTML = `<div class="empty-state">Error loading documents.</div>`;
     }
 
-  } else if (currentResourcesSection === 'roadmaps') {
+  } else if (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') {
     content.innerHTML = getGridSkeleton();
     const parentId = currentResourcesFolder ? currentResourcesFolder.id : 'null';
 
     try {
-      const folders = await api.getFolders('roadmaps', parentId);
+      let folders = await api.getFolders('simulations', parentId);
+      if (folders.length === 0 && (!currentResourcesFolder || parentId === 'null')) {
+        const legacyFolders = await api.getFolders('roadmaps', parentId);
+        if (legacyFolders.length > 0) folders = legacyFolders;
+      }
+
       let docs = [];
       if (currentResourcesFolder) {
-        docs = await api.getDocuments('roadmap', currentResourcesFolder.id);
+        docs = await api.getDocuments('simulation', currentResourcesFolder.id);
+        if (docs.length === 0) {
+          const legacyDocs = await api.getDocuments('roadmap', currentResourcesFolder.id);
+          if (legacyDocs.length > 0) docs = legacyDocs;
+        }
       }
 
       if (folders.length === 0 && docs.length === 0) {
         content.innerHTML = `
           <div class="empty-state">
-            <i data-lucide="map" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
-            <p>No folders or roadmaps here yet.</p>
-            ${isStaffOrEducator ? `<p style="font-size: 14px; margin-top: 6px;">Click ${!currentResourcesFolder ? '"Add Folder" or ' : ''}"Upload PDF" to get started.</p>` : ''}
+            <i data-lucide="cpu" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
+            <p>No folders or simulations here yet.</p>
+            ${isStaffOrEducator ? `<p style="font-size: 14px; margin-top: 6px;">Click ${!currentResourcesFolder ? '"Add Folder" or ' : ''}"Upload Simulation / PDF" to get started.</p>` : ''}
           </div>
         `;
         refreshIcons();
@@ -2458,7 +2471,7 @@ async function renderResourcesView() {
           <h4 style="color: var(--primary-dark); margin-bottom: 12px; font-weight: 700;">Folders</h4>
           <div class="folders-grid" style="margin-bottom: 30px;">
             ${folders.map(f => `
-              <div class="folder-item roadmap-folder-card" data-id="${f.id}" data-name="${f.name}">
+              <div class="folder-item simulation-folder-card roadmap-folder-card" data-id="${f.id}" data-name="${f.name}">
                 ${getFolderIconSvg('#a21caf', '#701a75')}
                 <span class="folder-name">${escapeHTML(f.name)}</span>
                 ${isStaffOrEducator ? `
@@ -2476,7 +2489,7 @@ async function renderResourcesView() {
       let docsHTML = '';
       if (docs.length > 0) {
         docsHTML = `
-          <h4 style="color: var(--primary-dark); margin-bottom: 12px; font-weight: 700;">Roadmap Files</h4>
+          <h4 style="color: var(--primary-dark); margin-bottom: 12px; font-weight: 700;">Simulation Files</h4>
           <div class="docs-list">
             ${docs.map(doc => `
               <div class="doc-card" style="position: relative; border-left: 4px solid #a21caf;">
@@ -2547,13 +2560,14 @@ async function renderResourcesView() {
       `;
 
       // Event listeners
-      document.querySelectorAll('.roadmap-folder-card').forEach(card => {
+      document.querySelectorAll('.simulation-folder-card, .roadmap-folder-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (e.target.closest('.folder-actions-overlay')) return;
           const folderId = card.getAttribute('data-id');
           const folderName = card.getAttribute('data-name');
           const folder = { id: folderId, name: folderName };
-          roadmapFolderStack.push(folder);
+          simulationFolderStack.push(folder);
+          roadmapFolderStack = simulationFolderStack;
           currentResourcesFolder = folder;
           renderResourcesView();
         });
@@ -2563,7 +2577,7 @@ async function renderResourcesView() {
         document.querySelectorAll('.btn-rename-roadmap-folder').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            openFolderModal('roadmaps', btn.getAttribute('data-id'), btn.getAttribute('data-name'));
+            openFolderModal('simulations', btn.getAttribute('data-id'), btn.getAttribute('data-name'));
           });
         });
 
@@ -2591,7 +2605,7 @@ async function renderResourcesView() {
         document.querySelectorAll('.btn-delete-roadmap-doc').forEach(btn => {
           btn.addEventListener('click', async () => {
             const id = btn.getAttribute('data-id');
-            if (!confirm('Delete this roadmap?')) return;
+            if (!confirm('Delete this simulation?')) return;
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
@@ -2600,7 +2614,7 @@ async function renderResourcesView() {
               await api.deleteDocument(id);
               await renderResourcesView();
             } catch (err) {
-              alert(err.message || 'Failed to delete roadmap');
+              alert(err.message || 'Failed to delete simulation');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
               refreshIcons();
@@ -2609,7 +2623,7 @@ async function renderResourcesView() {
         });
       }
 
-      // Like handlers for roadmaps
+      // Like handlers for roadmaps / simulations
       document.querySelectorAll('.btn-like-doc').forEach(btn => {
         btn.addEventListener('click', (e) => {
           handleLikeToggle(e, renderResourcesView);
@@ -2617,7 +2631,7 @@ async function renderResourcesView() {
       });
 
     } catch (err) {
-      content.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load roadmaps: ${escapeHTML(err.message)}</div>`;
+      content.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load simulations: ${escapeHTML(err.message)}</div>`;
     }
 
   } else if (currentResourcesSection === 'calculator') {
@@ -2629,11 +2643,12 @@ async function renderResourcesView() {
 }
 
 function handleResourcesBack() {
-  if (currentResourcesSection === 'roadmaps') {
-    if (roadmapFolderStack.length > 0) {
-      roadmapFolderStack.pop();
-      if (roadmapFolderStack.length > 0) {
-        currentResourcesFolder = roadmapFolderStack[roadmapFolderStack.length - 1];
+  if (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') {
+    if (simulationFolderStack.length > 0) {
+      simulationFolderStack.pop();
+      roadmapFolderStack = simulationFolderStack;
+      if (simulationFolderStack.length > 0) {
+        currentResourcesFolder = simulationFolderStack[simulationFolderStack.length - 1];
       } else {
         currentResourcesFolder = null;
       }
@@ -3470,7 +3485,7 @@ async function downloadUserManual() {
   const teacherRules = [
     "- Uploaded resources go live instantly, bypass review gates, and display with the \'Educator\' label.",
     "- Access the Educator Dashboard to monitor your resource likes, uploads count, and total page views.",
-    "- Create and manage course folders, roadmaps, and textbooks."
+    "- Create and manage course folders, simulations, and textbooks."
   ];
   subY = yPos + 12;
   teacherRules.forEach(rule => {
@@ -5084,6 +5099,11 @@ function openUploadModal(docType, folderId = null, folderName = '') {
     syllabusGroup.style.display = 'none';
   } else if (docType === 'competitive') {
     titleEl.textContent = 'Upload Competitive Exam PYQ PDF';
+    subjectDisplayGroup.style.display = 'block';
+    subjectDisplayInp.value = folderName;
+    syllabusGroup.style.display = 'none';
+  } else if (docType === 'simulation' || docType === 'roadmap') {
+    titleEl.textContent = 'Upload Simulation File / PDF';
     subjectDisplayGroup.style.display = 'block';
     subjectDisplayInp.value = folderName;
     syllabusGroup.style.display = 'none';
@@ -8788,7 +8808,7 @@ function initEventHandlers() {
         else if (section === 'papers') apiType = 'paper';
         else if (section === 'lab_manuals') apiType = 'lab_manual';
         else if (section === 'books') apiType = 'book';
-        else if (section === 'roadmaps') apiType = 'roadmap';
+        else if (section === 'simulations' || section === 'roadmaps') apiType = 'simulation';
         else if (section === 'syllabus') apiType = 'syllabus';
         else if (section === 'competitive') apiType = 'competitive';
 
@@ -9202,12 +9222,17 @@ async function initApp() {
   } catch (e) { console.error('Error restoring currentResourcesFolder:', e); }
 
   try {
-    const savedRoadmapStack = localStorage.getItem('roadmapFolderStack');
-    if (savedRoadmapStack) roadmapFolderStack = JSON.parse(savedRoadmapStack);
-  } catch (e) { console.error('Error restoring roadmapFolderStack:', e); }
+    const savedSimStack = localStorage.getItem('simulationFolderStack') || localStorage.getItem('roadmapFolderStack');
+    if (savedSimStack) {
+      simulationFolderStack = JSON.parse(savedSimStack);
+      roadmapFolderStack = simulationFolderStack;
+    }
+  } catch (e) { console.error('Error restoring simulationFolderStack:', e); }
 
   const savedResourcesSection = localStorage.getItem('currentResourcesSection');
-  if (savedResourcesSection) currentResourcesSection = savedResourcesSection;
+  if (savedResourcesSection) {
+    currentResourcesSection = savedResourcesSection === 'roadmaps' ? 'simulations' : savedResourcesSection;
+  }
 
   const token = localStorage.getItem('token');
   document.getElementById('view-loading').style.display = 'flex';
