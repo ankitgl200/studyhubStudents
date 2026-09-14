@@ -1511,9 +1511,10 @@ async function renderHomeView() {
     }
 
     container.innerHTML = `
-      <div class="announcements-container">
-        ${list.map(ann => {
-          const cardStyle = ann.docUrl ? 'style="cursor: pointer; border-left: 4px solid var(--primary);"' : '';
+      <div class="announcements-container sh-reveal-stagger in-view">
+        ${list.map((ann, idx) => {
+          const delayStyle = `animation-delay: ${idx * 0.08}s;`;
+          const cardStyle = ann.docUrl ? `style="cursor: pointer; border-left: 4px solid var(--primary); ${delayStyle}"` : `style="${delayStyle}"`;
           const cardClick = ann.docUrl ? `onclick="window.open('${ann.docUrl}', '_blank')"` : '';
           return `
             <div class="announcement-card" ${cardStyle} ${cardClick}>
@@ -1567,6 +1568,68 @@ async function renderHomeView() {
     container.innerHTML = `<div class="empty-state" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.2)">Error loading announcements.</div>`;
   }
   refreshIcons();
+  initHomeScrollAnimations();
+}
+
+// HOMEPAGE SCROLL ANIMATIONS (IntersectionObserver Engine)
+// ---------------------------------------------------------
+let homeScrollObserver = null;
+
+function initHomeScrollAnimations() {
+  const elements = document.querySelectorAll('#view-home .sh-reveal, #view-home .sh-reveal-left, #view-home .sh-reveal-right, #view-home .sh-reveal-scale, #view-home .sh-reveal-stagger');
+  if (!elements || elements.length === 0) return;
+
+  if (homeScrollObserver) {
+    homeScrollObserver.disconnect();
+    homeScrollObserver = null;
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    elements.forEach(el => el.classList.add('in-view'));
+    return;
+  }
+
+  homeScrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        homeScrollObserver.unobserve(entry.target);
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '0px 0px -40px 0px',
+    threshold: 0.06
+  });
+
+  elements.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 40 && rect.bottom > 0) {
+      el.classList.add('in-view');
+    } else {
+      homeScrollObserver.observe(el);
+    }
+  });
+}
+
+function initScrollProgressBar() {
+  const bar = document.getElementById('scroll-progress-bar');
+  if (!bar) return;
+
+  const updateProgress = () => {
+    const doc = document.documentElement;
+    const scrollY = window.scrollY || doc.scrollTop || 0;
+    const maxScroll = doc.scrollHeight - doc.clientHeight;
+    if (maxScroll <= 0) {
+      bar.style.width = '0%';
+      return;
+    }
+    const percent = Math.min(100, Math.max(0, (scrollY / maxScroll) * 100));
+    bar.style.width = `${percent}%`;
+  };
+
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
 }
 
 // 2. NOTES VIEW
@@ -9540,6 +9603,9 @@ async function initApp() {
 
   // Initialize PC navbar scroll animation (anime.js powered)
   initDesktopScrollNav();
+  
+  // Initialize Scroll Progress Bar
+  initScrollProgressBar();
   
   // Initialize Color Theme & Font Style from localStorage
   const savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
