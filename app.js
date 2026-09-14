@@ -1266,6 +1266,19 @@ async function router() {
     view.classList.remove('route-enter');
   });
 
+  // Cleanup auth scene elements and tilt when navigating away from auth pages
+  if (cleanPath !== '/login' && cleanPath !== '/signup' && cleanPath !== '/forgot-password') {
+    document.querySelectorAll('.auth-bubble, .auth-sparkle, .auth-particle').forEach(el => el.remove());
+    const prevBook = document.querySelector('.auth-book');
+    if (prevBook && prevBook._tiltCleanup) prevBook._tiltCleanup();
+  }
+
+  // Detect flip direction when toggling login ↔ signup
+  const prevPath = router._prevPath || '';
+  if (cleanPath === '/signup' && prevPath === '/login') setAuthFlipDirection('forward');
+  else if (cleanPath === '/login' && prevPath === '/signup') setAuthFlipDirection('backward');
+  router._prevPath = cleanPath;
+
   // Close any open modals when navigating
   closeAllModals();
 
@@ -1276,15 +1289,16 @@ async function router() {
     if (currentUser) return navigate('/');
     document.getElementById('view-login').style.display = 'block';
     document.getElementById('login-error-alert').style.display = 'none';
+    setAuthBookMode('login', false);
   } else if (cleanPath === '/forgot-password') {
     document.getElementById('view-forgot-password').style.display = 'block';
     renderForgotPasswordView();
   } else if (cleanPath === '/signup') {
     if (currentUser) return navigate('/');
-    document.getElementById('view-signup').style.display = 'block';
+    document.getElementById('view-login').style.display = 'block';
     document.getElementById('signup-error-alert').style.display = 'none';
     document.getElementById('signup-success-alert').style.display = 'none';
-    document.getElementById('form-signup').style.display = 'block';
+    setAuthBookMode('signup', false);
   } else if (cleanPath === '/notes') {
     document.getElementById('view-notes').style.display = 'block';
     await renderNotesView();
@@ -9636,6 +9650,17 @@ function initCursiveLoader() {
   if (cursiveLoaderPromise) return cursiveLoaderPromise;
 
   cursiveLoaderPromise = new Promise(resolve => {
+    let resolved = false;
+    const safeResolve = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+
+    // Safety timeout: Never hang for more than 3.5s if GSAP CDN fails or network hangs
+    const safetyTimer = setTimeout(safeResolve, 3500);
+
     function start() {
       if (animStarted) return;
       animStarted = true;
@@ -9646,13 +9671,15 @@ function initCursiveLoader() {
       const wrapper = document.getElementById('sh-cursive-wrapper');
 
       if (!clipRect || !penTip || !wrapper || typeof gsap === 'undefined') {
-        resolve();
+        clearTimeout(safetyTimer);
+        safeResolve();
         return;
       }
 
       const tl = gsap.timeline({
         onComplete: () => {
-          resolve();
+          clearTimeout(safetyTimer);
+          safeResolve();
         }
       });
 
@@ -9712,6 +9739,339 @@ function initCursiveLoader() {
   });
 
   return cursiveLoaderPromise;
+}
+
+/* ============================================================
+   AUTH PAGE — REAL 3D OPEN BOOK DESIGN & CONTINUOUS PAGE FLIP
+   ============================================================ */
+let _currentAuthBookMode = 'login'; // 'login' | 'signup'
+let _bookFlipInProgress = false;
+
+function spawnAuthParticles() { initAuthScene(); } // legacy alias
+
+function setAuthFlipDirection(dir) { /* no-op alias */ }
+
+/* ── setAuthBookMode: Instantly or cleanly sets the book to Login or Signup ── */
+function setAuthBookMode(targetMode, animate = false) {
+  if (animate && targetMode !== _currentAuthBookMode) {
+    flipAuthPage(targetMode);
+    return;
+  }
+
+  _currentAuthBookMode = targetMode;
+
+  const panelLogin = document.getElementById('auth-panel-login');
+  const panelSignup = document.getElementById('auth-panel-signup');
+  const headerTitle = document.getElementById('book-header-page-title');
+  const headerPage = document.getElementById('book-header-page-num');
+  const btnToggleText = document.getElementById('btn-turn-page-text');
+  const curlLabel = document.getElementById('curl-label-text');
+  const footerSection = document.getElementById('book-footer-section-text');
+
+  if (targetMode === 'signup') {
+    if (panelLogin) panelLogin.classList.remove('active');
+    if (panelSignup) panelSignup.classList.add('active');
+    if (headerTitle) headerTitle.textContent = 'SCHOLAR REGISTRATION';
+    if (headerPage) headerPage.textContent = 'PAGE 3';
+    if (btnToggleText) btnToggleText.textContent = 'Turn Page to Login';
+    if (curlLabel) curlLabel.textContent = 'LOGIN ➔';
+    if (footerSection) footerSection.textContent = '• SECTION B : NEW ENROLLMENT •';
+  } else {
+    if (panelSignup) panelSignup.classList.remove('active');
+    if (panelLogin) panelLogin.classList.add('active');
+    if (headerTitle) headerTitle.textContent = 'STUDENT ACCESS';
+    if (headerPage) headerPage.textContent = 'PAGE 2';
+    if (btnToggleText) btnToggleText.textContent = 'Turn Page to Sign Up';
+    if (curlLabel) curlLabel.textContent = 'SIGN UP ➔';
+    if (footerSection) footerSection.textContent = '• SECTION B : PORTAL CREDENTIALS •';
+  }
+
+  // Ensure scene atmosphere is running
+  initAuthScene();
+}
+
+/* ── flipAuthPage: Continuous, photorealistic 3D page turn around center spine ── */
+function flipAuthPage(targetMode) {
+  if (_bookFlipInProgress || targetMode === _currentAuthBookMode) return;
+  _bookFlipInProgress = true;
+
+  const leaf = document.getElementById('book-turning-leaf');
+  const frontLight = document.getElementById('leaf-front-lighting');
+  const backLight = document.getElementById('leaf-back-lighting');
+  const castShadow = document.getElementById('leaf-cast-shadow');
+  const bookCasing = document.querySelector('.real-book-casing');
+
+  // Fallback if elements not found or GSAP missing
+  if (!leaf || typeof gsap === 'undefined') {
+    setAuthBookMode(targetMode, false);
+    window.location.hash = targetMode === 'signup' ? '#/signup' : '#/login';
+    _bookFlipInProgress = false;
+    return;
+  }
+
+  const isMobile = window.innerWidth <= 860;
+  if (isMobile) {
+    // Clean, crisp responsive slide on mobile screens
+    setAuthBookMode(targetMode, false);
+    window.location.hash = targetMode === 'signup' ? '#/signup' : '#/login';
+    _bookFlipInProgress = false;
+    return;
+  }
+
+  // ── FORWARD FLIP: LOGIN ➔ SIGNUP ──
+  if (targetMode === 'signup') {
+    // 1. Reveal Signup panel immediately on base page underneath the leaf
+    const panelLogin = document.getElementById('auth-panel-login');
+    const panelSignup = document.getElementById('auth-panel-signup');
+    if (panelLogin) panelLogin.classList.remove('active');
+    if (panelSignup) panelSignup.classList.add('active');
+
+    // 2. Set Leaf initial state resting flat on right page
+    gsap.set(leaf, {
+      visibility: 'visible',
+      rotateY: 0,
+      skewY: 0,
+      scaleY: 1,
+      transformOrigin: 'left center',
+      transformPerspective: 2200,
+      zIndex: 25,
+    });
+    if (frontLight) gsap.set(frontLight, { opacity: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 80%)' });
+    if (backLight) gsap.set(backLight, { opacity: 0.6, background: 'linear-gradient(to left, rgba(0,0,0,0.5) 0%, transparent 80%)' });
+    if (castShadow) gsap.set(castShadow, { opacity: 0.1, scaleX: 0.8, transformOrigin: 'left center' });
+
+    // Update text labels
+    const headerTitle = document.getElementById('book-header-page-title');
+    const headerPage = document.getElementById('book-header-page-num');
+    const btnToggleText = document.getElementById('btn-turn-page-text');
+    const curlLabel = document.getElementById('curl-label-text');
+    const footerSection = document.getElementById('book-footer-section-text');
+
+    if (headerTitle) headerTitle.textContent = 'SCHOLAR REGISTRATION';
+    if (headerPage) headerPage.textContent = 'PAGE 3';
+    if (btnToggleText) btnToggleText.textContent = 'Turn Page to Login';
+    if (curlLabel) curlLabel.textContent = 'LOGIN ➔';
+    if (footerSection) footerSection.textContent = '• SECTION B : NEW ENROLLMENT •';
+
+    // 3. Play GSAP Physics Timeline
+    const tl = gsap.timeline({
+      onComplete: () => {
+        gsap.set(leaf, { visibility: 'hidden' });
+        if (castShadow) gsap.set(castShadow, { opacity: 0 });
+        _currentAuthBookMode = 'signup';
+        _bookFlipInProgress = false;
+        window.location.hash = '#/signup';
+      }
+    });
+
+    // Step A: Lift & paper curl (0deg ➔ -90deg)
+    tl.to(leaf, {
+      rotateY: -90,
+      skewY: -6,
+      scaleY: 1.025,
+      duration: 0.42,
+      ease: 'power2.in',
+    }, 0)
+    .to(frontLight, { opacity: 0.65, duration: 0.38, ease: 'power2.in' }, 0)
+    .to(castShadow, { opacity: 0.6, scaleX: 1.15, duration: 0.38, ease: 'power2.in' }, 0)
+    .to(bookCasing, { rotateY: -1.5, duration: 0.42, ease: 'power1.inOut' }, 0);
+
+    // Step B: Sweep over spine & settle onto left page (-90deg ➔ -180deg)
+    tl.to(leaf, {
+      rotateY: -180,
+      skewY: 0,
+      scaleY: 1,
+      duration: 0.45,
+      ease: 'power3.out',
+    }, 0.42)
+    .to(backLight, { opacity: 0, duration: 0.4, ease: 'power2.out' }, 0.42)
+    .to(castShadow, { opacity: 0, scaleX: 0.5, duration: 0.35, ease: 'power2.out' }, 0.42)
+    .to(bookCasing, { rotateY: 0, duration: 0.48, ease: 'back.out(1.4)' }, 0.42);
+
+  } else {
+    // ── BACKWARD FLIP: SIGNUP ➔ LOGIN ──
+    const panelLogin = document.getElementById('auth-panel-login');
+    const panelSignup = document.getElementById('auth-panel-signup');
+    if (panelSignup) panelSignup.classList.remove('active');
+    if (panelLogin) panelLogin.classList.add('active');
+
+    gsap.set(leaf, {
+      visibility: 'visible',
+      rotateY: -180,
+      skewY: 0,
+      scaleY: 1,
+      transformOrigin: 'left center',
+      transformPerspective: 2200,
+      zIndex: 25,
+    });
+    if (backLight) gsap.set(backLight, { opacity: 0.6, background: 'linear-gradient(to left, rgba(0,0,0,0.5) 0%, transparent 80%)' });
+    if (frontLight) gsap.set(frontLight, { opacity: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 80%)' });
+    if (castShadow) gsap.set(castShadow, { opacity: 0.5, scaleX: 1.1, transformOrigin: 'left center' });
+
+    const headerTitle = document.getElementById('book-header-page-title');
+    const headerPage = document.getElementById('book-header-page-num');
+    const btnToggleText = document.getElementById('btn-turn-page-text');
+    const curlLabel = document.getElementById('curl-label-text');
+    const footerSection = document.getElementById('book-footer-section-text');
+
+    if (headerTitle) headerTitle.textContent = 'STUDENT ACCESS';
+    if (headerPage) headerPage.textContent = 'PAGE 2';
+    if (btnToggleText) btnToggleText.textContent = 'Turn Page to Sign Up';
+    if (curlLabel) curlLabel.textContent = 'SIGN UP ➔';
+    if (footerSection) footerSection.textContent = '• SECTION B : PORTAL CREDENTIALS •';
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        gsap.set(leaf, { visibility: 'hidden' });
+        if (castShadow) gsap.set(castShadow, { opacity: 0 });
+        _currentAuthBookMode = 'login';
+        _bookFlipInProgress = false;
+        window.location.hash = '#/login';
+      }
+    });
+
+    // Lift off left page (-180deg ➔ -90deg)
+    tl.to(leaf, {
+      rotateY: -90,
+      skewY: 6,
+      scaleY: 1.025,
+      duration: 0.42,
+      ease: 'power2.in',
+    }, 0)
+    .to(backLight, { opacity: 0.7, duration: 0.38, ease: 'power2.in' }, 0)
+    .to(castShadow, { opacity: 0.65, scaleX: 1.2, duration: 0.38, ease: 'power2.in' }, 0)
+    .to(bookCasing, { rotateY: 1.5, duration: 0.42, ease: 'power1.inOut' }, 0);
+
+    // Settle onto right page (-90deg ➔ 0deg)
+    tl.to(leaf, {
+      rotateY: 0,
+      skewY: 0,
+      scaleY: 1,
+      duration: 0.46,
+      ease: 'back.out(1.2)',
+    }, 0.42)
+    .to(frontLight, { opacity: 0, duration: 0.4, ease: 'power2.out' }, 0.42)
+    .to(castShadow, { opacity: 0, scaleX: 0.6, duration: 0.38, ease: 'power2.out' }, 0.42)
+    .to(bookCasing, { rotateY: 0, duration: 0.48, ease: 'back.out(1.4)' }, 0.42);
+  }
+}
+
+/* ── initAuthScene: Atmosphere, Lucide icons, event listeners, and 3D desk tilt ── */
+function initAuthScene() {
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+
+  // Remove stale bubbles
+  document.querySelectorAll('.auth-bubble, .auth-sparkle').forEach(el => el.remove());
+
+  const scene = document.querySelector('.auth-scene');
+  if (!scene) return;
+
+  // ── Spawn Floating Study Bubbles ──
+  const BUBBLE_COUNT = 20;
+  for (let i = 0; i < BUBBLE_COUNT; i++) {
+    const b = document.createElement('div');
+    b.className = 'auth-bubble';
+    const size = 14 + Math.random() * 38;
+    const bx = (Math.random() - 0.5) * 80;
+    const bx2 = (Math.random() - 0.5) * 60;
+    b.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 100}%;
+      bottom:-${size + 10}px;
+      --bx:${bx}px; --bx2:${bx2}px;
+      animation-duration:${12 + Math.random() * 20}s;
+      animation-delay:-${Math.random() * 16}s;
+      opacity:${0.4 + Math.random() * 0.5};
+    `;
+    scene.appendChild(b);
+  }
+
+  // ── Spawn Sparkles ──
+  const SPARKLE_COUNT = 14;
+  for (let i = 0; i < SPARKLE_COUNT; i++) {
+    const s = document.createElement('div');
+    s.className = 'auth-sparkle';
+    const size = 3 + Math.random() * 5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 100}%;
+      top:${Math.random() * 100}%;
+      animation-duration:${2 + Math.random() * 4}s;
+      animation-delay:-${Math.random() * 4}s;
+      opacity:${0.5 + Math.random() * 0.5};
+      background: hsl(${210 + Math.random() * 30}, 85%, 65%);
+    `;
+    scene.appendChild(s);
+  }
+
+  // ── 3D Desk Mouse Tilt (Desktop only) ──
+  const bookStand = document.querySelector('.real-book-stand');
+  if (bookStand && window.innerWidth > 860 && !bookStand._tiltBound) {
+    bookStand._tiltBound = true;
+
+    const onMouseMove = (e) => {
+      const r = bookStand.getBoundingClientRect();
+      const dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+      const dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+      gsap
+        ? gsap.to(bookStand, { rotateX: -dy * 3.5, rotateY: dx * 4.5, duration: 0.35, ease: 'power2.out', transformPerspective: 2200 })
+        : (bookStand.style.transform = `perspective(2200px) rotateX(${-dy * 3.5}deg) rotateY(${dx * 4.5}deg)`);
+    };
+
+    const onMouseLeave = () => {
+      gsap
+        ? gsap.to(bookStand, { rotateX: 0, rotateY: 0, duration: 0.5, ease: 'power3.out' })
+        : (bookStand.style.transform = '');
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    bookStand.addEventListener('mouseleave', onMouseLeave);
+
+    bookStand._tiltCleanup = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      bookStand.removeEventListener('mouseleave', onMouseLeave);
+      if (gsap) gsap.killTweensOf(bookStand);
+      bookStand.style.transform = '';
+      bookStand._tiltBound = false;
+    };
+  }
+
+  // ── Wire Interactive Flip Triggers ──
+  const btnToggle = document.getElementById('btn-turn-page-toggle');
+  if (btnToggle && !btnToggle._flipBound) {
+    btnToggle._flipBound = true;
+    btnToggle.addEventListener('click', () => {
+      flipAuthPage(_currentAuthBookMode === 'login' ? 'signup' : 'login');
+    });
+  }
+
+  const linkToSignup = document.getElementById('link-switch-to-signup');
+  if (linkToSignup && !linkToSignup._flipBound) {
+    linkToSignup._flipBound = true;
+    linkToSignup.addEventListener('click', (e) => {
+      e.preventDefault();
+      flipAuthPage('signup');
+    });
+  }
+
+  const linkToLogin = document.getElementById('link-switch-to-login');
+  if (linkToLogin && !linkToLogin._flipBound) {
+    linkToLogin._flipBound = true;
+    linkToLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      flipAuthPage('login');
+    });
+  }
+
+  const cornerCurl = document.getElementById('corner-curl-trigger');
+  if (cornerCurl && !cornerCurl._flipBound) {
+    cornerCurl._flipBound = true;
+    cornerCurl.addEventListener('click', () => {
+      flipAuthPage(_currentAuthBookMode === 'login' ? 'signup' : 'login');
+    });
+  }
 }
 
 // Launch app
