@@ -90,8 +90,18 @@
       }
 
       var root = document.documentElement;
+      try {
+        localStorage.removeItem('studyhub-color-theme');
+        root.style.removeProperty('--primary');
+        root.style.removeProperty('--primary-dark');
+        root.style.removeProperty('--primary-light');
+        root.style.removeProperty('--primary-accent');
+        root.style.removeProperty('--primary-rgb');
+        root.style.removeProperty('--primary-glow');
+      } catch (e) {}
+
       if (savedThemeMode === 'dark') {
-        root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #151d38 0%, #0c1222 45%, #050811 100%)');
+        root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #10214a 0%, #0a142c 45%, #040711 100%)');
       } else {
         root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)');
       }
