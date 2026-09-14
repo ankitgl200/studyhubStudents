@@ -3968,20 +3968,8 @@ function showAboutModal() {
 }
 
 // ----------------------------------------------------
-// APPEARANCE & PERSONALIZATION (THEMES & FONTS)
+// APPEARANCE & PERSONALIZATION (FONTS & DISPLAY)
 // ----------------------------------------------------
-
-const COLOR_THEMES = [
-  { id: 'indigo', name: 'StudyHub Indigo', desc: 'Default Light Theme', primary: '#4f46e5', dark: '#3730a3', light: '#818cf8', accent: '#eef2ff', rgb: '79, 70, 229', bg: 'linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)' },
-  { id: 'emerald', name: 'Emerald Mint', desc: 'Fresh & Vibrant Green', primary: '#059669', dark: '#047857', light: '#34d399', accent: '#ecfdf5', rgb: '5, 150, 105', bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' },
-  { id: 'ocean', name: 'Sky Ocean', desc: 'Deep Sky Blue Accent', primary: '#0284c7', dark: '#0369a1', light: '#38bdf8', accent: '#f0f9ff', rgb: '2, 132, 199', bg: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' },
-  { id: 'rose', name: 'Rose Crimson', desc: 'Soft & Elegant Rose', primary: '#e11d48', dark: '#be123c', light: '#fb7185', accent: '#fff1f2', rgb: '225, 29, 72', bg: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)' },
-  { id: 'amber', name: 'Sunset Amber', desc: 'Warm Golden Accent', primary: '#d97706', dark: '#b45309', light: '#fbbf24', accent: '#fffbeb', rgb: '217, 119, 6', bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' },
-  { id: 'purple', name: 'Royal Purple', desc: 'Vibrant Modern Violet', primary: '#7c3aed', dark: '#6d28d9', light: '#a78bfa', accent: '#f5f3ff', rgb: '124, 58, 237', bg: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)' },
-  { id: 'teal', name: 'Teal Breeze', desc: 'Calming Aqua Teal', primary: '#0d9488', dark: '#0f766e', light: '#2dd4bf', accent: '#f0fdfa', rgb: '13, 148, 136', bg: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)' },
-  { id: 'coral', name: 'Coral Passion', desc: 'Energetic Coral Peach', primary: '#f43f5e', dark: '#e11d48', light: '#fda4af', accent: '#fff1f2', rgb: '244, 63, 94', bg: 'linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%)' },
-  { id: 'slate', name: 'Slate Graphite', desc: 'Minimal Monochrome', primary: '#475569', dark: '#334155', light: '#94a3b8', accent: '#f8fafc', rgb: '71, 85, 105', bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }
-];
 
 const FONT_STYLES = [
   { id: 'inter', name: 'Inter', category: 'Clean & Modern (Default)', font: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" },
@@ -3996,23 +3984,18 @@ const FONT_STYLES = [
   { id: 'dmsans', name: 'DM Sans', category: 'Minimalist & Crisp', font: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }
 ];
 
-function applyColorTheme(themeId, save = true) {
-  const theme = COLOR_THEMES.find(t => t.id === themeId) || COLOR_THEMES[0];
-  const root = document.documentElement;
-  root.style.setProperty('--primary', theme.primary);
-  root.style.setProperty('--primary-dark', theme.dark);
-  root.style.setProperty('--primary-light', theme.light);
-  root.style.setProperty('--primary-accent', theme.accent);
-  root.style.setProperty('--primary-rgb', theme.rgb);
-  const isDark = (localStorage.getItem('studyhub-theme-mode') === 'dark');
-  if (isDark) {
-    root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #151d38 0%, #0c1222 45%, #050811 100%)');
-  } else {
-    root.style.setProperty('--bg-gradient', theme.bg);
-  }
-  if (save) {
-    localStorage.setItem('studyhub-color-theme', theme.id);
-  }
+function clearLegacyColorTheme() {
+  try {
+    localStorage.removeItem('studyhub-color-theme');
+    const root = document.documentElement;
+    root.style.removeProperty('--primary');
+    root.style.removeProperty('--primary-dark');
+    root.style.removeProperty('--primary-light');
+    root.style.removeProperty('--primary-accent');
+    root.style.removeProperty('--primary-rgb');
+    root.style.removeProperty('--primary-glow');
+    root.style.removeProperty('--bg-gradient');
+  } catch (e) {}
 }
 
 function applyFontStyle(fontId, save = true) {
@@ -4060,11 +4043,6 @@ function renderAppearanceView() {
 
   if (typeof refreshIcons === 'function') refreshIcons();
 }
-
-window.selectColorTheme = function(themeId) {
-  applyColorTheme(themeId, true);
-  renderAppearanceView();
-};
 
 window.selectFontStyle = function(fontId) {
   applyFontStyle(fontId, true);
@@ -9607,9 +9585,10 @@ async function initApp() {
   // Initialize Scroll Progress Bar
   initScrollProgressBar();
   
-  // Initialize Color Theme & Font Style from localStorage
-  const savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
-  applyColorTheme(savedColorKey, false);
+  // Clear legacy color theme overrides to ensure StudyHub classic blue default
+  clearLegacyColorTheme();
+
+  // Initialize Font Style from localStorage
   const savedFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
   applyFontStyle(savedFontKey, false);
 
@@ -10363,8 +10342,14 @@ function setThemeMode(mode, animate = true) {
       document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
     }
     const root = document.documentElement;
+    root.style.removeProperty('--primary');
+    root.style.removeProperty('--primary-dark');
+    root.style.removeProperty('--primary-light');
+    root.style.removeProperty('--primary-accent');
+    root.style.removeProperty('--primary-rgb');
+    root.style.removeProperty('--primary-glow');
     if (isDark) {
-      root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #151d38 0%, #0c1222 45%, #050811 100%)');
+      root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #10214a 0%, #0a142c 45%, #040711 100%)');
     } else {
       root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)');
     }
