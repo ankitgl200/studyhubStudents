@@ -3469,5 +3469,128 @@ body[data-theme="dark"] {
   }
 }
 
+/* ==========================================================================
+   HOMEPAGE SCROLL ANIMATIONS & GLOW PROGRESS BAR (60/120 FPS GPU ACCELERATED)
+   ========================================================================== */
+
+/* Top Scroll Progress Indicator */
+#scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary) 0%, #38bdf8 50%, #818cf8 100%);
+  box-shadow: 0 0 12px var(--primary-glow), 0 0 4px #ffffff;
+  z-index: 100000;
+  pointer-events: none;
+  transform: translateZ(0);
+  transition: width 0.12s cubic-bezier(0.1, 0.9, 0.2, 1);
+  will-change: width;
+}
+
+[data-theme="dark"] #scroll-progress-bar {
+  background: linear-gradient(90deg, #6366f1 0%, #38bdf8 50%, #a855f7 100%);
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.6), 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
+/* Scroll Reveal Base Classes */
+.sh-reveal {
+  opacity: 0;
+  transform: translateY(28px) translateZ(0);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sh-reveal-left {
+  opacity: 0;
+  transform: translateX(-32px) translateZ(0);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sh-reveal-right {
+  opacity: 0;
+  transform: translateX(32px) translateZ(0);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sh-reveal-scale {
+  opacity: 0;
+  transform: scale(0.95) translateY(24px) translateZ(0);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Triggered In-View State */
+.sh-reveal.in-view,
+.sh-reveal-left.in-view,
+.sh-reveal-right.in-view,
+.sh-reveal-scale.in-view {
+  opacity: 1 !important;
+  transform: translate(0, 0) scale(1) translateZ(0) !important;
+}
+
+/* Staggered Children Animation */
+.sh-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(20px) translateZ(0);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.sh-reveal-stagger.in-view > *:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0) translateZ(0); }
+.sh-reveal-stagger.in-view > *:nth-child(2) { transition-delay: 0.12s; opacity: 1; transform: translateY(0) translateZ(0); }
+.sh-reveal-stagger.in-view > *:nth-child(3) { transition-delay: 0.19s; opacity: 1; transform: translateY(0) translateZ(0); }
+.sh-reveal-stagger.in-view > *:nth-child(4) { transition-delay: 0.26s; opacity: 1; transform: translateY(0) translateZ(0); }
+.sh-reveal-stagger.in-view > *:nth-child(5) { transition-delay: 0.33s; opacity: 1; transform: translateY(0) translateZ(0); }
+.sh-reveal-stagger.in-view > *:nth-child(n+6) { transition-delay: 0.40s; opacity: 1; transform: translateY(0) translateZ(0); }
+
+/* Why Study Hub Item Micro-Interaction on Reveal */
+.why-item {
+  transform: translateX(0);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.why-item:hover {
+  transform: translateX(6px) !important;
+}
+
+.why-item:hover .why-icon i {
+  transform: scale(1.2) rotate(6deg);
+  transition: transform 0.25s ease;
+}
+
+/* Announcement Cards Staggered Slide */
+.announcement-card {
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease !important;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .sh-reveal,
+  .sh-reveal-left,
+  .sh-reveal-right,
+  .sh-reveal-scale,
+  .sh-reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  #scroll-progress-bar {
+    display: none !important;
+  }
+}
+
 
 
