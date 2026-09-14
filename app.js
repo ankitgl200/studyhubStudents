@@ -732,7 +732,7 @@ function updateNavbar() {
             <i data-lucide="info" style="width: 14px; height: 14px; color: var(--primary);"></i> About StudyHub
           </a>
           <a href="#/appearance" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
-            <i data-lucide="palette" style="width: 14px; height: 14px; color: var(--primary);"></i> App Customization
+            <i data-lucide="type" style="width: 14px; height: 14px; color: var(--primary);"></i> Typography & Fonts
           </a>
           <a href="#/contributors" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="trophy" style="width: 14px; height: 14px; color: var(--primary);"></i> Top Contributors
@@ -1101,7 +1101,7 @@ function handleAuthProtection(path) {
     cleanPath = '/' + cleanPath;
   }
 
-  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/notes', '/papers', '/resources', '/generators', '/support', '/terms', '/privacy', '/contributors'];
+  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/notes', '/papers', '/resources', '/generators', '/support', '/terms', '/privacy', '/contributors', '/appearance', '/reviews'];
   if (!publicRoutes.includes(cleanPath) && !currentUser) {
     navigate('/login');
     return false;
@@ -1443,13 +1443,11 @@ async function renderHomeView() {
             const bgStyle = isSelf ? 'background-color: rgba(34, 197, 94, 0.05);' : '';
 
             return `
-              <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); ${bgStyle} font-size: 13px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-weight: 800; min-width: 24px;">#${rankNum}${trophy ? ' ' + trophy : ''}</span>
-                  <span style="font-weight: 500; color: var(--primary-dark); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    ${escapeHTML(capitalizeName(t.name))}
-                  </span>
-                </div>
+              <div style="display: flex; align-items: center; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); ${bgStyle} font-size: 14px; gap: 12px; background: var(--card-bg);">
+                <span style="font-weight: 800; min-width: 44px; color: var(--text-main); font-size: 13px;">#${rankNum}${trophy ? ' ' + trophy : ''}</span>
+                <span style="font-weight: 600; color: var(--primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  ${escapeHTML(capitalizeName(t.name))}
+                </span>
               </div>
             `;
           }).join('');
@@ -3325,13 +3323,13 @@ function renderProfileView() {
       </div>
       <div class="profile-menu-items">
         <a href="#/appearance" class="profile-menu-item">
-          <div class="item-left"><i data-lucide="palette"></i><span>Change Theme & Font</span></div>
+          <div class="item-left"><i data-lucide="type"></i><span>Typography & Fonts</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
         <div class="profile-menu-item" style="cursor: default;">
-          <div class="item-left"><i data-lucide="layout"></i><span>Modern UI Theme</span></div>
-          <label class="ui-toggle-switch" style="margin: 0;">
-            <input type="checkbox" id="ui-theme-toggle-mobile">
+          <div class="item-left"><i data-lucide="moon"></i><span>Dark Mode</span></div>
+          <label class="ui-toggle-switch" style="margin: 0;" title="Toggle Dark Mode">
+            <input type="checkbox" id="theme-mode-toggle-mobile" aria-label="Toggle Dark Mode">
             <span class="ui-toggle-slider"></span>
           </label>
         </div>
@@ -3456,14 +3454,13 @@ function renderProfileView() {
   });
 
   // Add event listener to mobile theme toggle and set initial checked state
-  const mobThemeToggle = document.getElementById('ui-theme-toggle-mobile');
+  const mobThemeToggle = document.getElementById('theme-mode-toggle-mobile');
   if (mobThemeToggle) {
-    const currentTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
-    mobThemeToggle.checked = (currentTheme === 'modern');
+    const currentTheme = localStorage.getItem('studyhub-theme-mode') || 'light';
+    mobThemeToggle.checked = (currentTheme === 'dark');
     mobThemeToggle.addEventListener('change', (e) => {
-      const isModern = e.target.checked;
-      const targetTheme = isModern ? 'modern' : 'old';
-      applyTheme(targetTheme, true);
+      const isDark = e.target.checked;
+      setThemeMode(isDark ? 'dark' : 'light', true);
     });
   }
 
@@ -3944,7 +3941,12 @@ function applyColorTheme(themeId, save = true) {
   root.style.setProperty('--primary-light', theme.light);
   root.style.setProperty('--primary-accent', theme.accent);
   root.style.setProperty('--primary-rgb', theme.rgb);
-  root.style.setProperty('--bg-gradient', theme.bg);
+  const isDark = (localStorage.getItem('studyhub-theme-mode') === 'dark');
+  if (isDark) {
+    root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #151d38 0%, #0c1222 45%, #050811 100%)');
+  } else {
+    root.style.setProperty('--bg-gradient', theme.bg);
+  }
   if (save) {
     localStorage.setItem('studyhub-color-theme', theme.id);
   }
@@ -3961,46 +3963,37 @@ function applyFontStyle(fontId, save = true) {
 }
 
 function renderAppearanceView() {
-  const colorContainer = document.getElementById('theme-color-grid');
   const fontContainer = document.getElementById('theme-font-list');
-  if (!colorContainer || !fontContainer) return;
+  if (fontContainer) {
+    const activeFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
 
-  const activeColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
-  const activeFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
-
-  // Render 9 Color Themes
-  colorContainer.innerHTML = COLOR_THEMES.map(t => {
-    const isActive = (t.id === activeColorKey);
-    return `
-      <div class="color-theme-card ${isActive ? 'active' : ''}" onclick="selectColorTheme('${t.id}')">
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: ${t.primary}; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); flex-shrink: 0;">
-          ${isActive ? '<i data-lucide="check" style="color: #ffffff; width: 18px; height: 18px;"></i>' : ''}
-        </div>
-        <div style="overflow: hidden;">
-          <div style="font-weight: 700; font-size: 13px; color: var(--text-main); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${t.name}</div>
-          <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${t.desc}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Render 10 Font Styles
-  fontContainer.innerHTML = FONT_STYLES.map(f => {
-    const isActive = (f.id === activeFontKey);
-    return `
-      <div class="font-style-card ${isActive ? 'active' : ''}" onclick="selectFontStyle('${f.id}')">
-        <div style="flex: 1;">
-          <div style="font-weight: 700; font-size: 15px; font-family: ${f.font}; color: var(--text-main);">${f.name}</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: ${f.font};">
-            ${f.category} • The quick brown fox jumps over the lazy dog (123)
+    // Render 10 Font Styles
+    fontContainer.innerHTML = FONT_STYLES.map(f => {
+      const isActive = (f.id === activeFontKey);
+      return `
+        <div class="font-style-card ${isActive ? 'active' : ''}" onclick="selectFontStyle('${f.id}')">
+          <div style="flex: 1;">
+            <div style="font-weight: 700; font-size: 15px; font-family: ${f.font}; color: var(--text-main);">${f.name}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: ${f.font};">
+              ${f.category} • The quick brown fox jumps over the lazy dog (123)
+            </div>
+          </div>
+          <div style="width: 26px; height: 26px; border-radius: 50%; background: ${isActive ? 'var(--primary)' : 'var(--border-color)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px;">
+            ${isActive ? '<i data-lucide="check" style="color: #ffffff; width: 15px; height: 15px;"></i>' : ''}
           </div>
         </div>
-        <div style="width: 26px; height: 26px; border-radius: 50%; background: ${isActive ? 'var(--primary)' : 'var(--border-color)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px;">
-          ${isActive ? '<i data-lucide="check" style="color: #ffffff; width: 15px; height: 15px;"></i>' : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
+
+  const appToggle = document.getElementById('theme-mode-toggle-appearance');
+  if (appToggle) {
+    const isDark = (localStorage.getItem('studyhub-theme-mode') === 'dark');
+    appToggle.checked = isDark;
+    appToggle.onchange = (e) => {
+      setThemeMode(e.target.checked ? 'dark' : 'light', true);
+    };
+  }
 
   if (typeof refreshIcons === 'function') refreshIcons();
 }
@@ -9554,9 +9547,9 @@ async function initApp() {
   const savedFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
   applyFontStyle(savedFontKey, false);
 
-  // Initialize UI theme toggle switch
-  if (typeof initThemeToggleHandler === 'function') {
-    initThemeToggleHandler();
+  // Initialize Theme Mode (Light / Dark)
+  if (typeof initThemeModeToggle === 'function') {
+    initThemeModeToggle();
   }
   
   // Run routing trigger to render current view behind loading screen
@@ -10259,86 +10252,81 @@ async function renderMyContributionsView() {
 
 
 
-/* --- UI STYLE THEME SWITCHER LOGIC (MODERN / CLASSIC) --- */
-function initThemeToggleHandler() {
-  const toggle = document.getElementById('ui-theme-toggle');
-  if (toggle) {
-    const activeTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
-    toggle.checked = (activeTheme === 'modern');
+/* --- THEME MODE CONTROLLER (LIGHT / DARK) --- */
+function initThemeModeToggle() {
+  const currentTheme = localStorage.getItem('studyhub-theme-mode') || 'light';
+  syncThemeCheckboxes(currentTheme === 'dark');
 
-    toggle.addEventListener('change', (e) => {
-      const isModern = e.target.checked;
-      const targetTheme = isModern ? 'modern' : 'old';
-      applyTheme(targetTheme, true);
-    });
-  }
+  const toggles = document.querySelectorAll('#theme-mode-toggle, #theme-mode-toggle-mobile, #theme-mode-toggle-appearance');
+  toggles.forEach(toggle => {
+    toggle.onchange = (e) => {
+      const isDark = e.target.checked;
+      setThemeMode(isDark ? 'dark' : 'light', true);
+    };
+  });
 }
 
-function applyTheme(theme, animate = true) {
-  const linkId = 'theme-stylesheet';
-  let link = document.getElementById(linkId);
-  const href = theme === 'modern' ? '/modern.css?v=1.0.7' : '/old.css?v=1.0.7';
-
-  localStorage.setItem('studyhub-ui-theme', theme);
-
-  // Sync checkboxes across elements if multiple exist
-  const toggles = document.querySelectorAll('#ui-theme-toggle, #ui-theme-toggle-mobile');
+function syncThemeCheckboxes(isDark) {
+  const toggles = document.querySelectorAll('#theme-mode-toggle, #theme-mode-toggle-mobile, #theme-mode-toggle-appearance');
   toggles.forEach(t => {
-    t.checked = (theme === 'modern');
+    t.checked = isDark;
   });
 
-  if (!link) {
-    link = document.createElement('link');
-    link.id = linkId;
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-    return;
-  }
+  // Highlight active labels in top switcher bar
+  const lightLabels = document.querySelectorAll('.ui-toggle-label.light-label');
+  const darkLabels = document.querySelectorAll('.ui-toggle-label.dark-label');
+  lightLabels.forEach(l => {
+    l.style.color = !isDark ? 'var(--primary)' : 'var(--text-muted)';
+    l.style.fontWeight = !isDark ? '700' : '500';
+  });
+  darkLabels.forEach(d => {
+    d.style.color = isDark ? '#93c5fd' : 'var(--text-muted)';
+    d.style.fontWeight = isDark ? '700' : '500';
+  });
+}
 
-  if (link.getAttribute('href') === href) {
-    return; // Already applied
-  }
+function setThemeMode(mode, animate = true) {
+  const isDark = (mode === 'dark');
+  localStorage.setItem('studyhub-theme-mode', isDark ? 'dark' : 'light');
+
+  syncThemeCheckboxes(isDark);
+
+  const applyMode = () => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    if (document.body) {
+      document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
+    const root = document.documentElement;
+    if (isDark) {
+      root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #151d38 0%, #0c1222 45%, #050811 100%)');
+    } else {
+      root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)');
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  };
 
   if (!animate) {
-    link.setAttribute('href', href);
+    applyMode();
+    if (typeof refreshIcons === 'function') refreshIcons();
     return;
   }
 
   const overlay = document.getElementById('theme-transition-overlay');
   if (overlay) {
-    overlay.style.opacity = '1';
+    overlay.style.opacity = '0.7';
     overlay.style.pointerEvents = 'all';
   }
 
-  setTimeout(() => {
-    const newLink = document.createElement('link');
-    newLink.rel = 'stylesheet';
-    newLink.href = href;
-    newLink.onload = () => {
-      link.setAttribute('href', href);
-      newLink.remove();
-      
-      // Refresh lucide icons
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons();
-      }
-
-      setTimeout(() => {
-        if (overlay) {
-          overlay.style.opacity = '0';
-          overlay.style.pointerEvents = 'none';
-        }
-      }, 150);
-    };
-    newLink.onerror = () => {
-      link.setAttribute('href', href);
-      newLink.remove();
+  requestAnimationFrame(() => {
+    applyMode();
+    setTimeout(() => {
       if (overlay) {
         overlay.style.opacity = '0';
         overlay.style.pointerEvents = 'none';
       }
-    };
-    document.head.appendChild(newLink);
-  }, 250); // Wait for overlay to fade in completely
+    }, 120);
+  });
 }
