@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" type="image/png" href="/icon.png">
@@ -79,39 +78,23 @@
 
     gtag('config', 'G-MLBCW8QCG1');
   </script>
-  <link id="theme-stylesheet" rel="stylesheet" href="/old.css?v=1.0.7">
+  <link id="theme-stylesheet" rel="stylesheet" href="/style.css?v=1.2.0">
   <script>
     (function() {
-      // 1. UI Layout Theme
-      var savedUiTheme = localStorage.getItem('studyhub-ui-theme') || 'old';
-      var themeLink = document.getElementById('theme-stylesheet');
-      if (themeLink) {
-        themeLink.setAttribute('href', savedUiTheme === 'modern' ? '/modern.css?v=1.0.7' : '/old.css?v=1.0.7');
+      // 1. Theme Mode (Dark / Light)
+      var savedThemeMode = localStorage.getItem('studyhub-theme-mode') || 'light';
+      if (savedThemeMode === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
       }
 
-      // 2. Color Theme Palette (9 Light Themes)
-      var colorPalettes = {
-        indigo: { primary: '#4f46e5', dark: '#3730a3', light: '#818cf8', accent: '#eef2ff', rgb: '79, 70, 229', bg: 'linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 100%)' },
-        emerald: { primary: '#059669', dark: '#047857', light: '#34d399', accent: '#ecfdf5', rgb: '5, 150, 105', bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' },
-        ocean: { primary: '#0284c7', dark: '#0369a1', light: '#38bdf8', accent: '#f0f9ff', rgb: '2, 132, 199', bg: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' },
-        rose: { primary: '#e11d48', dark: '#be123c', light: '#fb7185', accent: '#fff1f2', rgb: '225, 29, 72', bg: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)' },
-        amber: { primary: '#d97706', dark: '#b45309', light: '#fbbf24', accent: '#fffbeb', rgb: '217, 119, 6', bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' },
-        purple: { primary: '#7c3aed', dark: '#6d28d9', light: '#a78bfa', accent: '#f5f3ff', rgb: '124, 58, 237', bg: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)' },
-        teal: { primary: '#0d9488', dark: '#0f766e', light: '#2dd4bf', accent: '#f0fdfa', rgb: '13, 148, 136', bg: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)' },
-        coral: { primary: '#f43f5e', dark: '#e11d48', light: '#fda4af', accent: '#fff1f2', rgb: '244, 63, 94', bg: 'linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%)' },
-        slate: { primary: '#475569', dark: '#334155', light: '#94a3b8', accent: '#f8fafc', rgb: '71, 85, 105', bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }
-      };
-
-      var savedColorKey = localStorage.getItem('studyhub-color-theme') || 'indigo';
-      var palette = colorPalettes[savedColorKey] || colorPalettes['indigo'];
-
       var root = document.documentElement;
-      root.style.setProperty('--primary', palette.primary);
-      root.style.setProperty('--primary-dark', palette.dark);
-      root.style.setProperty('--primary-light', palette.light);
-      root.style.setProperty('--primary-accent', palette.accent);
-      root.style.setProperty('--primary-rgb', palette.rgb);
-      root.style.setProperty('--bg-gradient', palette.bg);
+      if (savedThemeMode === 'dark') {
+        root.style.setProperty('--bg-gradient', 'radial-gradient(ellipse at 50% -10%, #151d38 0%, #0c1222 45%, #050811 100%)');
+      } else {
+        root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)');
+      }
 
       // 3. Typography Font (10 Fonts)
       var fontsMap = {
@@ -612,12 +595,11 @@
                   box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    /* When dark/modern theme is active, style UI switcher bar matching dark navbar */
-    [data-theme="dark"] .ui-switcher-bar,
-    .modern-theme .ui-switcher-bar {
-      background: rgba(24, 18, 70, 0.92) !important;
-      border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      box-shadow: 0 12px 32px -6px rgba(10, 7, 35, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+    /* When dark theme is active, style UI switcher bar matching dark navbar */
+    [data-theme="dark"] .ui-switcher-bar {
+      background: rgba(15, 23, 42, 0.88) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     }
 
     /* When navbar is scrolled into floating pill, tuck switcher bar neatly right below it */
@@ -732,20 +714,24 @@
       <div class="mobile-top-bar-right" style="width: 36px; height: 36px;"></div>
     </div>
 
-    <!-- UI Theme Switcher Bar -->
+    <!-- UI Theme Switcher Bar (Light / Dark Mode) -->
     <div class="ui-switcher-bar">
       <div class="ui-switcher-content">
         <div class="ui-switcher-status">
-          <i data-lucide="sparkles" class="ui-switcher-icon"></i>
-          <span>Experience Study Hub:</span>
+          <i data-lucide="palette" class="ui-switcher-icon"></i>
+          <span>Theme Mode:</span>
         </div>
         <div class="ui-toggle-control">
-          <span class="ui-toggle-label old-label">Classic UI</span>
-          <label class="ui-toggle-switch">
-            <input type="checkbox" id="ui-theme-toggle">
+          <span class="ui-toggle-label light-label" style="display: inline-flex; align-items: center; gap: 5px;">
+            <i data-lucide="sun" style="width: 14px; height: 14px;"></i> Light
+          </span>
+          <label class="ui-toggle-switch" title="Toggle Light / Dark Mode">
+            <input type="checkbox" id="theme-mode-toggle" aria-label="Toggle Light or Dark Theme">
             <span class="ui-toggle-slider"></span>
           </label>
-          <span class="ui-toggle-label modern-label">Modern UI</span>
+          <span class="ui-toggle-label dark-label" style="display: inline-flex; align-items: center; gap: 5px;">
+            <i data-lucide="moon" style="width: 14px; height: 14px;"></i> Dark
+          </span>
         </div>
       </div>
     </div>
@@ -843,25 +829,12 @@
               <div class="hero-actions">
                 <a href="#/notes" class="btn btn-primary">Browse Notes</a>
                 <a href="#/papers" class="btn btn-secondary">Previous Year Papers</a>
-                <a href="#/contributors" id="home-btn-contributors" class="btn btn-secondary" style="display: none; align-items: center; gap: 8px;">
+                <a href="#/contributors" id="home-btn-contributors" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
                   <i data-lucide="trophy" style="color: #fbbf24; width: 16px; height: 16px;"></i> Contributors
                 </a>
               </div>
             </div>
 
-            <div class="hero-model" aria-hidden="true">
-              <div class="model-stage">
-                <div class="model-glow"></div>
-                <div class="model-ring ring-one"></div>
-                <div class="model-ring ring-two"></div>
-                <div class="book-3d">
-                  <div class="book-pages"></div>
-                  <div class="book-spine"></div>
-                  <div class="book-cover"></div>
-                </div>
-                <div class="model-shadow"></div>
-              </div>
-            </div>
 
             <!-- Right Side Container: Leaderboard + Stats -->
             <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; align-self: start;">
@@ -1492,27 +1465,23 @@
             </a>
             <div>
               <h2 style="font-size: 22px; font-weight: 800; color: var(--primary-dark); margin: 0;">Appearance & Personalization</h2>
-              <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Customize your app theme colors and font style</p>
+              <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Customize your app theme mode and typography font style</p>
             </div>
           </div>
 
-          <!-- Section 1: Change App Theme -->
-          <div class="card" style="padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm); border-top: 4px solid var(--primary);">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <div>
-                <h3 style="font-size: 17px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; margin: 0;">
-                  <i data-lucide="palette" style="color: var(--primary); width: 20px; height: 20px;"></i>
-                  Change App Theme
-                </h3>
-                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Select from 9 curated light theme palettes</p>
-              </div>
-              <span class="badge" style="background: var(--primary-accent); color: var(--primary); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">9 Themes</span>
+          <!-- Section 0: Appearance Mode (Light / Dark) -->
+          <div class="card" style="padding: 20px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm); border-top: 4px solid var(--primary); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <div>
+              <h3 style="font-size: 17px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; margin: 0;">
+                <i data-lucide="moon" style="color: var(--primary); width: 20px; height: 20px;"></i>
+                Dark Mode
+              </h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Experience StudyHub with a deep aesthetic glassmorphic theme</p>
             </div>
-
-            <!-- Color Swatches Grid -->
-            <div class="theme-color-grid" id="theme-color-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;">
-              <!-- Dynamic Theme Swatches rendered by app.js -->
-            </div>
+            <label class="ui-toggle-switch" style="margin: 0;" title="Toggle Dark Mode">
+              <input type="checkbox" id="theme-mode-toggle-appearance" aria-label="Toggle Dark Mode">
+              <span class="ui-toggle-slider"></span>
+            </label>
           </div>
 
           <!-- Section 2: Change App Fonts -->
@@ -2855,6 +2824,6 @@
   </nav>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-  <script src="/app.js?v=1.1.3"></script>
+  <script src="/app.js?v=1.2.0"></script>
 </body>
 </html>
