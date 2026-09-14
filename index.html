@@ -619,6 +619,9 @@
 </style>
 
 <body>
+  <!-- Scroll Progress Glow Bar -->
+  <div id="scroll-progress-bar" aria-hidden="true"></div>
+
   <!-- Theme Transition Overlay -->
   <div id="theme-transition-overlay" style="
     position: fixed;
@@ -817,7 +820,7 @@
         <div class="home-container">
           <!-- Hero Section -->
           <section class="hero">
-            <div class="hero-content">
+            <div class="hero-content sh-reveal-left">
               <h1>
                 All Your <span style="color: var(--primary);">BTKIT</span> Study<br />
                 Notes & PYQs in<br />
@@ -826,7 +829,7 @@
               <p>
                 Welcome to <strong>Studyhub BTKIT</strong>, the ultimate academic resource sharing portal. Easily download and share engineering lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources organized semester-wise for BTKIT Dwarahat students.
               </p>
-              <div class="hero-actions">
+              <div class="hero-actions sh-reveal-stagger">
                 <a href="#/notes" class="btn btn-primary">Browse Notes</a>
                 <a href="#/papers" class="btn btn-secondary">Previous Year Papers</a>
                 <a href="#/contributors" id="home-btn-contributors" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
@@ -837,7 +840,7 @@
 
 
             <!-- Right Side Container: Leaderboard + Stats -->
-            <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; align-self: start;">
+            <div class="sh-reveal-right" style="display: flex; flex-direction: column; gap: 16px; width: 100%; align-self: start;">
               <!-- Teacher Leaderboard Card -->
               <div class="why-card" id="teacher-ranking-card" style="margin: 0; padding: 28px 32px;">
                 <h3 style="display: flex; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 12px;">
@@ -884,7 +887,7 @@
           </section>
 
           <!-- Announcements Section -->
-          <section style="margin-top: 40px;">
+          <section class="sh-reveal" style="margin-top: 40px;">
             <div class="announcements-header">
               <h3 class="section-title">
                 <i data-lucide="megaphone" style="color: var(--primary); width: 24px; height: 24px;"></i>
@@ -923,10 +926,10 @@
           </section>
 
           <!-- Relocated Why Card Section -->
-          <section style="margin-top: 50px; border-top: 1px solid var(--border-color); padding-top: 30px;">
+          <section class="sh-reveal-scale" style="margin-top: 50px; border-top: 1px solid var(--border-color); padding-top: 30px;">
             <div class="card why-card" style="max-width: 650px; margin: 0 auto; padding: 30px;">
               <h3 style="text-align: center; margin-bottom: 20px; font-size: 20px; color: var(--primary-dark);">Why Study Hub?</h3>
-              <ul class="why-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding-left: 0;">
+              <ul class="why-list sh-reveal-stagger" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding-left: 0;">
                 <li class="why-item" style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
                   <span class="why-icon"><i data-lucide="check-square" style="width: 18px; height: 18px; color: var(--success); flex-shrink: 0;"></i></span>
                   <span>First-year friendly</span>
