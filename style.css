@@ -566,33 +566,761 @@ body {
   border: 1px solid #fde68a;
 }
 
-/* Auth Page layout */
+/* ============================================================
+   AUTH PAGE — REAL 3D OPEN BOOK DESIGN & PHYSICS
+   ============================================================ */
+
+/* ── Scene Atmosphere ── */
+.auth-scene {
+  position: relative;
+  min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 16px 45px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 25%, #ebf5fe 0%, #d8ebfe 45%, #c7e0fc 75%, #b6d5fa 100%);
+  perspective: 2200px;
+}
+
+/* Floating Study Atmosphere Particles */
+.auth-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 32%,
+    rgba(255,255,255,0.92) 0%,
+    rgba(191,219,254,0.5) 55%,
+    rgba(59,130,246,0.18) 100%);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.12), inset 0 2px 4px rgba(255,255,255,0.8);
+  pointer-events: none;
+  animation: bubbleRise linear infinite;
+  z-index: 0;
+}
+
+@keyframes bubbleRise {
+  0%   { transform: translateY(0) translateX(0) scale(0.9); opacity: 0; }
+  8%   { opacity: 1; }
+  50%  { transform: translateY(-45vh) translateX(var(--bx, 24px)) scale(1.05); }
+  92%  { opacity: 0.7; }
+  100% { transform: translateY(-110vh) translateX(var(--bx2, -18px)) scale(0.7); opacity: 0; }
+}
+
+.auth-sparkle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparklePop ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes sparklePop {
+  0%, 100% { transform: scale(0); opacity: 0; }
+  50%      { transform: scale(1.8); opacity: 0.9; }
+}
+
+/* ── 3D Book Stand & Table Shadow ── */
+.real-book-stand {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 980px;
+  perspective: 2200px;
+  transform-style: preserve-3d;
+  animation: bookStandEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bookStandEnter {
+  0%   { opacity: 0; transform: translateY(40px) rotateX(10deg) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0)   rotateX(0deg)  scale(1); }
+}
+
+/* ── Hardcover Casing (Leather Binding & Rim) ── */
+.real-book-casing {
+  position: relative;
+  background: linear-gradient(145deg, #091a3e 0%, #17326b 35%, #1e428f 65%, #0f2452 100%);
+  border-radius: 22px;
+  padding: 12px;
+  box-shadow:
+    0 38px 85px -16px rgba(15, 30, 66, 0.52),
+    0 20px 38px -10px rgba(0, 0, 0, 0.32),
+    0 0 0 2px rgba(212, 175, 55, 0.45),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.15),
+    inset 0 3px 6px rgba(255, 255, 255, 0.25);
+  transform-style: preserve-3d;
+}
+
+/* Gold Embossed Trim on Cover */
+.real-book-casing::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  pointer-events: none;
+}
+
+/* Top & Bottom Spine Headband Bulges */
+.real-book-casing::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 10px;
+  background: linear-gradient(90deg, #b45309, #f59e0b, #d97706, #b45309);
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+/* ── Pages Container (Open Leaves) ── */
+.book-pages-container {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 520px;
+  border-radius: 14px;
+  background: #f7f4ea;
+  transform-style: preserve-3d;
+  perspective: 2000px;
+}
+
+/* ── Realistic Stacked Page Block Depth (Fore-Edge Thickness) ── */
+.book-page-left {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(135deg, #faf7f0 0%, #fdfbf7 60%, #f5f0e3 100%);
+  border-radius: 12px 0 0 12px;
+  padding: 24px 28px 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    -3px 3px 0 #ede6d8,
+    -6px 6px 0 #e2dad0,
+    -9px 9px 0 #d7cec0,
+    -12px 12px 0 #cbbfae,
+    -16px 16px 22px rgba(0, 0, 0, 0.2),
+    inset -24px 0 30px -10px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.book-page-right {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(225deg, #faf7f0 0%, #fdfbf7 60%, #f5f0e3 100%);
+  border-radius: 0 12px 12px 0;
+  padding: 24px 28px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow:
+    3px 3px 0 #ede6d8,
+    6px 6px 0 #e2dad0,
+    9px 9px 0 #d7cec0,
+    12px 12px 0 #cbbfae,
+    16px 16px 22px rgba(0, 0, 0, 0.2),
+    inset 24px 0 30px -10px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── Center Book Gutter & Deep Spine Crease ── */
+.book-gutter-spine {
+  position: relative;
+  width: 20px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.22) 0%,
+    rgba(0,0,0,0.08) 30%,
+    rgba(0,0,0,0.35) 50%,
+    rgba(0,0,0,0.08) 70%,
+    rgba(0,0,0,0.22) 100%);
+  box-shadow:
+    inset -3px 0 5px rgba(0,0,0,0.3),
+    inset  3px 0 5px rgba(0,0,0,0.3);
+  z-index: 4;
+}
+
+/* Stitched thread details along gutter */
+.book-gutter-spine::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(180deg,
+    rgba(212, 175, 55, 0.6) 0px,
+    rgba(212, 175, 55, 0.6) 8px,
+    transparent 8px,
+    transparent 14px);
+}
+
+/* ── Silky Bookmark Ribbon ── */
+.book-ribbon-bookmark {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 115px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 60%, #991b1b 100%);
+  border-radius: 3px 3px 0 0;
+  box-shadow:
+    3px 6px 14px rgba(0,0,0,0.35),
+    inset 0 1px 1px rgba(255,255,255,0.4);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* V-notched swallowtail at bottom of ribbon */
+.book-ribbon-bookmark::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 11px solid #b91c1c;
+  border-right: 11px solid #b91c1c;
+  border-bottom: 9px solid transparent;
+}
+
+/* ── Page Headers & Folios ── */
+.book-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(180, 83, 9, 0.25);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #854d0e;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.book-header-badge {
+  background: rgba(217, 119, 6, 0.12);
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: #b45309;
+}
+
+.book-page-footer {
+  margin-top: auto;
+  padding-top: 10px;
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #92400e;
+  letter-spacing: 1px;
+  border-top: 1px dashed rgba(180, 83, 9, 0.2);
+}
+
+/* ── Left Page Brand Design ── */
+.book-brand-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.book-crest {
+  margin: 0 auto 8px;
+}
+
+.book-crest-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 6px;
+  color: #fff;
+  box-shadow:
+    0 6px 16px rgba(37, 99, 235, 0.35),
+    0 0 0 2.5px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+.book-crest-icon i {
+  width: 24px;
+  height: 24px;
+}
+
+.book-crest-stars {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #d97706;
+}
+
+.book-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1e3a8a;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 2px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.book-edition {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.book-divider-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto 10px;
+  color: #d97706;
+}
+
+.book-divider-ornament span {
+  display: inline-block;
+  width: 40px;
+  height: 1px;
+  background: rgba(217, 119, 6, 0.35);
+}
+
+.book-desc {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.book-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(180, 83, 9, 0.15);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.book-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.feature-bullet {
+  font-weight: 800;
+  color: #2563eb;
+  font-size: 10.5px;
+  width: 20px;
+}
+
+/* Turn Page Action Button */
+.btn-turn-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #fff;
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: all 0.22s ease;
+}
+
+.btn-turn-page:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+  border-color: rgba(212, 175, 55, 0.7);
+}
+
+.btn-turn-page .turn-icon {
+  font-size: 15px;
+  transition: transform 0.25s ease;
+}
+
+.btn-turn-page:hover .turn-icon {
+  transform: translateX(4px);
+}
+
+/* ── Right Page Forms (Login / Signup) ── */
+.auth-panel {
+  display: none;
+}
+
+.auth-panel.active {
+  display: block;
+}
+
+.book-form-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.book-form-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e3a8a;
+  letter-spacing: -0.5px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.book-form-header p {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Clean Input Styling inside Book */
+.book-page-right .form-group {
+  margin-bottom: 11px;
+}
+
+.book-page-right .form-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 3px;
+}
+
+.book-page-right .form-input {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 9px !important;
+  font-size: 13.5px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+.book-page-right .form-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), inset 0 1px 2px rgba(0,0,0,0.05) !important;
+}
+
+.book-page-right .btn-primary {
+  border-radius: 9px !important;
+  padding: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 5px 16px rgba(37, 99, 235, 0.32), inset 0 1px 0 rgba(255,255,255,0.3) !important;
+  border: none !important;
+  transition: all 0.22s ease !important;
+}
+
+.book-page-right .btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.42) !important;
+}
+
+/* Corner Dog-Ear / Page Curl Trigger */
+.corner-page-curl {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, transparent 50%, #ede6d8 50%, #fdfbf7 75%, #ffffff 100%);
+  border-radius: 0 0 14px 0;
+  box-shadow: -4px -4px 10px rgba(0,0,0,0.12);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 6px 8px;
+  transition: all 0.25s ease;
+  z-index: 3;
+}
+
+.corner-page-curl:hover {
+  width: 85px;
+  height: 85px;
+  box-shadow: -6px -6px 16px rgba(0,0,0,0.2);
+}
+
+.curl-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: 0.5px;
+  transform: rotate(-45deg) translate(6px, -4px);
+  user-select: none;
+}
+
+/* ── THE 3D FLIPPING SHEET LEAF ── */
+.book-turning-leaf {
+  position: absolute;
+  top: 0;
+  left: calc(50% + 11px);
+  width: calc(50% - 11px);
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  z-index: 20;
+  visibility: hidden;
+  border-radius: 0 14px 14px 0;
+}
+
+.leaf-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 14px 14px 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: linear-gradient(225deg, #faf7f0 0%, #fdfbf7 60%, #f5f0e3 100%);
+  box-shadow:
+    inset 24px 0 35px -12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Back Face of Turning Leaf */
+.leaf-face-back {
+  transform: rotateY(180deg);
+  border-radius: 14px 0 0 14px;
+  background: linear-gradient(135deg, #f5f0e3 0%, #fdfbf7 40%, #faf7f0 100%);
+  box-shadow:
+    inset -24px 0 35px -12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.leaf-back-watermark {
+  text-align: center;
+  color: rgba(180, 83, 9, 0.25);
+}
+
+.leaf-back-watermark i {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 8px;
+}
+
+.leaf-back-watermark span {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.leaf-back-watermark p {
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Dynamic Lighting Overlay on Leaf during turn */
+.leaf-lighting-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s linear;
+}
+
+/* Dynamic Page Cast Shadow under turning leaf */
+.leaf-cast-shadow {
+  position: absolute;
+  top: 0;
+  left: calc(50% + 11px);
+  width: calc(50% - 11px);
+  height: 100%;
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.15) 40%, transparent 80%);
+  pointer-events: none;
+  z-index: 8;
+  opacity: 0;
+}
+
+/* ── Fallback styles for Forgot Password ── */
 .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 60px);
+  padding: 20px 16px 100px;
+  position: relative;
 }
 
 .auth-card {
-  max-width: 450px;
+  max-width: 460px;
   width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-card.card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(37, 99, 235, 0.2) !important;
+  box-shadow: 0 32px 64px -12px rgba(37, 99, 235, 0.22) !important;
+  padding: 36px 32px !important;
+  border-radius: 20px !important;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .auth-header h2 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--primary-dark);
 }
 
 .auth-header p {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* ── Responsive Mobile & Tablet Layout ── */
+@media (max-width: 860px) {
+  .real-book-stand {
+    max-width: 480px;
+  }
+
+  .real-book-casing {
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  .book-pages-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .book-page-left {
+    border-radius: 14px 14px 0 0;
+    padding: 16px 20px 12px;
+    box-shadow:
+      0 4px 0 #ede6d8,
+      0 8px 0 #ded6c6,
+      0 12px 20px rgba(0,0,0,0.18),
+      inset 0 -18px 24px -10px rgba(0,0,0,0.12);
+  }
+
+  .book-page-left .book-switch-container,
+  .book-page-left .book-page-footer,
+  .book-crest {
+    display: none;
+  }
+
+  .book-gutter-spine {
+    width: 100%;
+    height: 12px;
+    background: linear-gradient(180deg,
+      rgba(0,0,0,0.25) 0%,
+      rgba(0,0,0,0.08) 30%,
+      rgba(0,0,0,0.35) 50%,
+      rgba(0,0,0,0.08) 70%,
+      rgba(0,0,0,0.25) 100%);
+  }
+
+  .book-gutter-spine::before {
+    left: 10px;
+    right: 10px;
+    top: 50%;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    transform: translateY(-50%);
+    background: repeating-linear-gradient(90deg,
+      rgba(212, 175, 55, 0.6) 0px,
+      rgba(212, 175, 55, 0.6) 8px,
+      transparent 8px,
+      transparent 14px);
+  }
+
+  .book-ribbon-bookmark {
+    display: none;
+  }
+
+  .book-page-right {
+    border-radius: 0 0 14px 14px;
+    padding: 22px 18px 20px;
+    box-shadow:
+      0 6px 0 #ede6d8,
+      0 10px 0 #ded6c6,
+      0 16px 25px rgba(0,0,0,0.2),
+      inset 0 18px 24px -10px rgba(0,0,0,0.12);
+  }
+
+  .book-features-list,
+  .book-desc {
+    display: none;
+  }
+
+  .book-title {
+    font-size: 22px;
+  }
+
+  .book-edition {
+    margin-bottom: 0;
+  }
+
+  .book-divider-ornament {
+    margin: 4px auto 0;
+  }
+
+  .corner-page-curl {
+    display: none;
+  }
+
+  .book-turning-leaf {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-scene {
+    padding: 20px 10px 80px;
+  }
+
+  .book-page-left,
+  .book-page-right {
+    padding: 22px 16px 20px;
+  }
+
+  .book-title {
+    font-size: 22px;
+  }
 }
 
 /* Radio Group (for Roles signup) */
@@ -2118,6 +2846,11 @@ body {
   .auth-card {
     padding: 24px 16px !important;
   }
+
+  .auth-card.card {
+    border-radius: 20px !important;
+    transform: none !important; /* No 3D tilt on touch screens */
+  }
 }
 
 /* Fixed Bottom Navigation Bar for Mobile */
@@ -3026,8 +3759,7 @@ body[data-theme="dark"] {
 [data-theme="dark"] .site-stats-card,
 [data-theme="dark"] .font-style-card,
 [data-theme="dark"] .resource-action-card,
-[data-theme="dark"] .paper-year-card,
-[data-theme="dark"] .auth-card {
+[data-theme="dark"] .paper-year-card {
   background: rgba(16, 25, 48, 0.86) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
@@ -3036,6 +3768,164 @@ body[data-theme="dark"] {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.22s ease !important;
+}
+
+/* Dark mode Real 3D Book */
+[data-theme="dark"] .auth-scene {
+  background: radial-gradient(ellipse at 50% 25%, #08142c 0%, #040a17 50%, #02050b 100%) !important;
+}
+
+[data-theme="dark"] .real-book-casing {
+  background: linear-gradient(145deg, #030814 0%, #0a1936 40%, #0f244c 75%, #020612 100%) !important;
+  box-shadow:
+    0 45px 95px -18px rgba(0, 0, 0, 0.9),
+    0 25px 45px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 2px rgba(212, 175, 55, 0.35),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    inset 0 3px 6px rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .book-pages-container {
+  background: #08101f !important;
+}
+
+[data-theme="dark"] .book-page-left {
+  background: linear-gradient(135deg, #0c172d 0%, #0f1e3a 50%, #0a1326 100%) !important;
+  box-shadow:
+    -3px 3px 0 #13223f,
+    -6px 6px 0 #0e1a33,
+    -9px 9px 0 #0a1326,
+    -12px 12px 0 #060d1b,
+    -16px 16px 25px rgba(0, 0, 0, 0.6),
+    inset -28px 0 35px -12px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .book-page-right {
+  background: linear-gradient(225deg, #0c172d 0%, #0f1e3a 50%, #0a1326 100%) !important;
+  box-shadow:
+    3px 3px 0 #13223f,
+    6px 6px 0 #0e1a33,
+    9px 9px 0 #0a1326,
+    12px 12px 0 #060d1b,
+    16px 16px 25px rgba(0, 0, 0, 0.6),
+    inset 28px 0 35px -12px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .leaf-face {
+  background: linear-gradient(225deg, #0c172d 0%, #0f1e3a 50%, #0a1326 100%) !important;
+  box-shadow:
+    inset 24px 0 35px -12px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .leaf-face-back {
+  background: linear-gradient(135deg, #0a1326 0%, #0f1e3a 50%, #0c172d 100%) !important;
+  box-shadow:
+    inset -24px 0 35px -12px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .book-title {
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .book-edition {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .book-desc {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .book-features-list {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-color: rgba(212, 175, 55, 0.2) !important;
+}
+
+[data-theme="dark"] .book-feature-item {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .book-page-header {
+  border-bottom-color: rgba(212, 175, 55, 0.25) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .book-header-badge {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .book-page-footer {
+  border-top-color: rgba(212, 175, 55, 0.2) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .book-form-header h2 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .book-form-header p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .book-page-right .form-label {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .book-page-right .form-input {
+  background: rgba(8, 14, 30, 0.9) !important;
+  border-color: rgba(59, 130, 246, 0.28) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .book-page-right .form-input:focus {
+  background: rgba(11, 20, 42, 0.98) !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35) !important;
+}
+
+[data-theme="dark"] .corner-page-curl {
+  background: linear-gradient(135deg, transparent 50%, #0e1a33 50%, #17284d 75%, #243c72 100%) !important;
+}
+
+[data-theme="dark"] .auth-bubble {
+  background: radial-gradient(circle at 35% 35%,
+    rgba(255,255,255,0.12) 0%,
+    rgba(59,130,246,0.3) 55%,
+    rgba(29,78,216,0.1) 100%) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+}
+
+[data-theme="dark"] .auth-sparkle {
+  background: rgba(96, 165, 250, 0.7) !important;
+}
+
+/* legacy dark auth card (used by forgot-password) */
+[data-theme="dark"] .auth-card.card {
+  background: rgba(10, 18, 38, 0.88) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1px solid rgba(59, 130, 246, 0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 36px 72px -12px rgba(0, 0, 0, 0.85),
+    0 0 40px rgba(37, 99, 235, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="dark"] .auth-header h2 { color: #f8fafc !important; }
+
+[data-theme="dark"] .auth-card .form-input {
+  background: rgba(13, 20, 40, 0.8) !important;
+  border: 1.5px solid rgba(59, 130, 246, 0.25) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .auth-particle {
+  background: rgba(96, 165, 250, 0.5);
 }
 
 [data-theme="dark"] .card:hover,
