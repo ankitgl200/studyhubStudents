@@ -1881,8 +1881,7 @@ async function renderNotesView() {
           btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
           refreshIcons();
           try {
-            await api.deleteDocument(id);
-            await renderNotesView();
+            await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
           } catch (err) {
             alert(err.message || 'Failed to delete note');
             btn.disabled = false;
@@ -2207,8 +2206,7 @@ async function renderPapersView() {
             btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
             refreshIcons();
             try {
-              await api.deleteDocument(id);
-              await renderPapersView();
+              await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
             } catch (err) {
               alert(err.message || 'Failed to delete paper');
               btn.disabled = false;
@@ -2542,8 +2540,7 @@ async function renderResourcesView() {
           btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
           refreshIcons();
           try {
-            await api.deleteDocument(id);
-            await renderResourcesView();
+            await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
           } catch (err) {
             alert(err.message || 'Failed to delete');
             btn.disabled = false;
@@ -2743,8 +2740,7 @@ async function renderResourcesView() {
           btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
           refreshIcons();
           try {
-            await api.deleteDocument(id);
-            await renderResourcesView();
+            await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
           } catch (err) {
             alert(err.message || 'Failed to delete');
             btn.disabled = false;
@@ -2941,8 +2937,7 @@ async function renderResourcesView() {
             btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
             refreshIcons();
             try {
-              await api.deleteDocument(id);
-              await renderResourcesView();
+              await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
             } catch (err) {
               alert(err.message || 'Failed to delete simulation');
               btn.disabled = false;
@@ -5589,8 +5584,7 @@ function renderFilteredMyUploads() {
       btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
       refreshIcons();
       try {
-        await api.deleteDocument(id);
-        await renderMyUploadsView();
+        await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
       } catch (err) {
         alert(err.message || 'Failed to delete document');
         btn.disabled = false;
@@ -8069,6 +8063,14 @@ function initEventHandlers() {
       renderAdminDashboardView();
     };
 
+    let searchDebounceTimeout;
+    adminSearchInput.addEventListener('input', () => {
+      clearTimeout(searchDebounceTimeout);
+      searchDebounceTimeout = setTimeout(() => {
+        triggerSearch();
+      }, 250);
+    });
+
     adminSearchBtn.addEventListener('click', triggerSearch);
     adminSearchInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -8144,9 +8146,7 @@ function initEventHandlers() {
       const docId = btnPin.getAttribute('data-id');
       btnPin.disabled = true;
       try {
-        const res = await api.togglePinDocument(docId);
-        alert(res.message || 'Updated pin status');
-        await router();
+        const res = await api.togglePinDocument(docId); const icon = btnPin.closest('.doc-card')?.querySelector('i\[data-lucide="pin"\]'); if (icon) { icon.remove(); } else { const h5 = btnPin.closest('.doc-card')?.querySelector('.doc-meta h5'); if(h5) { const newIcon = document.createElement('i'); newIcon.setAttribute('data-lucide', 'pin'); newIcon.style.width = '14px'; newIcon.style.height = '14px'; newIcon.style.fill = 'var(--warning)'; newIcon.style.color = 'var(--warning)'; newIcon.style.flexShrink = '0'; h5.prepend(newIcon); if(window.lucide) window.lucide.createIcons(); } }
       } catch (err) {
         alert(err.message || 'Failed to toggle pin');
         btnPin.disabled = false;
@@ -9014,17 +9014,41 @@ function initEventHandlers() {
         await api.updateDocument(docId, title, subject, year);
         closeEditDocModal();
         
-        // Refresh active views
-        const hash = window.location.hash || '#/';
-        if (hash === '#/my-uploads') {
-          await renderMyUploadsView();
-        } else if (hash === '#/notes') {
-          await renderNotesView();
-        } else if (hash === '#/papers') {
-          await renderPapersView();
-        } else if (hash === '#/resources') {
-          await renderResourcesView();
-        }
+        // --- Optimistic UI Update ---
+        // Find the like button or edit button that holds the docId, then find its parent .doc-card
+        const docCards = document.querySelectorAll('.doc-card');
+        docCards.forEach(card => {
+          const btn = card.querySelector(`[data-id="${docId}"]`) || card.querySelector(`[data-doc-id="${docId}"]`);
+          if (btn) {
+            // Found the card, now update its text nodes
+            const h5 = card.querySelector('.doc-meta h5');
+            if (h5) {
+              // Be careful to preserve inner HTML like pinned icons
+              const pinnedIcon = h5.querySelector('i[data-lucide="pin"]');
+              const userTag = h5.querySelector('.user-tag'); // exists in some views
+              h5.innerHTML = '';
+              if (pinnedIcon) h5.appendChild(pinnedIcon);
+              h5.appendChild(document.createTextNode(' ' + title + ' '));
+              if (userTag) h5.appendChild(userTag);
+            }
+            const details = card.querySelector('.doc-meta-details');
+            if (details) {
+              // Update text nodes that match "Subject: " or "Year: "
+              details.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE || node.tagName === 'SPAN') {
+                  const text = node.textContent;
+                  if (text.includes('Subject:')) {
+                    node.textContent = `Subject: ${subject || 'General'}`;
+                  } else if (text.includes('Year:')) {
+                    node.textContent = `Year: ${year || 'N/A'}`;
+                  }
+                }
+              });
+            }
+          }
+        });
+        
+        // We do NOT call renderMyUploadsView() etc. to prevent the UI from flickering/reloading!
       } catch (err) {
         errorAlert.textContent = err.message || 'Failed to save changes';
         errorAlert.style.display = 'block';
@@ -10084,10 +10108,56 @@ async function handleLikeToggle(e, viewRefreshCallback) {
   if (!docId) return;
 
   btn.disabled = true;
+
+  // --- Optimistic UI Update ---
+  const isLiked = btn.classList.contains('liked');
+  const countSpan = btn.querySelector('.like-count');
+  let currentCount = parseInt(countSpan.textContent) || 0;
+
+  // Instantly toggle the UI locally
+  if (isLiked) {
+    btn.classList.remove('liked');
+    btn.style.color = 'var(--text-muted)';
+    btn.title = 'Like this resource';
+    currentCount = Math.max(0, currentCount - 1);
+  } else {
+    btn.classList.add('liked');
+    btn.style.color = 'var(--danger)';
+    btn.title = 'Unlike this resource';
+    currentCount += 1;
+  }
+  countSpan.textContent = currentCount;
+
+  // Update the SVG icon fill/stroke directly if Lucide has already rendered it
+  const icon = btn.querySelector('svg');
+  if (icon) {
+    if (isLiked) {
+      icon.style.fill = 'none';
+      icon.style.stroke = 'currentColor';
+    } else {
+      icon.style.fill = 'var(--danger)';
+      icon.style.stroke = 'var(--danger)';
+    }
+  }
+
   try {
+    // Send background API request without waiting for it to complete the UI update
     await api.toggleLikeDocument(docId);
-    await viewRefreshCallback();
+    btn.disabled = false;
+    // Note: We intentionally skip await viewRefreshCallback() to prevent the whole page from reloading/re-rendering!
   } catch (err) {
+    // Revert UI if the network request fails
+    if (isLiked) {
+      btn.classList.add('liked');
+      btn.style.color = 'var(--danger)';
+      countSpan.textContent = currentCount + 1;
+      if (icon) { icon.style.fill = 'var(--danger)'; icon.style.stroke = 'var(--danger)'; }
+    } else {
+      btn.classList.remove('liked');
+      btn.style.color = 'var(--text-muted)';
+      countSpan.textContent = currentCount - 1;
+      if (icon) { icon.style.fill = 'none'; icon.style.stroke = 'currentColor'; }
+    }
     alert(err.message || 'Failed to toggle like');
     btn.disabled = false;
   }
@@ -10219,8 +10289,7 @@ async function renderPendingContributions() {
           btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
           refreshIcons();
           try {
-            await api.approveDocument(docId);
-            await renderAdminDashboardView();
+            await api.approveDocument(docId); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) cardToRemove.remove();
           } catch (err) {
             alert(err.message || 'Failed to approve resource');
             btn.disabled = false;
@@ -10240,8 +10309,7 @@ async function renderPendingContributions() {
           btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
           refreshIcons();
           try {
-            await api.rejectDocument(docId);
-            await renderAdminDashboardView();
+            await api.rejectDocument(docId); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) cardToRemove.remove();
           } catch (err) {
             alert(err.message || 'Failed to reject resource');
             btn.disabled = false;
@@ -10741,3 +10809,5 @@ function setThemeMode(mode, animate = true) {
     }, 120);
   });
 }
+
+
