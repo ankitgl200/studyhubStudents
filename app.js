@@ -4688,7 +4688,7 @@ async function renderAdminDashboardView(currentHash) {
       }
     };
 
-    const fetchNotifications = async () => { renderAdminTeamView(); const t = document.getElementById('admin-section-team'); if(t) t.style.display='block';
+    const fetchNotifications = async () => {
       const superadminMessagesSection = document.getElementById('admin-section-notifications');
       const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
       const superadminMessagesCount = document.getElementById('superadmin-messages-count');
