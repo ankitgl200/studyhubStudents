@@ -728,8 +728,8 @@ function updateNavbar() {
           </div>
 
           <!-- Academic Sections & Utilities -->
-          <a href="javascript:void(0)" onclick="showAboutModal(); document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
-            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--primary);"></i> About StudyHub
+          <a href="#/about" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+            <i data-lucide="info" style="width: 14px; height: 14px; color: var(--primary);"></i> About Us
           </a>
           <a href="#/appearance" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="type" style="width: 14px; height: 14px; color: var(--primary);"></i> Typography & Fonts
@@ -3368,8 +3368,8 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="javascript:void(0)" onclick="showAboutModal()" class="profile-menu-item">
-          <div class="item-left"><i data-lucide="info"></i><span>About StudyHub</span></div>
+        <a href="#/about" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="info"></i><span>About Us</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
         <a href="#/support" class="profile-menu-item">
