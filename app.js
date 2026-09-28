@@ -1340,6 +1340,8 @@ async function router() {
   } else if (cleanPath === '/contributors') {
     document.getElementById('view-contributors').style.display = 'block';
     await renderContributorsView();
+  } else if (cleanPath === '/about') {
+    await renderAboutView();
   } else if (cleanPath === '/support') {
     document.getElementById('view-support').style.display = 'block';
     await renderSupportView();
@@ -1347,7 +1349,7 @@ async function router() {
     document.getElementById('view-reviews').style.display = 'block';
     await renderReviewsView();
   } else if (cleanPath === '/generators') {
-    document.getElementById('view-generators').style.display = 'block';
+    
     await renderGeneratorsView();
   } else if (cleanPath === '/teacher-dashboard') {
     document.getElementById('view-teacher-dashboard').style.display = 'block';
@@ -4686,7 +4688,7 @@ async function renderAdminDashboardView(currentHash) {
       }
     };
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = async () => { renderAdminTeamView(); const t = document.getElementById('admin-section-team'); if(t) t.style.display='block';
       const superadminMessagesSection = document.getElementById('admin-section-notifications');
       const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
       const superadminMessagesCount = document.getElementById('superadmin-messages-count');
@@ -10810,4 +10812,153 @@ function setThemeMode(mode, animate = true) {
   });
 }
 
+
+
+async function renderAboutView() {
+  const vAbout = document.getElementById('view-about');
+  if(vAbout) vAbout.style.display = 'block';
+
+  const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+  const mgmtDiv = document.getElementById('about-team-management');
+  if (mgmtDiv) {
+    mgmtDiv.style.display = isSuperadmin ? 'block' : 'none';
+  }
+
+  const teamGrid = document.getElementById('about-team-grid');
+  if(!teamGrid) return;
+  teamGrid.innerHTML = '<div style="text-align: center; color: var(--text-muted); width: 100%;">Loading team...</div>';
+  
+  try {
+    const res = await request('/team');
+    if(res.length === 0) {
+      teamGrid.innerHTML = '<div style="text-align: center; color: var(--text-muted); width: 100%;">No team members added yet.</div>';
+      return;
+    }
+    
+    // Make members globally available for editing
+    window.teamMembersData = res;
+
+    teamGrid.innerHTML = res.map(member => {
+      // Use the provided user profile avatar image as fallback
+      const defaultImg = 'https://static.vecteezy.com/system/resources/thumbnails/035/857/753/small_2x/people-face-avatar-icon-cartoon-character-png.png';
+      const img = member.imageUrl ? member.imageUrl : defaultImg;
+      
+      let adminControls = '';
+      if (isSuperadmin) {
+        adminControls = `
+          <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center; width: 100%;">
+            <button class="btn btn-secondary btn-sm" onclick="editTeamMember('${member._id}')" style="flex: 1; padding: 6px;">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTeamMember('${member._id}')" style="flex: 1; padding: 6px;">Delete</button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="team-card card" style="padding: 24px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+          <div style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: var(--bg-color);">
+            <img src="${img}" alt="${escapeHTML(member.name)}" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <h4 style="color: var(--primary); font-size: 16px; margin: 0 0 6px 0; font-weight: 700;">${escapeHTML(member.name)}</h4>
+          <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 10px 0; font-style: italic;">${escapeHTML(member.role)}</p>
+          <p style="color: var(--text-color); font-size: 12px; margin: 0; line-height: 1.5; opacity: 0.8;">${escapeHTML(member.bio || '')}</p>
+          ${adminControls}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    teamGrid.innerHTML = '<div style="color: var(--danger); text-align: center; width: 100%;">Failed to load team</div>';
+  }
+}
+
+// Admin Team Logic
+// Admin Team Logic
+let editingTeamId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnAddTeam = document.getElementById('btn-admin-add-team');
+  const btnCancelEdit = document.getElementById('btn-admin-cancel-edit-team');
+  
+  if(btnAddTeam) {
+    btnAddTeam.addEventListener('click', async () => {
+      const name = document.getElementById('admin-team-name').value;
+      const role = document.getElementById('admin-team-role').value;
+      const imageUrl = document.getElementById('admin-team-image').value;
+      const bio = document.getElementById('admin-team-bio').value;
+      const order = document.getElementById('admin-team-order').value;
+      
+      if(!name || !role) return alert('Name and role are required');
+      
+      try {
+        const method = editingTeamId ? 'PUT' : 'POST';
+        const endpoint = editingTeamId ? `/team/${editingTeamId}` : '/team';
+        
+        await request(endpoint, {
+          method,
+          body: { name, role, imageUrl, bio, order }
+        });
+        
+        alert(`Team member ${editingTeamId ? 'updated' : 'added'} successfully!`);
+        
+        // Reset form
+        document.getElementById('admin-team-name').value = '';
+        document.getElementById('admin-team-role').value = '';
+        document.getElementById('admin-team-image').value = '';
+        document.getElementById('admin-team-bio').value = '';
+        document.getElementById('admin-team-order').value = '';
+        editingTeamId = null;
+        btnAddTeam.textContent = 'Add Member';
+        if (btnCancelEdit) btnCancelEdit.style.display = 'none';
+        
+        renderAboutView();
+      } catch(e) {
+        alert('Failed to save team member: ' + e.message);
+      }
+    });
+  }
+
+  if (btnCancelEdit) {
+    btnCancelEdit.addEventListener('click', () => {
+      document.getElementById('admin-team-name').value = '';
+      document.getElementById('admin-team-role').value = '';
+      document.getElementById('admin-team-image').value = '';
+      document.getElementById('admin-team-bio').value = '';
+      document.getElementById('admin-team-order').value = '';
+      editingTeamId = null;
+      btnAddTeam.textContent = 'Add Member';
+      btnCancelEdit.style.display = 'none';
+    });
+  }
+});
+
+window.editTeamMember = function(id) {
+  const member = window.teamMembersData.find(m => m._id === id);
+  if (!member) return;
+  
+  document.getElementById('admin-team-name').value = member.name || '';
+  document.getElementById('admin-team-role').value = member.role || '';
+  document.getElementById('admin-team-image').value = member.imageUrl || '';
+  document.getElementById('admin-team-bio').value = member.bio || '';
+  document.getElementById('admin-team-order').value = member.order || '';
+  
+  editingTeamId = id;
+  const btnAddTeam = document.getElementById('btn-admin-add-team');
+  const btnCancelEdit = document.getElementById('btn-admin-cancel-edit-team');
+  
+  if (btnAddTeam) btnAddTeam.textContent = 'Save Changes';
+  if (btnCancelEdit) btnCancelEdit.style.display = 'inline-block';
+  
+  // Scroll to form
+  const mgmtDiv = document.getElementById('about-team-management');
+  if (mgmtDiv) mgmtDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+window.deleteTeamMember = async function(id) {
+  if(!confirm('Delete member?')) return;
+  try {
+    await request('/team/' + id, { method: 'DELETE' });
+    renderAboutView();
+  } catch(e) {
+    alert(e.message);
+  }
+}
 
