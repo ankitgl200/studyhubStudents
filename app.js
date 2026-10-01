@@ -1832,7 +1832,7 @@ async function renderNotesView() {
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
                   <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
                 </button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
@@ -2129,7 +2129,7 @@ async function renderPapersView() {
                     </div>
                   </div>
                   <div class="doc-actions" style="position: relative;">
-                    <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
+                    <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
                       <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
                     </button>
                     <div class="more-options-container" style="position: relative; display: inline-block;">
@@ -2489,7 +2489,7 @@ async function renderResourcesView() {
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
                   <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                     <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -2688,7 +2688,7 @@ async function renderResourcesView() {
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
                   <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                     <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -9782,8 +9782,12 @@ function initContributionEventHandlers() {
     }
   }
 
-  window.openDocumentViewer = function(docId, fileName) {
+  window.openDocumentViewer = function(docId, fileName, docType) {
     const url = `${API_BASE}/documents/download/${docId}?token=${localStorage.getItem('token')}`;
+    if (docType === 'competitive') {
+      window.open(url, '_blank');
+      return;
+    }
     loadPdfIntoViewer(url, fileName);
   };
 
