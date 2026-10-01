@@ -138,6 +138,8 @@
   </script>
   <!-- jsPDF Library for generating user manual -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- PDF.js for viewing PDFs natively on mobile -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
@@ -1431,6 +1433,29 @@
         </div>
       </div>
 
+      <!-- DOCUMENT VIEWER MODAL -->
+      <div id="modal-doc-viewer" class="modal-overlay" style="display: none; z-index: 99999;">
+        <div class="modal-content" id="doc-viewer-modal-content" style="width: 95vw; height: 95vh; max-width: 1200px; max-height: 900px; display: flex; flex-direction: column; padding: 0; overflow: hidden; background: var(--card-bg);">
+          <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--primary-accent);">
+            <h3 id="doc-viewer-title" style="margin: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);">Document</h3>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button id="modal-doc-viewer-fullscreen" style="background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer;" title="Toggle Fullscreen">
+                <i data-lucide="maximize" style="width: 20px; height: 20px;"></i>
+              </button>
+              <button class="modal-close" id="modal-doc-viewer-close" style="background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+          </div>
+          <div id="pdf-controls" style="display: flex; justify-content: center; align-items: center; gap: 15px; padding: 10px; background: var(--bg-main); border-bottom: 1px solid var(--border-color); flex-wrap: wrap;">
+            <button id="pdf-zoom-out" class="btn btn-secondary btn-sm" style="padding: 6px 10px;"><i data-lucide="zoom-out" style="width: 16px; height: 16px;"></i> Zoom Out</button>
+            <button id="pdf-zoom-in" class="btn btn-secondary btn-sm" style="padding: 6px 10px;"><i data-lucide="zoom-in" style="width: 16px; height: 16px;"></i> Zoom In</button>
+          </div>
+          <div id="doc-viewer-body" style="flex: 1; position: relative; width: 100%; height: 100%; overflow: auto; background: #525659; display: flex; flex-direction: column; align-items: center; padding: 20px 0;">
+            <div id="pdf-loading-indicator" style="display: none; color: #fff; margin-bottom: 20px;">Loading document...</div>
+            <div id="pdf-viewer-container" style="display: flex; flex-direction: column; gap: 20px; width: 100%; align-items: center;"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- ABOUT STUDYHUB MODAL -->
       <!-- PROFILE PAGE VIEW -->
       <div id="view-profile" class="page-view" style="display: none;">
@@ -1836,7 +1861,6 @@
                 <li><strong>Previous Year Questions (PYQs):</strong> Organized archives of past exams to help students analyze exam patterns and practice effectively.</li>
                 <li><strong>Academic Resources & Textbooks:</strong> Curated links and documents, including lab manuals, study roadmaps, and reference textbooks.</li>
                 <li><strong>SONIC AI Study Assistant:</strong> An interactive study companion powered by generative AI to explain complex concepts, solve study-related queries, and provide instant academic support.</li>
-                <li><strong>Practical File Generators:</strong> Built-in tools for students to generate custom, A4-ready Lab Front Pages and Index sheets in PDF format.</li>
               </ul>
             </div>
 
@@ -2142,196 +2166,6 @@
       </div>
 
 
-      <!-- FILE TOOLS / GENERATORS VIEW -->
-      <div id="view-generators" class="page-view" style="display: none;">
-        <div class="generators-container" style="max-width: 1200px; margin: 0 auto; padding: 20px 10px;">
-          
-          <!-- Title & Navigation -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-            <div>
-              <h2 style="display: flex; align-items: center; gap: 8px; color: var(--primary-dark); margin: 0; font-size: 22px;">
-                <i data-lucide="file-text" style="color: var(--primary); width: 28px; height: 28px;"></i>
-                Practical File Generators
-              </h2>
-              <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px; margin-bottom: 0;">Generate custom Front Pages & Index tables for your lab submissions.</p>
-            </div>
-            <!-- Tab Toggles -->
-            <div class="tab-group" style="display: flex; gap: 6px; background: rgba(0,0,0,0.03); padding: 4px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-              <button id="btn-tab-frontpage" class="tab-btn active" style="padding: 6px 14px; border-radius: var(--radius-sm); border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">
-                <i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Front Page
-              </button>
-              <button id="btn-tab-indexpage" class="tab-btn" style="padding: 6px 14px; border-radius: var(--radius-sm); border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">
-                <i data-lucide="list" style="width: 14px; height: 14px;"></i> Index Sheet
-              </button>
-            </div>
-          </div>
-
-          <!-- Main Working Layout Grid -->
-          <div class="generators-layout">
-            
-            <!-- LEFT COLUMN: Forms -->
-            <div class="card generator-form-panel" style="padding: 24px;">
-              
-              <!-- ================= FRONT PAGE FORM ================= -->
-              <div id="form-section-frontpage" class="generator-section">
-                <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 16px;">Front Page Details</h4>
-                <form id="generator-frontpage-form">
-                  
-                  <div class="form-group">
-                    <label class="form-label">College/Institute Name</label>
-                    <input type="text" id="fp-college-name" class="form-input" value="BIPIN TRIPATHI KUMAON INSTITUTE OF TECHNOLOGY" placeholder="Enter College Name" required />
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">College Logo (Optional)</label>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                      <input type="file" id="fp-logo-input" accept="image/*" class="form-input" style="padding: 4px;" />
-                      <button type="button" id="btn-clear-fp-logo" class="btn btn-danger btn-sm" style="display: none; padding: 8px 12px; height: 38px; align-items: center; justify-content: center; gap: 4px;" title="Clear Logo">
-                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Clear
-                      </button>
-                    </div>
-                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Upload PNG/JPG logo (Max 2MB). Ideal size: Square.</p>
-                  </div>
-
-                  <div class="form-group-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                      <label class="form-label">Department</label>
-                      <input type="text" id="fp-department" class="form-input" value="DEPARTMENT OF COMPUTER SCIENCE & ENGINEERING" placeholder="e.g., Dept of Mechanical Engineering" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">Course / Branch</label>
-                      <input type="text" id="fp-branch" class="form-input" value="B.Tech Computer Science & Engg." placeholder="e.g., B.Tech Information Technology" />
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">Subject Name</label>
-                    <input type="text" id="fp-subject-name" class="form-input" value="DATABASE MANAGEMENT SYSTEMS LAB" placeholder="e.g., Computer Graphics" required />
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">Practical File / Assignment Title</label>
-                    <input type="text" id="fp-title" class="form-input" value="LABORATORY PRACTICAL FILE" placeholder="e.g., Practical Notebook / Mini Project Report" />
-                  </div>
-
-                  <!-- Personnel Details -->
-                  <div style="border-top: 1px dashed var(--border-color); margin: 20px 0; padding-top: 16px;">
-                    <h5 style="color: var(--text-main); margin-top: 0; margin-bottom: 12px; font-weight: 700; font-size: 14px;">Personnel Details</h5>
-                    
-                    <div class="form-group-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                      <div style="background: rgba(0,0,0,0.01); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                        <span style="font-size: 10px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 8px; text-transform: uppercase;">Submitted By (Student)</span>
-                        <div class="form-group" style="margin-bottom: 8px;">
-                          <label class="form-label" style="font-size: 9px; margin-bottom: 2px;">Name</label>
-                          <input type="text" id="fp-student-name" class="form-input" placeholder="Student Name" required />
-                        </div>
-                        <div class="form-group" style="margin-bottom: 8px;">
-                          <label class="form-label" style="font-size: 9px; margin-bottom: 2px;">Roll Number</label>
-                          <input type="text" id="fp-student-roll" class="form-input" placeholder="Roll Number" required />
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                          <label class="form-label" style="font-size: 9px; margin-bottom: 2px;">Semester / Section</label>
-                          <input type="text" id="fp-student-sem" class="form-input" value="5th Semester" placeholder="e.g. 5th Semester, Sec A" />
-                        </div>
-                      </div>
-
-                      <div style="background: rgba(0,0,0,0.01); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                        <span style="font-size: 10px; font-weight: bold; color: var(--success); display: block; margin-bottom: 8px; text-transform: uppercase;">Submitted To (Teacher)</span>
-                        <div class="form-group" style="margin-bottom: 8px;">
-                          <label class="form-label" style="font-size: 9px; margin-bottom: 2px;">Teacher Name</label>
-                          <input type="text" id="fp-teacher-name" class="form-input" placeholder="Teacher's Name" required />
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                          <label class="form-label" style="font-size: 9px; margin-bottom: 2px;">Designation</label>
-                          <input type="text" id="fp-teacher-title" class="form-input" value="Assistant Professor" placeholder="e.g., Associate Professor, Dept of CSE" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-group-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                      <label class="form-label">Academic Session</label>
-                      <input type="text" id="fp-session" class="form-input" value="2025 - 2026" placeholder="e.g. 2025 - 2026" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">Template Design</label>
-                      <select id="fp-template" class="form-input">
-                        <option value="classic">Classic Formal</option>
-                        <option value="modern">Modern Minimalist</option>
-                        <option value="tech">Elegant Tech</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <button type="button" id="btn-generate-fp-pdf" class="btn btn-primary" style="width: 100%; margin-top: 16px; justify-content: center; gap: 8px; display: flex; align-items: center;">
-                    <i data-lucide="download"></i> Download Front Page PDF
-                  </button>
-                </form>
-              </div>
-
-              <!-- ================= INDEX PAGE FORM ================= -->
-              <div id="form-section-indexpage" class="generator-section" style="display: none;">
-                <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 16px;">Index Sheet Details</h4>
-                <form id="generator-indexpage-form">
-                  
-                  <!-- Student and class details removed for index page to keep it clean -->
-
-                  <!-- Dynamic Index Rows Editor -->
-                  <div style="border-top: 1px dashed var(--border-color); margin: 20px 0; padding-top: 16px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                      <h5 style="margin: 0; font-weight: 700; color: var(--text-main); font-size: 14px;">Index Entries</h5>
-                      <button type="button" id="btn-add-idx-row" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 4px; padding: 6px 10px; font-size: 11px; height: 30px;">
-                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Row
-                      </button>
-                    </div>
-
-                    <!-- Scrollable input container -->
-                    <div id="idx-rows-input-container" style="max-height: 280px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
-                      <!-- Dynamic rows load here -->
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label">Template Design</label>
-                    <select id="idx-template" class="form-input">
-                      <option value="classic">Standard Lab Index</option>
-                      <option value="modern">Modern Zebra Index</option>
-                    </select>
-                  </div>
-
-                  <button type="button" id="btn-generate-idx-pdf" class="btn btn-primary" style="width: 100%; margin-top: 16px; justify-content: center; gap: 8px; display: flex; align-items: center;">
-                    <i data-lucide="download"></i> Download Index PDF
-                  </button>
-                </form>
-              </div>
-
-            </div>
-
-            <!-- RIGHT COLUMN: Real-Time Live Preview -->
-            <div class="generator-preview-panel">
-              <div style="position: sticky; top: 90px; z-index: 10;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
-                  <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 4px; text-transform: uppercase;">
-                    <span style="width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; display: inline-block;"></span>
-                    Live A4 Preview
-                  </span>
-                  <span id="preview-page-aspect" style="font-size: 11px; color: var(--text-muted);">Standard A4 Sheet</span>
-                </div>
-
-                <!-- A4 Canvas Sheet -->
-                <div id="a4-preview-container" style="background: var(--white); border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.12); padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid var(--border-color);">
-                  <div id="a4-preview-sheet" class="a4-preview-sheet">
-                    <!-- Live inner content generated dynamically by app.js -->
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
 
       <!-- Shared ad placement: replace this placeholder with ad network code later. -->
       <aside class="site-ad-space" id="site-ad-space" aria-label="Advertisement">
