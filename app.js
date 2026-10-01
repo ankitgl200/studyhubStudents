@@ -699,9 +699,7 @@ function updateNavbar() {
             <a href="#/support" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
               <i data-lucide="help-circle" style="width: 14px; height: 14px; color: var(--primary);"></i> Help &amp; Support
             </a>
-            <a href="#/generators" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
-              <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i> File Tools
-            </a>
+
             ${currentUser.role === 'student' ? `
               <a href="#/my-contributions" onclick="document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); border: 1px solid var(--border-color); background-color: var(--primary-accent);">
                 <i data-lucide="award" style="width: 14px; height: 14px; color: var(--primary);"></i> My Contributions
@@ -738,7 +736,7 @@ function updateNavbar() {
             <i data-lucide="trophy" style="width: 14px; height: 14px; color: var(--primary);"></i> Top Contributors
           </a>
           <a href="javascript:void(0)" onclick="downloadUserManual(); document.getElementById('profile-dropdown-menu').classList.remove('show');" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
-            <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i> Download Manual
+            <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i> View Manual
           </a>
           <a href="#/reset-password" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="key-round" style="width: 14px; height: 14px; color: var(--primary);"></i> Reset Password
@@ -807,7 +805,7 @@ function updateNavbar() {
         <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
         <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
         <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
-        <a href="#/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
+
         <a href="#/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
         <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-contribute"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute</a>
 
@@ -881,7 +879,7 @@ function updateNavbar() {
         <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
         <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
         <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
-        <a href="#/generators" class="mobile-nav-link" id="mob-nav-generators"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> File Tools</a>
+
       </div>
       <button class="btn btn-primary btn-download-app-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; margin-top: auto; margin-bottom: 12px;">
         <i data-lucide="smartphone" style="width: 18px; height: 18px;"></i> Download App
@@ -1101,7 +1099,7 @@ function handleAuthProtection(path) {
     cleanPath = '/' + cleanPath;
   }
 
-  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/notes', '/papers', '/resources', '/generators', '/support', '/terms', '/privacy', '/contributors', '/appearance', '/reviews'];
+  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/notes', '/papers', '/resources', '/support', '/terms', '/privacy', '/contributors', '/appearance', '/reviews'];
   if (!publicRoutes.includes(cleanPath) && !currentUser) {
     navigate('/login');
     return false;
@@ -1341,6 +1339,7 @@ async function router() {
     document.getElementById('view-contributors').style.display = 'block';
     await renderContributorsView();
   } else if (cleanPath === '/about') {
+    document.getElementById('view-about').style.display = 'block';
     await renderAboutView();
   } else if (cleanPath === '/support') {
     document.getElementById('view-support').style.display = 'block';
@@ -1348,9 +1347,6 @@ async function router() {
   } else if (cleanPath === '/reviews') {
     document.getElementById('view-reviews').style.display = 'block';
     await renderReviewsView();
-  } else if (cleanPath === '/generators') {
-    
-    await renderGeneratorsView();
   } else if (cleanPath === '/teacher-dashboard') {
     document.getElementById('view-teacher-dashboard').style.display = 'block';
     await renderTeacherDashboardView();
@@ -1393,7 +1389,6 @@ async function router() {
     else if (cleanPath === '/my-contributions') titleEl.textContent = 'Contributions';
     else if (cleanPath === '/support') titleEl.textContent = 'Support';
     else if (cleanPath === '/reviews') titleEl.textContent = 'Reviews';
-    else if (cleanPath === '/generators') titleEl.textContent = 'File Tools';
     else if (cleanPath === '/reset-password') titleEl.textContent = 'Reset Password';
     else if (cleanPath === '/terms') titleEl.textContent = 'Terms';
     else if (cleanPath === '/privacy') titleEl.textContent = 'Privacy';
@@ -1837,12 +1832,9 @@ async function renderNotesView() {
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <a href="${doc.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="padding: 8px 12px;">
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
                   <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
-                </a>
-                <a href="${API_BASE}/documents/download/${doc.id}?token=${localStorage.getItem('token')}" download="${escapeHTML(doc.fileName)}" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
-                  <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download
-                </a>
+                </button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
                   <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                     <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -2137,12 +2129,9 @@ async function renderPapersView() {
                     </div>
                   </div>
                   <div class="doc-actions" style="position: relative;">
-                    <a href="${doc.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="padding: 8px 12px;">
+                    <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
                       <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
-                    </a>
-                    <a href="${API_BASE}/documents/download/${doc.id}?token=${localStorage.getItem('token')}" download="${escapeHTML(doc.fileName)}" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
-                      <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download
-                    </a>
+                    </button>
                     <div class="more-options-container" style="position: relative; display: inline-block;">
                       <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                         <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -2500,8 +2489,7 @@ async function renderResourcesView() {
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <a href="${doc.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</a>
-                <a href="${API_BASE}/documents/download/${doc.id}?token=${localStorage.getItem('token')}" download="${escapeHTML(doc.fileName)}" class="btn btn-primary btn-sm"><i data-lucide="download" style="width:14px;height:14px;"></i> Download</a>
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
                   <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                     <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -2700,8 +2688,7 @@ async function renderResourcesView() {
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <a href="${doc.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</a>
-                <a href="${API_BASE}/documents/download/${doc.id}?token=${localStorage.getItem('token')}" download="${escapeHTML(doc.fileName)}" class="btn btn-primary btn-sm"><i data-lucide="download" style="width:14px;height:14px;"></i> Download</a>
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
                   <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
                     <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
@@ -3318,7 +3305,7 @@ function renderProfileView() {
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
         <a href="javascript:void(0)" onclick="downloadUserManual()" class="profile-menu-item">
-          <div class="item-left"><i data-lucide="file-text"></i><span>Download Manual</span></div>
+          <div class="item-left"><i data-lucide="file-text"></i><span>View Manual</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
         <a href="#/reset-password" class="profile-menu-item">
@@ -3348,10 +3335,7 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="#/generators" class="profile-menu-item">
-          <div class="item-left"><i data-lucide="file-text"></i><span>File Tools</span></div>
-          <i data-lucide="chevron-right" class="arrow-right"></i>
-        </a>
+
         <a href="javascript:void(0)" class="profile-menu-item btn-download-app-trigger">
           <div class="item-left"><i data-lucide="smartphone"></i><span>Download App</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -3960,8 +3944,8 @@ async function downloadUserManual() {
     doc.addImage(imgNotes, 'JPEG', 65, yPos + 10, 80, 150);
   }
   
-  // Save PDF
-  doc.save('StudyHub_User_Manual.pdf');
+  // Open PDF in viewer
+  window.openBlobViewer(doc.output('bloburl'), 'StudyHub User Manual');
 }
 
 function showAboutModal() {
@@ -5983,7 +5967,7 @@ const Meniscus = {
         const profileRoutes = [
           '/profile', '/reset-password', '/appearance', '/reviews', 
           '/contributors', '/my-uploads', '/my-contributions', 
-          '/teacher-dashboard', '/support', '/generators', '/privacy', '/terms'
+          '/teacher-dashboard', '/support', '/privacy', '/terms'
         ];
         if (currentPath.startsWith('/admin') || profileRoutes.includes(currentPath)) {
           currentPath = '/profile';
@@ -7165,839 +7149,12 @@ async function renderContributorsView() {
   }
 }
 
-// --- FILE TOOLS / GENERATORS PAGE LOGIC ---
-
-let indexRows = [];
-let collegeLogoBase64 = '';
-
-async function renderGeneratorsView() {
-  // Populate student info defaults from currentUser if logged in
-  if (currentUser) {
-    const fpStudentName = document.getElementById('fp-student-name');
-    const fpStudentRoll = document.getElementById('fp-student-roll');
-    
-    if (fpStudentName && !fpStudentName.value) fpStudentName.value = currentUser.name;
-    if (fpStudentRoll && !fpStudentRoll.value) fpStudentRoll.value = currentUser.phone;
-  }
-
-  const btnTabFp = document.getElementById('btn-tab-frontpage');
-  const btnTabIdx = document.getElementById('btn-tab-indexpage');
-  const sectionFp = document.getElementById('form-section-frontpage');
-  const sectionIdx = document.getElementById('form-section-indexpage');
-
-  // Set initial tab styling
-  if (btnTabFp && btnTabIdx && sectionFp && sectionIdx) {
-    btnTabFp.classList.add('active');
-    btnTabIdx.classList.remove('active');
-    btnTabFp.style.background = 'var(--primary)';
-    btnTabFp.style.color = 'var(--white)';
-    btnTabIdx.style.background = 'transparent';
-    btnTabIdx.style.color = 'var(--text-main)';
-    sectionFp.style.display = 'block';
-    sectionIdx.style.display = 'none';
-  }
-
-  // Tab switching logic
-  if (btnTabFp && btnTabIdx && sectionFp && sectionIdx) {
-    btnTabFp.onclick = () => {
-      btnTabFp.classList.add('active');
-      btnTabIdx.classList.remove('active');
-      btnTabFp.style.background = 'var(--primary)';
-      btnTabFp.style.color = 'var(--white)';
-      btnTabIdx.style.background = 'transparent';
-      btnTabIdx.style.color = 'var(--text-main)';
-      sectionFp.style.display = 'block';
-      sectionIdx.style.display = 'none';
-      updatePreview();
-    };
-    btnTabIdx.onclick = () => {
-      btnTabIdx.classList.add('active');
-      btnTabFp.classList.remove('active');
-      btnTabIdx.style.background = 'var(--primary)';
-      btnTabIdx.style.color = 'var(--white)';
-      btnTabFp.style.background = 'transparent';
-      btnTabFp.style.color = 'var(--text-main)';
-      sectionFp.style.display = 'none';
-      sectionIdx.style.display = 'block';
-      updatePreview();
-    };
-  }
-
-  // Logo upload setup
-  const logoInput = document.getElementById('fp-logo-input');
-  const btnClearLogo = document.getElementById('btn-clear-fp-logo');
-  if (logoInput && btnClearLogo) {
-    logoInput.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        if (file.size > 2 * 1024 * 1024) {
-          alert('Image size exceeds 2MB limit.');
-          logoInput.value = '';
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          collegeLogoBase64 = event.target.result;
-          btnClearLogo.style.display = 'inline-flex';
-          updatePreview();
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-
-    btnClearLogo.onclick = () => {
-      collegeLogoBase64 = '';
-      logoInput.value = '';
-      btnClearLogo.style.display = 'none';
-      updatePreview();
-    };
-
-    if (collegeLogoBase64) {
-      btnClearLogo.style.display = 'inline-flex';
-    } else {
-      btnClearLogo.style.display = 'none';
-    }
-  }
-
-  // Dynamic Index Entries Setup
-  const container = document.getElementById('idx-rows-input-container');
-  if (container) {
-    if (indexRows.length === 0) {
-      // Seed default 3 rows
-      indexRows = [
-        { sno: '1', title: 'Study of Basic Logic Gates', pageNo: '1-4', datePerf: '2026-02-10', remark: 'Good' },
-        { sno: '2', title: 'Implementation of Half Adder & Full Adder', pageNo: '5-9', datePerf: '2026-02-24', remark: 'Completed' },
-        { sno: '3', title: 'Design of 4-bit Binary Counter', pageNo: '10-15', datePerf: '2026-03-10', remark: 'Done' }
-      ];
-    }
-    renderIndexInputs();
-  }
-
-  // Bind change/input listeners for real-time preview updates
-  const fpInputs = [
-    'fp-college-name', 'fp-department', 'fp-branch', 'fp-subject-name', 
-    'fp-title', 'fp-student-name', 'fp-student-roll', 
-    'fp-student-sem', 'fp-teacher-name', 'fp-teacher-title', 'fp-session', 'fp-template'
-  ];
-  fpInputs.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.oninput = updatePreview;
-      el.onchange = updatePreview;
-    }
-  });
-
-  const idxInputs = ['idx-template'];
-  idxInputs.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.oninput = updatePreview;
-      el.onchange = updatePreview;
-    }
-  });
-
-  // Dynamic Add Row click
-  const btnAddRow = document.getElementById('btn-add-idx-row');
-  if (btnAddRow) {
-    btnAddRow.onclick = () => {
-      const nextSno = indexRows.length + 1;
-      indexRows.push({ sno: nextSno.toString(), title: '', pageNo: '', datePerf: '', remark: '' });
-      renderIndexInputs();
-      updatePreview();
-    };
-  }
-
-  // Generate Frontpage PDF click
-  const btnGenFpPdf = document.getElementById('btn-generate-fp-pdf');
-  if (btnGenFpPdf) {
-    btnGenFpPdf.onclick = downloadFrontPagePDF;
-  }
-
-  // Generate Index PDF click
-  const btnGenIdxPdf = document.getElementById('btn-generate-idx-pdf');
-  if (btnGenIdxPdf) {
-    btnGenIdxPdf.onclick = downloadIndexPDF;
-  }
-
-  // Initial update
-  updatePreview();
-  refreshIcons();
-}
-
-function renderIndexInputs() {
-  const container = document.getElementById('idx-rows-input-container');
-  if (!container) return;
-
-  container.innerHTML = indexRows.map((row, idx) => `
-    <div class="idx-row-input-group" data-index="${idx}">
-      <span style="font-size: 11px; font-weight: bold; text-align: center;">${idx + 1}</span>
-      <input type="text" class="form-input row-title" placeholder="Experiment Title" value="${escapeHTML(row.title)}" />
-      <input type="text" class="form-input row-page-no" placeholder="Page.no" value="${escapeHTML(row.pageNo)}" />
-      <input type="date" class="form-input row-date-perf" value="${row.datePerf}" />
-      <input type="text" class="form-input row-remark" placeholder="Remark" value="${escapeHTML(row.remark || '')}" />
-      <button type="button" class="btn btn-danger btn-sm btn-delete-idx-row" style="padding: 4px; height: 32px; width: 32px; display: flex; align-items: center; justify-content: center;" title="Delete Row">
-        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-      </button>
-    </div>
-  `).join('');
-
-  // Wire input listeners inside dynamic rows
-  container.querySelectorAll('.idx-row-input-group').forEach(group => {
-    const idx = parseInt(group.getAttribute('data-index'));
-    const titleInput = group.querySelector('.row-title');
-    const pageInput = group.querySelector('.row-page-no');
-    const dateInput = group.querySelector('.row-date-perf');
-    const remarkInput = group.querySelector('.row-remark');
-    const deleteBtn = group.querySelector('.btn-delete-idx-row');
-
-    if (titleInput) {
-      titleInput.oninput = (e) => {
-        indexRows[idx].title = e.target.value;
-        updatePreview();
-      };
-    }
-    if (pageInput) {
-      pageInput.oninput = (e) => {
-        indexRows[idx].pageNo = e.target.value;
-        updatePreview();
-      };
-    }
-    if (dateInput) {
-      dateInput.onchange = (e) => {
-        indexRows[idx].datePerf = e.target.value;
-        updatePreview();
-      };
-    }
-    if (remarkInput) {
-      remarkInput.oninput = (e) => {
-        indexRows[idx].remark = e.target.value;
-        updatePreview();
-      };
-    }
-    if (deleteBtn) {
-      deleteBtn.onclick = () => {
-        indexRows.splice(idx, 1);
-        // Re-index Sno
-        indexRows.forEach((r, i) => r.sno = (i + 1).toString());
-        renderIndexInputs();
-        updatePreview();
-      };
-    }
-  });
-
-  refreshIcons();
-}
-
-function updatePreview() {
-  const sheet = document.getElementById('a4-preview-sheet');
-  if (!sheet) return;
-
-  const btnTabFp = document.getElementById('btn-tab-frontpage');
-  const isFp = btnTabFp && btnTabFp.classList.contains('active');
-
-  if (isFp) {
-    const college = document.getElementById('fp-college-name').value.toUpperCase();
-    const dept = document.getElementById('fp-department').value.toUpperCase();
-    const branch = document.getElementById('fp-branch').value;
-    const subjName = document.getElementById('fp-subject-name').value.toUpperCase();
-    const title = document.getElementById('fp-title').value.toUpperCase();
-    const studentName = document.getElementById('fp-student-name').value;
-    const studentRoll = document.getElementById('fp-student-roll').value;
-    const studentSem = document.getElementById('fp-student-sem').value;
-    const teacherName = document.getElementById('fp-teacher-name').value;
-    const session = document.getElementById('fp-session').value;
-    const template = document.getElementById('fp-template').value;
-
-    let innerHTML = '';
-
-    if (template === 'classic') {
-      innerHTML = `
-        <div class="preview-classic-border">
-          <div style="text-align: center; width: 100%;">
-            <div style="font-size: 4cqw; font-weight: 800; line-height: 1.2; margin-bottom: 0.8cqw; font-family: 'Times New Roman', serif;">${escapeHTML(college)}</div>
-            <div style="font-size: 2.8cqw; font-weight: bold; color: #555; margin-bottom: 2cqw;">${escapeHTML(dept)}</div>
-            <div style="display: flex; justify-content: center; margin: 2cqw 0;">
-              ${collegeLogoBase64 ? `
-                <img src="${collegeLogoBase64}" style="width: 22cqw; height: 22cqw; object-fit: contain;" />
-              ` : `
-                <svg width="22cqw" height="22cqw" viewBox="0 0 100 100" style="fill: none; stroke: currentColor; stroke-width: 2;">
-                  <circle cx="50" cy="50" r="45" stroke="#000" stroke-width="2"/>
-                  <circle cx="50" cy="50" r="40" stroke="#000" stroke-width="1" stroke-dasharray="2,2"/>
-                  <path d="M30 45 L50 30 L70 45 L70 65 L30 65 Z" fill="#f1f5f9" stroke="#000"/>
-                  <path d="M50 30 L50 65" stroke="#000"/>
-                  <path d="M35 52 L65 52" stroke="#000"/>
-                  <text x="50" y="80" font-size="9" font-family="Helvetica" font-weight="bold" text-anchor="middle" fill="#000">BTKIT</text>
-                </svg>
-              `}
-            </div>
-          </div>
-
-          <div style="text-align: center; width: 100%; margin: 2cqw 0;">
-            <div style="font-size: 3cqw; font-weight: bold; text-decoration: underline; margin-bottom: 1.5cqw; letter-spacing: 0.1cqw;">${escapeHTML(title)}</div>
-            <div style="font-size: 2.5cqw; font-weight: normal; margin-bottom: 0.8cqw;">SUBJECT: <strong>${escapeHTML(subjName)}</strong></div>
-            <div style="font-size: 2.3cqw; font-weight: normal;">BRANCH: <strong>${escapeHTML(branch)}</strong></div>
-          </div>
-
-          <div style="text-align: center; line-height: 1.5; font-size: 2.4cqw; border-top: 1px solid #000; padding-top: 2cqw; width: 100%;">
-            <div><strong>SUBMITTED TO:</strong> ${escapeHTML(teacherName || 'Instructor Name')}</div>
-            <div style="margin-top: 0.5cqw;"><strong>SUBMITTED BY:</strong> ${escapeHTML(studentName || 'Student Name')}</div>
-            <div><strong>ROLL NO:</strong> ${escapeHTML(studentRoll || 'Student Roll')}</div>
-            <div><strong>YEAR/SEMESTER:</strong> ${escapeHTML(studentSem)}</div>
-          </div>
-
-          <div style="text-align: center; font-size: 2.3cqw; font-weight: bold; width: 100%;">
-            ACADEMIC SESSION: ${escapeHTML(session)}
-          </div>
-        </div>
-      `;
-    } else if (template === 'modern') {
-      innerHTML = `
-        <div class="preview-modern-accent" style="font-family: Arial, Helvetica, sans-serif;">
-          <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start;">
-            <div style="text-align: left; flex: 1;">
-              <div style="font-size: 4.2cqw; font-weight: 900; color: var(--primary-dark); line-height: 1.1; margin-bottom: 0.6cqw;">${escapeHTML(college)}</div>
-              <div style="font-size: 2.5cqw; font-weight: 600; color: var(--primary); text-transform: uppercase; tracking: 0.5px;">${escapeHTML(dept)}</div>
-              <div style="width: 12cqw; height: 1cqw; background: var(--primary); margin-top: 2cqw;"></div>
-            </div>
-            ${collegeLogoBase64 ? `
-              <img src="${collegeLogoBase64}" style="width: 18cqw; height: 18cqw; object-fit: contain; margin-left: 2cqw;" />
-            ` : ''}
-          </div>
-
-          <div style="width: 100%; text-align: left; margin: 4cqw 0;">
-            <span style="font-size: 2.2cqw; font-weight: 700; color: #64748b; text-transform: uppercase;">Assignment File</span>
-            <div style="font-size: 4.8cqw; font-weight: 900; margin: 1cqw 0 3cqw 0; line-height: 1.2; border-bottom: 2px solid #e2e8f0; padding-bottom: 2cqw;">${escapeHTML(subjName)}</div>
-            <div style="font-size: 2.4cqw; color: #475569; display: flex; flex-direction: column; gap: 0.6cqw;">
-              <div>Stream: <strong>${escapeHTML(branch)}</strong></div>
-              <div>Type: <strong>${escapeHTML(title)}</strong></div>
-            </div>
-          </div>
-
-          <div style="text-align: center; line-height: 1.5; font-size: 2.3cqw; background: #f8fafc; padding: 2.5cqw; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%;">
-            <div><strong>SUBMITTED TO:</strong> ${escapeHTML(teacherName || 'Instructor Name')}</div>
-            <div style="margin-top: 0.5cqw;"><strong>SUBMITTED BY:</strong> ${escapeHTML(studentName || 'Student Name')}</div>
-            <div><strong>ROLL NO:</strong> ${escapeHTML(studentRoll || 'Student Roll')}</div>
-            <div><strong>YEAR/SEMESTER:</strong> ${escapeHTML(studentSem)}</div>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; width: 100%; border-top: 2px solid #e2e8f0; padding-top: 2.5cqw; font-size: 2.2cqw; color: #64748b; font-weight: bold;">
-            <span>SESSION: ${escapeHTML(session)}</span>
-            <span>BTKIT DWARAHAT</span>
-          </div>
-        </div>
-      `;
-    } else if (template === 'tech') {
-      innerHTML = `
-        <div class="preview-tech-border" style="font-family: 'Courier New', Courier, monospace;">
-          <div style="text-align: center; width: 100%;">
-            <div style="font-size: 3.6cqw; font-weight: bold; letter-spacing: 0.1cqw; margin-bottom: 1cqw;">[ ${escapeHTML(college)} ]</div>
-            <div style="font-size: 2.4cqw; color: #333;">// ${escapeHTML(dept)}</div>
-            ${collegeLogoBase64 ? `
-              <div style="display: flex; justify-content: center; margin-top: 2cqw;">
-                <img src="${collegeLogoBase64}" style="width: 16cqw; height: 16cqw; object-fit: contain; filter: grayscale(100%);" />
-              </div>
-            ` : ''}
-          </div>
-
-          <div style="border: 1px dashed #000; width: 100%; padding: 4cqw 2cqw; text-align: center; box-sizing: border-box; background: rgba(0,0,0,0.01); margin: 2cqw 0;">
-            <div style="font-size: 4cqw; font-weight: bold; margin-bottom: 2cqw;">&lt; ${escapeHTML(title)} &gt;</div>
-            <div style="font-size: 2.8cqw; margin-bottom: 1cqw;">SUBJECT: ${escapeHTML(subjName)}</div>
-            <div style="font-size: 2.5cqw;">BRANCH: ${escapeHTML(branch)}</div>
-          </div>
-
-          <div style="width: 100%; text-align: center; font-size: 2.3cqw; border-top: 1px dashed #000; padding-top: 3cqw; line-height: 1.5;">
-            <div>* SUBMITTED_TO: ${escapeHTML(teacherName || 'Instructor Name')}</div>
-            <div>* SUBMITTED_BY: ${escapeHTML(studentName || 'Student Name')}</div>
-            <div>* ROLL_NO: ${escapeHTML(studentRoll || 'Student Roll')}</div>
-            <div>* YEAR_SEMESTER: ${escapeHTML(studentSem)}</div>
-          </div>
-
-          <div style="text-align: center; font-size: 2.2cqw; font-weight: bold;">
-            // SESSION: ${escapeHTML(session)} //
-          </div>
-        </div>
-      `;
-    }
-
-    sheet.innerHTML = innerHTML;
-  } else {
-    // Index Preview (no details displayed, only standard headers, entries table, and teacher signature)
-    const template = document.getElementById('idx-template').value;
-    const useZebra = template === 'modern';
-
-    sheet.innerHTML = `
-      <div style="padding: 4cqw; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; font-family: 'Times New Roman', Times, serif;">
-        
-        <div style="width: 100%;">
-          <div style="font-size: 3.5cqw; font-weight: 800; text-align: center; text-decoration: underline; margin-bottom: 4cqw; text-transform: uppercase;">INDEX SHEET</div>
-        </div>
-
-        <div style="flex: 1; width: 100%; overflow: hidden; margin-top: 1cqw;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 2cqw; text-align: left;">
-            <thead>
-              <tr style="background: ${useZebra ? 'var(--primary)' : '#e2e8f0'}; color: ${useZebra ? '#fff' : '#000'}; border: 1px solid #000;">
-                <th style="border: 1px solid #000; padding: 1cqw; text-align: center; width: 8%;">S.No.</th>
-                <th style="border: 1px solid #000; padding: 1cqw; width: 42%;">Title</th>
-                <th style="border: 1px solid #000; padding: 1cqw; text-align: center; width: 12%;">Page.no</th>
-                <th style="border: 1px solid #000; padding: 1cqw; text-align: center; width: 15%;">Date</th>
-                <th style="border: 1px solid #000; padding: 1cqw; text-align: center; width: 10%;">Remark</th>
-                <th style="border: 1px solid #000; padding: 1cqw; text-align: center; width: 13%;">Teacher's Signature</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${indexRows.map((row, i) => `
-                <tr style="background: ${useZebra && i % 2 === 1 ? '#f8fafc' : '#fff'}; border: 1px solid #000;">
-                  <td style="border: 1px solid #000; padding: 1cqw; text-align: center;">${escapeHTML(row.sno)}</td>
-                  <td style="border: 1px solid #000; padding: 1cqw; font-weight: bold;">${escapeHTML(row.title || 'Experiment Title')}</td>
-                  <td style="border: 1px solid #000; padding: 1cqw; text-align: center;">${escapeHTML(row.pageNo)}</td>
-                  <td style="border: 1px solid #000; padding: 1cqw; text-align: center;">${escapeHTML(row.datePerf ? formatDateStr(row.datePerf) : '')}</td>
-                  <td style="border: 1px solid #000; padding: 1cqw; text-align: center;">${escapeHTML(row.remark || '')}</td>
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                </tr>
-              `).join('')}
-              ${Array.from({ length: Math.max(0, 12 - indexRows.length) }).map(() => `
-                <tr style="border: 1px solid #000; height: 3.5cqw;">
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                  <td style="border: 1px solid #000; padding: 1cqw;"></td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; width: 100%; font-size: 2.2cqw; margin-top: 3cqw; border-top: 1px dashed #bbb; padding-top: 2cqw;">
-          <span>Signature of Teacher</span>
-        </div>
-
-      </div>
-    `;
-  }
-}
-
-function formatDateStr(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-}
-
-async function downloadFrontPagePDF() {
-  await ensureJsPDFLoaded();
-  const { jsPDF } = window.jspdf;
-  const college = document.getElementById('fp-college-name').value.toUpperCase();
-  const dept = document.getElementById('fp-department').value.toUpperCase();
-  const branch = document.getElementById('fp-branch').value;
-  const subjName = document.getElementById('fp-subject-name').value.toUpperCase();
-  const title = document.getElementById('fp-title').value.toUpperCase();
-  const studentName = document.getElementById('fp-student-name').value;
-  const studentRoll = document.getElementById('fp-student-roll').value;
-  const studentSem = document.getElementById('fp-student-sem').value;
-  const teacherName = document.getElementById('fp-teacher-name').value;
-  const session = document.getElementById('fp-session').value;
-  const template = document.getElementById('fp-template').value;
-
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
-
-  if (template === 'classic') {
-    doc.setDrawColor(0);
-    doc.setLineWidth(1.2);
-    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-    doc.setLineWidth(0.4);
-    doc.rect(11.5, 11.5, pageWidth - 23, pageHeight - 23);
-
-    doc.setFont("times", "bold");
-    doc.setFontSize(18);
-    const collegeLines = doc.splitTextToSize(college, pageWidth - 36);
-    let currentY = 24;
-    collegeLines.forEach(line => {
-      doc.text(line, pageWidth / 2, currentY, { align: 'center' });
-      currentY += 8;
-    });
-
-    doc.setFont("times", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(80, 80, 80);
-    doc.text(dept, pageWidth / 2, currentY, { align: 'center' });
-    doc.setTextColor(0);
-
-    currentY += 12;
-    if (collegeLogoBase64) {
-      let format = 'PNG';
-      if (collegeLogoBase64.startsWith('data:image/jpeg') || collegeLogoBase64.startsWith('data:image/jpg')) {
-        format = 'JPEG';
-      }
-      doc.addImage(collegeLogoBase64, format, pageWidth / 2 - 18, currentY, 36, 36);
-    } else {
-      doc.setLineWidth(0.6);
-      doc.circle(pageWidth / 2, currentY + 15, 18);
-      doc.setLineDash([1, 1], 0);
-      doc.circle(pageWidth / 2, currentY + 15, 16);
-      doc.setLineDash([], 0);
-      
-      doc.setLineWidth(0.4);
-      doc.line(pageWidth / 2 - 10, currentY + 15, pageWidth / 2 + 10, currentY + 15);
-      doc.line(pageWidth / 2, currentY + 5, pageWidth / 2, currentY + 25);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.text("BTKIT", pageWidth / 2, currentY + 29, { align: 'center' });
-    }
-
-    currentY += 45;
-    doc.setFont("times", "bold");
-    doc.setFontSize(15);
-    doc.text(title, pageWidth / 2, currentY, { align: 'center' });
-    const titleWidth = doc.getTextWidth(title);
-    doc.line(pageWidth / 2 - titleWidth / 2, currentY + 1, pageWidth / 2 + titleWidth / 2, currentY + 1);
-
-    currentY += 16;
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    doc.text("SUBJECT: " + subjName, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 7;
-    doc.text("COURSE/BRANCH: " + branch, pageWidth / 2, currentY, { align: 'center' });
-
-    currentY = 225;
-    doc.line(16, currentY - 5, pageWidth - 16, currentY - 5);
-    
-    doc.setFont("times", "bold");
-    doc.setFontSize(11);
-    doc.text("SUBMITTED TO: " + (teacherName || 'Instructor Name'), pageWidth / 2, currentY, { align: 'center' });
-    doc.text("SUBMITTED BY: " + (studentName || 'Student Name'), pageWidth / 2, currentY + 7, { align: 'center' });
-    doc.text("ROLL NO: " + (studentRoll || 'Student Roll'), pageWidth / 2, currentY + 14, { align: 'center' });
-    doc.text("YEAR/SEMESTER: " + studentSem, pageWidth / 2, currentY + 21, { align: 'center' });
-
-    doc.setFont("times", "bold");
-    doc.setFontSize(13);
-    doc.text("ACADEMIC SESSION: " + session, pageWidth / 2, 272, { align: 'center' });
-
-  } else if (template === 'modern') {
-    // 1cm border on all sides in primary blue
-    doc.setDrawColor(37, 99, 235);
-    doc.setLineWidth(1.0);
-    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-
-    if (collegeLogoBase64) {
-      let format = 'PNG';
-      if (collegeLogoBase64.startsWith('data:image/jpeg') || collegeLogoBase64.startsWith('data:image/jpg')) {
-        format = 'JPEG';
-      }
-      doc.addImage(collegeLogoBase64, format, pageWidth - 45, 18, 28, 28);
-    }
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(30, 41, 59);
-    const wrapWidth = collegeLogoBase64 ? pageWidth - 75 : pageWidth - 40;
-    const collegeLines = doc.splitTextToSize(college, wrapWidth);
-    let currentY = 30;
-    collegeLines.forEach(line => {
-      doc.text(line, 20, currentY);
-      currentY += 9;
-    });
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(37, 99, 235);
-    doc.text(dept, 20, currentY);
-
-    currentY += 8;
-    doc.setFillColor(37, 99, 235);
-    doc.rect(20, currentY, 30, 2, 'F');
-
-    currentY += 35;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(100, 116, 139);
-    doc.text("ACADEMIC COURSE WORK FILE", 20, currentY);
-
-    currentY += 10;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.setTextColor(15, 23, 42);
-    const subjLines = doc.splitTextToSize(subjName, pageWidth - 45);
-    subjLines.forEach(line => {
-      doc.text(line, 20, currentY);
-      currentY += 9;
-    });
-
-    doc.setDrawColor(226, 232, 240);
-    doc.line(20, currentY, pageWidth - 20, currentY);
-
-    currentY += 10;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.setTextColor(71, 85, 105);
-    doc.text("Stream / Branch: " + branch, 20, currentY);
-    currentY += 7;
-    doc.text("File Description: " + title, 20, currentY);
-
-    currentY = 205;
-    doc.setFillColor(248, 250, 252);
-    doc.setDrawColor(226, 232, 240);
-    doc.rect(pageWidth / 2 - 50, currentY, 100, 42, 'FD');
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(15, 23, 42);
-    doc.text("SUBMITTED TO: " + (teacherName || 'Instructor Name'), pageWidth / 2, currentY + 10, { align: 'center' });
-    doc.text("SUBMITTED BY: " + (studentName || 'Student Name'), pageWidth / 2, currentY + 18, { align: 'center' });
-    doc.text("ROLL NO: " + (studentRoll || 'Student Roll'), pageWidth / 2, currentY + 26, { align: 'center' });
-    doc.text("YEAR/SEMESTER: " + studentSem, pageWidth / 2, currentY + 34, { align: 'center' });
-
-    currentY = 270;
-    doc.line(20, currentY, pageWidth - 20, currentY);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 116, 139);
-    doc.text("ACADEMIC SESSION: " + session, 20, currentY + 8);
-    doc.text("BTKIT DWARAHAT", pageWidth - 20, currentY + 8, { align: 'right' });
-
-  } else if (template === 'tech') {
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.3);
-    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-    doc.setLineDash([2, 2], 0);
-    doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
-    doc.setLineDash([], 0);
-
-    doc.setFont("courier", "bold");
-    doc.setFontSize(15);
-    doc.text("[ " + college + " ]", pageWidth / 2, 25, { align: 'center' });
-
-    doc.setFont("courier", "normal");
-    doc.setFontSize(11);
-    doc.text("// " + dept, pageWidth / 2, 33, { align: 'center' });
-
-    let currentY = 38;
-    if (collegeLogoBase64) {
-      let format = 'PNG';
-      if (collegeLogoBase64.startsWith('data:image/jpeg') || collegeLogoBase64.startsWith('data:image/jpg')) {
-        format = 'JPEG';
-      }
-      doc.addImage(collegeLogoBase64, format, pageWidth / 2 - 15, currentY, 30, 30);
-      currentY += 35;
-    } else {
-      currentY += 5;
-    }
-
-    doc.rect(16, currentY, pageWidth - 32, 70);
-    doc.setLineDash([1, 2], 0);
-    doc.line(16, currentY + 20, pageWidth - 16, currentY + 20);
-    doc.line(16, currentY + 50, pageWidth - 16, currentY + 50);
-    doc.setLineDash([], 0);
-
-    doc.setFont("courier", "bold");
-    doc.setFontSize(14);
-    doc.text("< " + title + " >", pageWidth / 2, currentY + 12, { align: 'center' });
-
-    doc.setFont("courier", "normal");
-    doc.setFontSize(11);
-    doc.text("SUBJECT: " + subjName, pageWidth / 2, currentY + 35, { align: 'center' });
-
-    doc.text("BRANCH: " + branch, pageWidth / 2, currentY + 60, { align: 'center' });
-
-    let blockY = currentY + 80;
-    doc.line(16, blockY, pageWidth - 16, blockY);
-    
-    doc.setFont("courier", "bold");
-    doc.setFontSize(11);
-    doc.text("* SUBMITTED_TO: " + (teacherName || 'Instructor Name'), pageWidth / 2, blockY + 10, { align: 'center' });
-    doc.text("* SUBMITTED_BY: " + (studentName || 'Student Name'), pageWidth / 2, blockY + 18, { align: 'center' });
-    doc.text("* ROLL_NO: " + (studentRoll || 'Student Roll'), pageWidth / 2, blockY + 26, { align: 'center' });
-    doc.text("* YEAR_SEMESTER: " + studentSem, pageWidth / 2, blockY + 34, { align: 'center' });
-
-    doc.setFont("courier", "bold");
-    doc.setFontSize(11);
-    doc.text("// SESSION: " + session + " //", pageWidth / 2, 265, { align: 'center' });
-  }
-
-  const outName = studentName ? studentName : "Student";
-  doc.save(outName.replace(/\s+/g, "_") + "_FrontPage.pdf");
-}
-
-async function downloadIndexPDF() {
-  await ensureJsPDFLoaded();
-  const { jsPDF } = window.jspdf;
-  const template = document.getElementById('idx-template').value;
-
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
-  const margin = 15;
-
-  doc.setFont("times", "bold");
-  doc.setFontSize(16);
-  doc.text("INDEX SHEET", pageWidth / 2, 22, { align: 'center' });
-  const titleWidth = doc.getTextWidth("INDEX SHEET");
-  doc.line(pageWidth / 2 - titleWidth / 2, 23.5, pageWidth / 2 + titleWidth / 2, 23.5);
-
-  let currentY = 32;
-  doc.setLineWidth(0.5);
-  doc.line(margin, currentY, pageWidth - margin, currentY);
-  doc.setLineWidth(0.3);
-
-  currentY += 8;
-  const tableWidth = pageWidth - (margin * 2);
-  const colWidths = {
-    sno: 12,
-    title: 83,
-    page: 18,
-    date: 22,
-    remark: 20,
-    sig: 25
-  };
-
-  doc.setFont("times", "bold");
-  doc.setFontSize(10);
-  
-  if (template === 'modern') {
-    doc.setFillColor(37, 99, 235);
-    doc.rect(margin, currentY, tableWidth, 8, 'F');
-    doc.setTextColor(255);
-  } else {
-    doc.setFillColor(230, 230, 230);
-    doc.rect(margin, currentY, tableWidth, 8, 'F');
-    doc.setTextColor(0);
-  }
-
-  doc.rect(margin, currentY, tableWidth, 8);
-  let colX = margin;
-  doc.text("S.No.", colX + colWidths.sno / 2, currentY + 5.5, { align: 'center' });
-  
-  colX += colWidths.sno;
-  doc.text("Title", colX + 4, currentY + 5.5);
-  
-  colX += colWidths.title;
-  doc.text("Page.no", colX + colWidths.page / 2, currentY + 5.5, { align: 'center' });
-  
-  colX += colWidths.page;
-  doc.text("Date", colX + colWidths.date / 2, currentY + 5.5, { align: 'center' });
-  
-  colX += colWidths.date;
-  doc.text("Remark", colX + colWidths.remark / 2, currentY + 5.5, { align: 'center' });
-  
-  colX += colWidths.remark;
-  doc.text("Teacher's Signature", colX + colWidths.sig / 2, currentY + 5.5, { align: 'center' });
-
-  doc.setTextColor(0);
-  currentY += 8;
-
-  doc.setFont("times", "normal");
-  const rowHeight = 10;
-  
-  const allRows = [...indexRows];
-  const minRows = 15;
-  while (allRows.length < minRows) {
-    allRows.push({ sno: '', title: '', pageNo: '', datePerf: '', remark: '' });
-  }
-
-  allRows.forEach((row, i) => {
-    if (currentY + rowHeight > pageHeight - 35) {
-      doc.addPage();
-      currentY = 25;
-      
-      if (template === 'modern') {
-        doc.setFillColor(37, 99, 235);
-        doc.rect(margin, currentY, tableWidth, 8, 'F');
-        doc.setTextColor(255);
-      } else {
-        doc.setFillColor(230, 230, 230);
-        doc.rect(margin, currentY, tableWidth, 8, 'F');
-        doc.setTextColor(0);
-      }
-      doc.rect(margin, currentY, tableWidth, 8);
-      let tempX = margin;
-      doc.text("S.No.", tempX + colWidths.sno / 2, currentY + 5.5, { align: 'center' });
-      
-      tempX += colWidths.sno;
-      doc.text("Title", tempX + 4, currentY + 5.5);
-      
-      tempX += colWidths.title;
-      doc.text("Page.no", tempX + colWidths.page / 2, currentY + 5.5, { align: 'center' });
-      
-      tempX += colWidths.page;
-      doc.text("Date", tempX + colWidths.date / 2, currentY + 5.5, { align: 'center' });
-      
-      tempX += colWidths.date;
-      doc.text("Remark", tempX + colWidths.remark / 2, currentY + 5.5, { align: 'center' });
-      
-      tempX += colWidths.remark;
-      doc.text("Teacher's Signature", tempX + colWidths.sig / 2, currentY + 5.5, { align: 'center' });
-      
-      doc.setTextColor(0);
-      currentY += 8;
-    }
-
-    if (template === 'modern' && i % 2 === 1 && row.title) {
-      doc.setFillColor(245, 247, 250);
-      doc.rect(margin, currentY, tableWidth, rowHeight, 'F');
-    }
-
-    doc.rect(margin, currentY, tableWidth, rowHeight);
-    
-    let drawX = margin;
-    doc.text(row.sno, drawX + colWidths.sno / 2, currentY + 6.5, { align: 'center' });
-    
-    drawX += colWidths.sno;
-    doc.line(drawX, currentY, drawX, currentY + rowHeight);
-    doc.setFont("times", row.title ? "bold" : "normal");
-    const wrappedTitle = doc.splitTextToSize(row.title, colWidths.title - 8);
-    doc.text(wrappedTitle, drawX + 4, currentY + 6);
-    
-    drawX += colWidths.title;
-    doc.line(drawX, currentY, drawX, currentY + rowHeight);
-    doc.setFont("times", "normal");
-    doc.text(row.pageNo, drawX + colWidths.page / 2, currentY + 6.5, { align: 'center' });
-    
-    drawX += colWidths.page;
-    doc.line(drawX, currentY, drawX, currentY + rowHeight);
-    const formattedDate = row.datePerf ? formatDateStr(row.datePerf) : '';
-    doc.text(formattedDate, drawX + colWidths.date / 2, currentY + 6.5, { align: 'center' });
-    
-    drawX += colWidths.date;
-    doc.line(drawX, currentY, drawX, currentY + rowHeight);
-    doc.text(row.remark || '', drawX + colWidths.remark / 2, currentY + 6.5, { align: 'center' });
-    
-    drawX += colWidths.remark;
-    doc.line(drawX, currentY, drawX, currentY + rowHeight);
-
-    currentY += rowHeight;
-  });
-
-  currentY += 12;
-  doc.setFont("times", "normal");
-  doc.setFontSize(11);
-  doc.text("SIGNATURE OF TEACHER", pageWidth - margin - 50, currentY);
-
-  doc.save("IndexSheet.pdf");
-}
-
 // --- FORM AND DOM INTERACTIVE HANDLERS ---
-
 function initEventHandlers() {
-  
-  // Mobile Hamburger Toggle
   const btnHamburger = document.getElementById('btn-hamburger');
   const mobMenu = document.getElementById('mobile-nav-menu');
   const mobOverlay = document.getElementById('mobile-nav-overlay');
+  
   if (btnHamburger && mobMenu && mobOverlay) {
     btnHamburger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -8241,7 +7398,9 @@ function initEventHandlers() {
   // Populate dynamic upload academic years
   const uploadYearSel = document.getElementById('upload-doc-year');
   const years = getAcademicYears();
-  uploadYearSel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+  if (uploadYearSel) {
+    uploadYearSel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+  }
 
   // 1. ANNOUNCEMENT POST FORM
   const addAnnBtn = document.getElementById('btn-add-announcement');
@@ -10452,6 +9611,134 @@ function initContributionEventHandlers() {
   }
 
   window.openContributeModal = openContributeModal;
+
+  let pdfDoc = null,
+      pdfScale = 1.2,
+      pageRenderingCache = new Set(),
+      pageObserver = null;
+      
+  function renderAllPages() {
+    const container = document.getElementById('pdf-viewer-container');
+    const scrollRoot = document.getElementById('doc-viewer-body');
+    container.innerHTML = '';
+    pageRenderingCache.clear();
+    if (pageObserver) pageObserver.disconnect();
+    
+    pageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const canvas = entry.target;
+          const pageNum = parseInt(canvas.dataset.pageNum);
+          
+          if (!pageRenderingCache.has(pageNum)) {
+            pageRenderingCache.add(pageNum);
+            pdfDoc.getPage(pageNum).then(function(page) {
+              const ctx = canvas.getContext('2d');
+              const viewport = page.getViewport({ scale: pdfScale });
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+              
+              const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+              };
+              page.render(renderContext);
+            });
+          }
+        }
+      });
+    }, { root: scrollRoot, rootMargin: '800px 0px' });
+    
+    // Get first page to estimate dimensions for placeholders
+    pdfDoc.getPage(1).then(function(firstPage) {
+      const viewport = firstPage.getViewport({ scale: pdfScale });
+      const estHeight = viewport.height;
+      const estWidth = viewport.width;
+      
+      for (let num = 1; num <= pdfDoc.numPages; num++) {
+        const canvas = document.createElement('canvas');
+        canvas.dataset.pageNum = num;
+        canvas.style.maxWidth = '100%';
+        canvas.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+        canvas.style.background = '#fff';
+        canvas.width = estWidth;
+        canvas.height = estHeight;
+        
+        container.appendChild(canvas);
+        pageObserver.observe(canvas);
+      }
+    });
+  }
+
+  document.getElementById('pdf-zoom-in').addEventListener('click', () => {
+    pdfScale += 0.2;
+    if (pdfDoc) renderAllPages();
+  });
+  
+  document.getElementById('pdf-zoom-out').addEventListener('click', () => {
+    if (pdfScale <= 0.4) return;
+    pdfScale -= 0.2;
+    if (pdfDoc) renderAllPages();
+  });
+
+  const fullscreenBtn = document.getElementById('modal-doc-viewer-fullscreen');
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+      const viewer = document.getElementById('doc-viewer-modal-content');
+      if (!document.fullscreenElement) {
+        viewer.requestFullscreen().catch(err => {
+          console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  }
+
+  function loadPdfIntoViewer(url, fileName) {
+    const modal = document.getElementById('modal-doc-viewer');
+    const title = document.getElementById('doc-viewer-title');
+    const closeBtn = document.getElementById('modal-doc-viewer-close');
+    const loading = document.getElementById('pdf-loading-indicator');
+    const container = document.getElementById('pdf-viewer-container');
+    
+    if (modal && title) {
+      title.textContent = fileName || 'Document Viewer';
+      modal.style.display = 'flex';
+      loading.style.display = 'block';
+      container.innerHTML = '';
+      
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+      
+      const loadingTask = pdfjsLib.getDocument(url);
+      loadingTask.promise.then(function(pdfDoc_) {
+        pdfDoc = pdfDoc_;
+        loading.style.display = 'none';
+        
+        pdfScale = window.innerWidth < 600 ? 0.8 : 1.5;
+        renderAllPages();
+      }).catch(function(reason) {
+        console.error(reason);
+        loading.textContent = 'Error loading PDF: ' + reason.message;
+      });
+      
+      const closeModal = () => {
+        modal.style.display = 'none';
+        if (document.fullscreenElement) document.exitFullscreen();
+        if (closeBtn) closeBtn.removeEventListener('click', closeModal);
+      };
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    }
+  }
+
+  window.openDocumentViewer = function(docId, fileName) {
+    const url = `${API_BASE}/documents/download/${docId}?token=${localStorage.getItem('token')}`;
+    loadPdfIntoViewer(url, fileName);
+  };
+
+  window.openBlobViewer = function(blobUrl, fileName) {
+    loadPdfIntoViewer(blobUrl, fileName);
+  };
 
   if (floatingBtn) {
     floatingBtn.addEventListener('click', () => {
