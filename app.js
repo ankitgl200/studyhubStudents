@@ -9752,8 +9752,17 @@ function initContributionEventHandlers() {
       
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
       
-      const loadingTask = pdfjsLib.getDocument(url);
-      loadingTask.promise.then(function(pdfDoc_) {
+      fetch(url).then(async (res) => {
+        if (!res.ok) {
+          let errText = await res.text();
+          try { errText = JSON.parse(errText).message; } catch(e){}
+          throw new Error(`Backend Error (${res.status}): ${errText}`);
+        }
+        return res.arrayBuffer();
+      }).then(arrayBuffer => {
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        return loadingTask.promise;
+      }).then(function(pdfDoc_) {
         pdfDoc = pdfDoc_;
         loading.style.display = 'none';
         
@@ -9761,7 +9770,7 @@ function initContributionEventHandlers() {
         renderAllPages();
       }).catch(function(reason) {
         console.error(reason);
-        loading.textContent = 'Error loading PDF: ' + reason.message;
+        loading.textContent = reason.message || 'Error loading PDF';
       });
       
       const closeModal = () => {
