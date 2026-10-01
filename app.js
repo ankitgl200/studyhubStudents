@@ -9670,16 +9670,56 @@ function initContributionEventHandlers() {
     });
   }
 
-  document.getElementById('pdf-zoom-in').addEventListener('click', () => {
-    pdfScale += 0.2;
-    if (pdfDoc) renderAllPages();
-  });
+  let currentCssScale = 1;
+  const container = document.getElementById('pdf-viewer-container');
+  const scrollRoot = document.getElementById('doc-viewer-body');
   
-  document.getElementById('pdf-zoom-out').addEventListener('click', () => {
-    if (pdfScale <= 0.4) return;
-    pdfScale -= 0.2;
-    if (pdfDoc) renderAllPages();
-  });
+  scrollRoot.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault(); 
+      const zoomSensitivity = 0.05;
+      if (e.deltaY < 0) {
+        currentCssScale += zoomSensitivity;
+      } else {
+        currentCssScale = Math.max(0.5, currentCssScale - zoomSensitivity);
+      }
+      container.style.transform = `scale(${currentCssScale})`;
+      container.style.transformOrigin = 'top center';
+    }
+  }, { passive: false });
+
+  let initialPinchDistance = null;
+  let initialCssScale = 1;
+  
+  scrollRoot.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      initialPinchDistance = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      initialCssScale = currentCssScale;
+    }
+  }, { passive: false });
+  
+  scrollRoot.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && initialPinchDistance) {
+      e.preventDefault(); 
+      const currentDistance = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      const scaleFactor = currentDistance / initialPinchDistance;
+      currentCssScale = Math.max(0.5, initialCssScale * scaleFactor);
+      container.style.transform = `scale(${currentCssScale})`;
+      container.style.transformOrigin = 'top center';
+    }
+  }, { passive: false });
+  
+  scrollRoot.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) {
+      initialPinchDistance = null;
+    }
+  }, { passive: false });
 
   const fullscreenBtn = document.getElementById('modal-doc-viewer-fullscreen');
   if (fullscreenBtn) {
@@ -9707,6 +9747,8 @@ function initContributionEventHandlers() {
       modal.style.display = 'flex';
       loading.style.display = 'block';
       container.innerHTML = '';
+      currentCssScale = 1;
+      container.style.transform = `scale(1)`;
       
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
       
