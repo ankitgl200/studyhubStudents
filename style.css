@@ -2864,7 +2864,7 @@ body {
   max-width: 480px !important;
   margin-inline: auto !important;
   height: 64px !important;
-  z-index: 1000 !important;
+  z-index: 990 !important;
   touch-action: pan-y !important;
   -webkit-tap-highlight-color: transparent !important;
   isolation: isolate !important;
@@ -3000,7 +3000,6 @@ body {
 .mobile-bottom-nav.is-dragging .tab__label {
   opacity: var(--t) !important;
   transform: translateY(calc((1 - var(--t)) * 4px)) !important;
-}
 }
 
 /* Mobile Top App Bar (Fixed/Stationary) */
@@ -3371,7 +3370,7 @@ body, input, select, textarea, button {
     max-width: 580px !important;
     height: 74px !important;
     padding: 6px 14px !important;
-    z-index: 9999 !important;
+    z-index: 990 !important;
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(24px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
