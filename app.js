@@ -1111,7 +1111,7 @@ function handleAuthProtection(path) {
     cleanPath = '/' + cleanPath;
   }
 
-  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/notes', '/papers', '/resources', '/support', '/terms', '/privacy', '/contributors', '/appearance', '/reviews'];
+  const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/support', '/terms', '/privacy', '/contributors', '/appearance', '/reviews'];
   if (!publicRoutes.includes(cleanPath) && !currentUser) {
     navigate('/login');
     return false;
