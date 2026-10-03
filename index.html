@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" type="image/png" href="/icon.png">
   <link rel="apple-touch-icon" href="/icon.png">
-  <title>Studyhub BTKIT | BTKIT Notes, PYQs, Lab Manuals & Resources</title>
+  <title>StudyMyte | BTKIT Notes, PYQs, Lab Manuals & Resources</title>
   <meta name="description"
-    content="Download free BTKIT lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources from Studyhub BTKIT (Btkit / btkit Dwarahat). The best study hub portal for college students.">
+    content="Download free BTKIT lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources from StudyMyte. The best study portal for KEC students.">
   <meta name="keywords"
-    content="BTKIT, Btkit, btkit, studyhub btkit, studyhub, BTKIT studyhub, btkit notes, btkit PYQs, btkit lab manuals, btkit resources, Dwarahat, engineering notes, B.Tech study material, Kumaon Engineering College, KEC Dwarahat">
-  <link rel="canonical" href="https://studyhub4students.vercel.app/">
+    content="btkit notes, studymyte papers, btkit, btkit kec, studymyte, BTKIT notes, btkit PYQs, btkit lab manuals, btkit resources, Dwarahat, engineering notes, B.Tech study material, Kumaon Engineering College, KEC Dwarahat, studyhub">
+  <link rel="canonical" href="https://studymyte.tech/">
 
 
 
@@ -31,19 +31,19 @@
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://studyhub4students.vercel.app/#website",
-        "url": "https://studyhub4students.vercel.app/",
-        "name": "Studyhub BTKIT",
+        "@id": "https://studymyte4students.vercel.app/#website",
+        "url": "https://studymyte4students.vercel.app/",
+        "name": "StudyMyte",
         "description": "Download free BTKIT lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources organized semester-wise.",
         "publisher": {
-          "@id": "https://studyhub4students.vercel.app/#organization"
+          "@id": "https://studymyte4students.vercel.app/#organization"
         },
         "potentialAction": [
           {
             "@type": "SearchAction",
             "target": {
               "@type": "EntryPoint",
-              "urlTemplate": "https://studyhub4students.vercel.app/notes?search={search_term_string}"
+              "urlTemplate": "https://studymyte4students.vercel.app/notes?search={search_term_string}"
             },
             "query-input": "required name=search_term_string"
           }
@@ -51,13 +51,13 @@
       },
       {
         "@type": "EducationalOrganization",
-        "@id": "https://studyhub4students.vercel.app/#organization",
+        "@id": "https://studymyte4students.vercel.app/#organization",
         "name": "Bipin Tripathi Kumaon Institute of Technology (BTKIT)",
         "alternateName": ["BTKIT Dwarahat", "KEC Dwarahat", "Kumaon Engineering College"],
-        "url": "https://studyhub4students.vercel.app/",
-        "logo": "https://studyhub4students.vercel.app/logo.png",
+        "url": "https://studymyte4students.vercel.app/",
+        "logo": "https://studymyte.tech/logowht.png",
         "sameAs": [
-          "https://github.com/ankitgl200/studyhubStudents"
+          "https://github.com/ankitgl200/studymyteStudents"
         ]
       }
     ]
@@ -66,19 +66,19 @@
 
   <!-- Open Graph / Facebook / Discord SEO -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://studyhub4students.vercel.app/">
-  <meta property="og:title" content="Studyhub BTKIT | BTKIT Notes, PYQs, Lab Manuals & Resources">
+  <meta property="og:url" content="https://studymyte4students.vercel.app/">
+  <meta property="og:title" content="StudyMyte | BTKIT Notes, PYQs, Lab Manuals & Resources">
   <meta property="og:description"
-    content="Download free BTKIT Dwarahat B.Tech lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources from Studyhub BTKIT.">
-  <meta property="og:image" content="https://studyhub4students.vercel.app/logo.png">
+    content="Download free BTKIT Dwarahat B.Tech lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources from StudyMyte.">
+  <meta property="og:image" content="https://studymyte.tech/logowht.png">
 
   <!-- Twitter Card SEO -->
   <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://studyhub4students.vercel.app/">
-  <meta property="twitter:title" content="Studyhub BTKIT | BTKIT Notes, PYQs, Lab Manuals & Resources">
+  <meta property="twitter:url" content="https://studymyte4students.vercel.app/">
+  <meta property="twitter:title" content="StudyMyte | BTKIT Notes, PYQs, Lab Manuals & Resources">
   <meta property="twitter:description"
-    content="Download free BTKIT Dwarahat B.Tech lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources from Studyhub BTKIT.">
-  <meta property="twitter:image" content="https://studyhub4students.vercel.app/logo.png">
+    content="Download free BTKIT Dwarahat B.Tech lecture notes, previous year question papers (PYQs), lab manuals, and syllabus resources from StudyMyte.">
+  <meta property="twitter:image" content="https://studymyte.tech/logowht.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -100,7 +100,7 @@
   <script>
     (function () {
       // 1. Theme Mode (Dark / Light)
-      var savedThemeMode = localStorage.getItem('studyhub-theme-mode') || 'light';
+      var savedThemeMode = localStorage.getItem('studymyte-theme-mode') || 'light';
       if (savedThemeMode === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
       } else {
@@ -109,7 +109,7 @@
 
       var root = document.documentElement;
       try {
-        localStorage.removeItem('studyhub-color-theme');
+        localStorage.removeItem('studymyte-color-theme');
         root.style.removeProperty('--primary');
         root.style.removeProperty('--primary-dark');
         root.style.removeProperty('--primary-light');
@@ -138,7 +138,7 @@
         dmsans: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif"
       };
 
-      var savedFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
+      var savedFontKey = localStorage.getItem('studymyte-app-font') || 'inter';
       var fontStr = fontsMap[savedFontKey] || fontsMap['inter'];
       root.style.setProperty('--app-font-family', fontStr);
     })();
@@ -224,7 +224,7 @@
     overflow: visible;
   }
 
-  .sh-studyhub-cursive {
+  .sh-studymyte-cursive {
     font-family: 'Outfit', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     font-size: 66px;
     font-weight: 800;
@@ -701,10 +701,10 @@
     <header class="navbar">
       <a href="#/" class="logo">
         <div class="logoimg">
-          <img src="/logo.png" alt="logo" class="logo-image" />
+          <img src="/logowht.png" alt="logo" class="logo-image" />
         </div>
         <!-- <div class="logo-dot"></div> -->
-        <span>Study Hub</span>
+        <span>StudyMyte</span>
       </a>
 
       <!-- Desktop Nav Links & Auth State Wrapper -->
@@ -756,8 +756,8 @@
       <div class="mobile-top-bar-left">
         <a href="#/" class="mobile-logo"
           style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--primary-dark); font-weight: 800;">
-          <img src="/logo.png" alt="logo" class="logo-image" style="width: 28px; height: 28px;" />
-          <span style="font-size: 16px;">StudyHub</span>
+          <img src="/logowht.png" alt="logo" class="logo-image" style="width: 28px; height: 28px;" />
+          <span style="font-size: 16px;">StudyMyte</span>
         </a>
       </div>
       <div class="mobile-top-bar-title" id="mobile-page-title"
@@ -804,7 +804,7 @@
           <div class="sh-loader-glow-orb"></div>
 
           <div class="sh-cursive-wrapper" id="sh-cursive-wrapper">
-            <svg class="sh-cursive-svg" viewBox="0 0 480 140" id="sh-cursive-svg" role="img" aria-label="StudyHub">
+            <svg class="sh-cursive-svg" viewBox="0 0 480 140" id="sh-cursive-svg" role="img" aria-label="StudyMyte">
               <defs>
                 <!-- Radiant Calligraphy Gradient -->
                 <linearGradient id="calligraphy-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -843,13 +843,13 @@
               <!-- Clipped handwriting artwork with layered 3D depth and glow -->
               <g clip-path="url(#handwriting-clip)">
                 <!-- 1. 3D Under-extrusion Shadow -->
-                <text x="241.5" y="72.5" class="sh-studyhub-cursive sh-depth-text">StudyHub</text>
+                <text x="241.5" y="72.5" class="sh-studymyte-cursive sh-depth-text">StudyMyte</text>
                 <!-- 2. Neon Aura Glow -->
-                <text x="240" y="70" class="sh-studyhub-cursive sh-glow-text">StudyHub</text>
+                <text x="240" y="70" class="sh-studymyte-cursive sh-glow-text">StudyMyte</text>
                 <!-- 3. Core Calligraphy Body -->
-                <text x="240" y="70" class="sh-studyhub-cursive sh-main-text">StudyHub</text>
+                <text x="240" y="70" class="sh-studymyte-cursive sh-main-text">StudyMyte</text>
                 <!-- 4. Crystal Surface Highlight -->
-                <text x="240" y="70" class="sh-studyhub-cursive sh-highlight-text">StudyHub</text>
+                <text x="240" y="70" class="sh-studymyte-cursive sh-highlight-text">StudyMyte</text>
               </g>
             </svg>
             <div class="sh-pen-tip" id="sh-pen-tip"></div>
@@ -876,7 +876,7 @@
                 One Place
               </h1>
               <p>
-                Welcome to <strong>Studyhub BTKIT</strong>, the ultimate academic resource sharing portal. Easily
+                Welcome to <strong>StudyMyte</strong>, the ultimate academic resource sharing portal. Easily
                 download and share engineering lecture notes, previous year question papers (PYQs), lab manuals, and
                 syllabus resources organized semester-wise for BTKIT Dwarahat students.
               </p>
@@ -1000,7 +1000,7 @@
             style="margin-top: 50px; border-top: 1px solid var(--border-color); padding-top: 30px;">
             <div class="card why-card" style="max-width: 650px; margin: 0 auto; padding: 30px;">
               <h3 style="text-align: center; margin-bottom: 20px; font-size: 20px; color: var(--primary-dark);">Why
-                Study Hub?</h3>
+                StudyMyte?</h3>
               <ul class="why-list sh-reveal-stagger"
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; padding-left: 0;">
                 <li class="why-item" style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
@@ -1037,12 +1037,12 @@
             <div class="real-book-casing">
               <div class="book-pages-container">
 
-                <!-- ── LEFT PAGE: STUDYHUB DIRECTORY ── -->
+                <!-- ── LEFT PAGE: STUDYMYTE DIRECTORY ── -->
                 <div class="book-page book-page-left">
                   <!-- Page Header -->
                   <div class="book-page-header">
                     <span class="book-header-badge">EST. 2026</span>
-                    <span class="book-header-title">STUDYHUB ACADEMIC DIRECTORY</span>
+                    <span class="book-header-title">STUDYMYTE ACADEMIC DIRECTORY</span>
                     <span class="book-header-page">PAGE 1</span>
                   </div>
 
@@ -1055,7 +1055,7 @@
                       <div class="book-crest-stars">✦ ✦ ✦</div>
                     </div>
 
-                    <h1 class="book-title">StudyHub</h1>
+                    <h1 class="book-title">StudyMyte</h1>
                     <p class="book-edition">Central Academic Repository</p>
 
                     <div class="book-divider-ornament">
@@ -1282,7 +1282,7 @@
                   <div class="leaf-face leaf-face-back">
                     <div class="leaf-back-watermark">
                       <i data-lucide="graduation-cap"></i>
-                      <span>STUDYHUB UNIVERSITY ARCHIVES</span>
+                      <span>STUDYMYTE UNIVERSITY ARCHIVES</span>
                       <p>Knowledge Shared • Futures Built</p>
                     </div>
                     <div class="leaf-lighting-overlay" id="leaf-back-lighting"></div>
@@ -1512,18 +1512,18 @@
               Terms of Service
             </h2>
             <p style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 4px;">Please read these
-              Terms of Service carefully before using Studyhub</p>
+              Terms of Service carefully before using StudyMyte</p>
           </div>
           <div
             style="font-size: 14px; color: var(--text-main); line-height: 1.6; overflow-y: auto; padding: 10px 24px 20px 24px; flex: 1;">
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">1. Acceptance of
               Terms</h3>
-            <p style="margin-bottom: 16px;">By accessing and using Studyhub, you agree to comply with and be bound by
+            <p style="margin-bottom: 16px;">By accessing and using StudyMyte, you agree to comply with and be bound by
               these Terms of Service. If you do not agree, you must not use our platform.</p>
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. Purpose of the
               Platform</h3>
-            <p style="margin-bottom: 16px;">Studyhub is a central academic repository built for students and educators
+            <p style="margin-bottom: 16px;">StudyMyte is a central academic repository built for students and educators
               to share study notes, past year question papers (PYQs), lab manuals, textbooks, and engineering
               simulations. It is strictly for educational and non-commercial purposes.</p>
 
@@ -1550,14 +1550,14 @@
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">5. Limitation of
               Liability</h3>
-            <p style="margin-bottom: 16px;">Studyhub is provided "as is" and "as available". We do not guarantee
+            <p style="margin-bottom: 16px;">StudyMyte is provided "as is" and "as available". We do not guarantee
               uninterrupted access. We are not liable for any direct, indirect, incidental, or consequential damages
               resulting from your use or inability to use the platform.</p>
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">6. Changes to
               Terms</h3>
             <p style="margin-bottom: 16px;">We reserve the right to modify these Terms of Service at any time. Your
-              continued use of Studyhub after changes are posted constitutes acceptance of the updated terms.</p>
+              continued use of StudyMyte after changes are posted constitutes acceptance of the updated terms.</p>
           </div>
           <div class="form-actions"
             style="padding: 12px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: center; background-color: var(--primary-accent);">
@@ -1600,7 +1600,7 @@
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. How We Use
               Information</h3>
-            <p style="margin-bottom: 12px;">We utilize your data strictly to operate and support Studyhub, specifically
+            <p style="margin-bottom: 12px;">We utilize your data strictly to operate and support StudyMyte, specifically
               to:</p>
             <ul style="padding-left: 20px; list-style-type: disc; margin-bottom: 16px;">
               <li style="margin-bottom: 6px;">Manage authentication, permissions, and session validation.</li>
@@ -1740,7 +1740,7 @@
         </div>
       </div>
 
-      <!-- ABOUT STUDYHUB MODAL -->
+      <!-- ABOUT STUDYMYTE MODAL -->
       <!-- PROFILE PAGE VIEW -->
       <div id="view-profile" class="page-view" style="display: none;">
         <div class="profile-container" style="max-width: 600px; margin: 0 auto; padding: 20px 16px 80px 16px;">
@@ -1829,7 +1829,7 @@
                 <i data-lucide="moon" style="color: var(--primary); width: 20px; height: 20px;"></i>
                 Dark Mode
               </h3>
-              <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Experience StudyHub with a deep
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Experience StudyMyte with a deep
                 aesthetic glassmorphic theme</p>
             </div>
             <label class="ui-toggle-switch" style="margin: 0;" title="Toggle Dark Mode">
@@ -1945,7 +1945,7 @@
               Pending Approvals (<span id="pending-users-count">0</span>)
             </h3>
             <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-              Educators and admins require registration approval before accessing Studyhub contents.
+              Educators and admins require registration approval before accessing StudyMyte contents.
             </p>
             <div id="pending-users-list-container">
               <!-- Rendered via JS -->
@@ -2181,12 +2181,12 @@
               <h3
                 style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
                 <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
-                What is StudyHub?
+                What is StudyMyte?
               </h3>
               <p style="color: var(--text-color); line-height: 1.6; font-size: 15px;">
-                <strong>StudyHub</strong> is a modern, student-centric digital library and sharing platform designed
+                <strong>StudyMyte</strong> is a modern, student-centric digital library and sharing platform designed
                 to make academic life simpler, more collaborative, and highly efficient. Created specifically for
-                BTKIT students, StudyHub serves as a centralized hub where anyone can access, search, and download a
+                BTKIT students, StudyMyte serves as a centralized hub where anyone can access, search, and download a
                 wide variety of academic materials.
               </p>
               <ul
@@ -2229,7 +2229,7 @@
                 <i data-lucide="lightbulb" style="width: 20px; height: 20px;"></i>
                 Our Solution
               </h3>
-              <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">StudyHub
+              <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">StudyMyte
                 solves these pain points by offering a unified, clean, and accessible portal:</p>
               <ul
                 style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
@@ -2251,7 +2251,7 @@
                 How to Contribute
               </h3>
               <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">
-                We believe StudyHub belongs to the student community. If you want to help grow the platform, improve
+                We believe StudyMyte belongs to the student community. If you want to help grow the platform, improve
                 the resources, or fix a bug, here is how you can contribute:
               </p>
               <ul
@@ -2265,7 +2265,7 @@
               </ul>
               <p
                 style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-top: 12px; font-style: italic;">
-                “Knowledge multiplies when shared.�? We invite every student to make the most of StudyHub, and
+                “Knowledge multiplies when shared.�? We invite every student to make the most of StudyMyte, and
                 encourage contributors to help us expand it!
               </p>
             </div>
@@ -2277,7 +2277,7 @@
               <i data-lucide="users" style="color: var(--primary); width: 28px; height: 28px;"></i>
               Ownership & Roles
             </h2>
-            <p style="color: var(--text-muted); font-size: 15px; margin-top: 8px;">StudyHub is built and maintained by
+            <p style="color: var(--text-muted); font-size: 15px; margin-top: 8px;">StudyMyte is built and maintained by
               a dedicated team committed to improving the academic experience.</p>
           </div>
 
@@ -2616,12 +2616,12 @@
 
     <!-- DESKTOP FOOTER -->
     <footer class="desktop-footer">
-      <h3 class="footer-brand">Studyhub</h3>
+      <h3 class="footer-brand">StudyMyte</h3>
       <p class="footer-tagline">A central academic repository for students.</p>
 
       <div class="footer-connect" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
         <span>Connect:</span>
-        <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr" target="_blank" rel="noopener noreferrer"
+        <a href="https://www.instagram.com/studymyte_0fficial?utm_source=qr" target="_blank" rel="noopener noreferrer"
           style="display: flex; align-items: center; gap: 6px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -2645,7 +2645,7 @@
         </a>
       </div>
 
-      <p class="footer-copyright">&copy; 2026 Studyhub. Built for juniors, by seniors.</p>
+      <p class="footer-copyright">&copy; 2026 StudyMyte. Built for juniors, by seniors.</p>
       <p class="footer-copyright">Developed By : Ankit Ghugtyal</p>
 
       <div class="footer-links">
@@ -3019,7 +3019,7 @@
           style="display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--primary-dark);">
           <i data-lucide="smartphone"
             style="width: 40px; height: 40px; color: var(--primary); background-color: var(--primary-accent); padding: 8px; border-radius: 50%;"></i>
-          Download Study Hub App
+          Download StudyMyte App
         </h3>
       </div>
       <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">Select your mobile
