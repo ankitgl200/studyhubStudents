@@ -311,6 +311,13 @@ const api = {
     });
   },
 
+  async moveFolder(folderId, parentId) {
+    return await request(`/folders/${folderId}/move`, {
+      method: 'PUT',
+      body: { parentId }
+    });
+  },
+
   async deleteFolder(folderId) {
     return await request(`/folders/${folderId}`, {
       method: 'DELETE'
@@ -531,13 +538,18 @@ let editingIndex = null; // The index of the scanned page currently being edited
 let editorRotation = 0; // Rotate state (0, 90, 180, 270)
 let editorFilter = 'original'; // Current filter name ('original', 'bw', 'gray')
 let editorImg = new Image(); // The original image object loaded into editor memory
-let currentNotesFolder = null;
-let currentPapersFolder = null;
+let notesFolderStack = []; // Multi-level folder stack for Notes: [yearFolder, branchFolder, subjectFolder, ...]
+let papersFolderStack = []; // Multi-level folder stack for Papers: [yearFolder, branchFolder, subjectFolder, ...]
+let labManualsFolderStack = []; // Multi-level folder stack for Lab Manuals
 let currentResourcesFolder = null;
 let currentResourcesSection = 'root'; // 'root' | 'syllabus' | 'lab_manuals' | 'lab_manuals_folder' | 'books' | 'books_folder' | 'simulations' | 'competitive' | 'competitive_folder' | 'calculator'
 let simulationFolderStack = [];
 let roadmapFolderStack = simulationFolderStack;
 let notesFoldersList = []; // Kept in memory to populate syllabus uploads
+// Legacy compatibility helpers
+function getCurrentNotesFolder() { return notesFolderStack.length > 0 ? notesFolderStack[notesFolderStack.length - 1] : null; }
+function getCurrentPapersFolder() { return papersFolderStack.length > 0 ? papersFolderStack[papersFolderStack.length - 1] : null; }
+function getCurrentLabManualsFolder() { return labManualsFolderStack.length > 0 ? labManualsFolderStack[labManualsFolderStack.length - 1] : null; }
 let activeDirectoryTab = 'admin'; // 'admin' | 'teacher' | 'student'
 let adminUserSearchQuery = '';
 let directoryVisibleCount = 5;
@@ -905,7 +917,7 @@ function updateNavbar() {
 }
 
 // ----------------------------------------------------------------
-// DESKTOP SCROLL NAV — Instant, fluid, cancelable anime.js engine
+// DESKTOP SCROLL NAV ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Instant, fluid, cancelable anime.js engine
 // ----------------------------------------------------------------
 function initDesktopScrollNav() {
   const navbar   = document.querySelector('.navbar');
@@ -1271,7 +1283,7 @@ async function router() {
     if (prevBook && prevBook._tiltCleanup) prevBook._tiltCleanup();
   }
 
-  // Detect flip direction when toggling login ↔ signup
+  // Detect flip direction when toggling login ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â signup
   const prevPath = router._prevPath || '';
   if (cleanPath === '/signup' && prevPath === '/login') setAuthFlipDirection('forward');
   else if (cleanPath === '/login' && prevPath === '/signup') setAuthFlipDirection('backward');
@@ -1433,32 +1445,33 @@ async function renderHomeView() {
     }
   }
 
-  // Load and render teacher rankings on the leaderboard card
-  const leaderboardList = document.getElementById('teacher-ranking-list');
+  // Load and render contributor rankings on the leaderboard card
+  const leaderboardList = document.getElementById('contributor-ranking-list');
   if (leaderboardList) {
     leaderboardList.innerHTML = getLeaderboardSkeleton();
-    api.getTeacherRanking()
+    api.getContributors()
       .then(ranking => {
-        const topRanking = ranking.slice(0, 3);
+        const topRanking = ranking.slice(0, 5);
         if (topRanking.length === 0) {
-          leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 0;">No educators ranked yet</div>';
+          leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 0;">No contributors yet</div>';
         } else {
-          leaderboardList.innerHTML = topRanking.map((t, index) => {
+          leaderboardList.innerHTML = topRanking.map((c, index) => {
             const rankNum = index + 1;
             let trophy = '';
-            if (rankNum === 1) trophy = '🏆';
-            else if (rankNum === 2) trophy = '🥈';
-            else if (rankNum === 3) trophy = '🥉';
+            if (rankNum === 1) trophy = '\uD83E\uDD47';
+            else if (rankNum === 2) trophy = '\uD83E\uDD48';
+            else if (rankNum === 3) trophy = '\uD83E\uDD49';
 
-            const isSelf = currentUser && currentUser.id === t.id;
+            const isSelf = currentUser && currentUser.id === c.id;
             const bgStyle = isSelf ? 'background-color: rgba(34, 197, 94, 0.05);' : '';
 
             return `
               <div style="display: flex; align-items: center; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); ${bgStyle} font-size: 14px; gap: 12px; background: var(--card-bg);">
                 <span style="font-weight: 800; min-width: 44px; color: var(--text-main); font-size: 13px;">#${rankNum}${trophy ? ' ' + trophy : ''}</span>
                 <span style="font-weight: 600; color: var(--primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                  ${escapeHTML(capitalizeName(t.name))}
+                  ${escapeHTML(capitalizeName(c.name))}
                 </span>
+                <span style="font-weight: 600; color: var(--text-muted); font-size: 12px;">${c.points} pts</span>
               </div>
             `;
           }).join('');
@@ -1466,7 +1479,7 @@ async function renderHomeView() {
       })
       .catch(err => {
         console.error('Failed to load home leaderboard:', err);
-        leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--danger);">Failed to load rankings</div>';
+        leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--danger); text-align: center; padding: 10px 0;">Failed to load rankings</div>';
       });
   }
 
@@ -1645,42 +1658,68 @@ function initScrollProgressBar() {
 
 // 2. NOTES VIEW
 async function renderNotesView() {
-  localStorage.setItem('currentNotesFolder', JSON.stringify(currentNotesFolder));
+  localStorage.setItem('notesFolderStack', JSON.stringify(notesFolderStack));
   const breadcrumbs = document.getElementById('notes-breadcrumbs');
   const actions = document.getElementById('notes-header-actions');
   const content = document.getElementById('notes-content-container');
 
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
   const isStaff = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator');
+  const currentFolder = getCurrentNotesFolder();
 
-  // 1. Render Header / Breadcrumbs & Action buttons
-  if (!currentNotesFolder) {
-    breadcrumbs.innerHTML = `<span class="breadcrumb-item breadcrumb-active">Subject Notes</span>`;
+  // 1. Build breadcrumbs from stack
+  let crumbsHTML = `<span class="breadcrumb-item ${notesFolderStack.length === 0 ? 'breadcrumb-active' : ''}" id="notes-root-crumb">Subject Notes</span>`;
+  notesFolderStack.forEach((f, idx) => {
+    const isLast = idx === notesFolderStack.length - 1;
+    crumbsHTML += `
+      <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
+      <span class="breadcrumb-item ${isLast ? 'breadcrumb-active' : ''} notes-crumb-item" data-idx="${idx}" style="${!isLast ? 'cursor:pointer;' : ''}">${escapeHTML(f.name)}</span>
+    `;
+  });
+  breadcrumbs.innerHTML = crumbsHTML;
+
+  // Breadcrumb click handlers
+  const rootCrumb = document.getElementById('notes-root-crumb');
+  if (rootCrumb && notesFolderStack.length > 0) {
+    rootCrumb.style.cursor = 'pointer';
+    rootCrumb.addEventListener('click', () => { notesFolderStack = []; renderNotesView(); });
+  }
+  document.querySelectorAll('.notes-crumb-item').forEach(crumb => {
+    const idx = parseInt(crumb.getAttribute('data-idx'));
+    if (idx < notesFolderStack.length - 1) {
+      crumb.addEventListener('click', () => {
+        notesFolderStack = notesFolderStack.slice(0, idx + 1);
+        renderNotesView();
+      });
+    }
+  });
+
+  // 2. Action buttons
+  if (notesFolderStack.length === 0) {
     actions.innerHTML = isAdmin ? `
       <button class="btn btn-primary" id="btn-add-notes-folder" style="display: flex; align-items: center; gap: 6px;">
-        <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> Add Subject Folder
+        <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> Add Year Folder
       </button>
     ` : '';
-
     if (isAdmin) {
       document.getElementById('btn-add-notes-folder').addEventListener('click', () => {
-        openFolderModal('notes');
+        openFolderModal('notes', '', '', null);
       });
     }
   } else {
-    breadcrumbs.innerHTML = `
-      <span class="breadcrumb-item" id="notes-back-crumb">Subject Notes</span>
-      <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
-      <span class="breadcrumb-active">${escapeHTML(currentNotesFolder.name)}</span>
-    `;
     actions.innerHTML = `
-      <div style="display: flex; gap: 10px;">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="btn btn-secondary" id="btn-notes-back">
           <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back
         </button>
+        ${isAdmin ? `
+          <button class="btn btn-secondary" id="btn-add-notes-subfolder" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> New Folder
+          </button>
+        ` : ''}
         ${isStaff ? `
           <button class="btn btn-primary" id="btn-notes-upload" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload Note (PDF)
+            <i data-lucide="upload" style="width: 18px; height: 18px;"></i> Upload Note (PDF)
           </button>
         ` : (currentUser && currentUser.role === 'student' ? `
           <button class="btn btn-primary" id="btn-notes-contribute-folder" style="display: flex; align-items: center; gap: 6px;">
@@ -1690,122 +1729,87 @@ async function renderNotesView() {
       </div>
     `;
 
-    document.getElementById('btn-notes-back').addEventListener('click', backToNotesFolders);
-    document.getElementById('notes-back-crumb').addEventListener('click', backToNotesFolders);
+    document.getElementById('btn-notes-back').addEventListener('click', () => {
+      notesFolderStack = notesFolderStack.slice(0, -1);
+      renderNotesView();
+    });
+
+    if (isAdmin) {
+      const addSubfolderBtn = document.getElementById('btn-add-notes-subfolder');
+      if (addSubfolderBtn) {
+        addSubfolderBtn.addEventListener('click', () => {
+          openFolderModal('notes', '', '', currentFolder.id);
+        });
+      }
+    }
     if (isStaff) {
-      document.getElementById('btn-notes-upload').addEventListener('click', () => {
-        openUploadModal('notes', currentNotesFolder.id, currentNotesFolder.name);
-      });
+      const uploadBtn = document.getElementById('btn-notes-upload');
+      if (uploadBtn) uploadBtn.addEventListener('click', () => openUploadModal('notes', currentFolder.id, currentFolder.name));
     }
     const notesContributeBtn = document.getElementById('btn-notes-contribute-folder');
     if (notesContributeBtn) {
       notesContributeBtn.addEventListener('click', () => {
-        if (window.openContributeModal) window.openContributeModal('notes', currentNotesFolder.id);
+        if (window.openContributeModal) window.openContributeModal('notes', currentFolder.id);
       });
     }
   }
 
-  // 2. Render content body
-  if (!currentNotesFolder) {
-    // Folders Grid View
-    content.innerHTML = getGridSkeleton();
-    try {
-      const folders = await api.getFolders('notes');
-      if (folders.length === 0) {
-        content.innerHTML = `
-          <div class="empty-state">
-            <i data-lucide="info" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--primary-light);"></i>
-            <p>No subjects folders created yet.</p>
-            ${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Click "Add Subject Folder" to get started.</p>' : ''}
-          </div>
-        `;
-        refreshIcons();
-        return;
-      }
+  // 3. Render content body
+  const parentId = currentFolder ? currentFolder.id : null;
+  content.innerHTML = getGridSkeleton();
 
+  try {
+    const [subFolders, docs] = await Promise.all([
+      api.getFolders('notes', parentId),
+      parentId ? api.getDocuments('notes', parentId) : Promise.resolve([])
+    ]);
+
+    const hasSubFolders = subFolders.length > 0;
+    const hasDocs = docs.length > 0;
+
+    if (!hasSubFolders && !hasDocs && !parentId) {
       content.innerHTML = `
-        <div class="folders-grid">
-          ${folders.map(f => `
-            <div class="folder-item notes-folder-card" data-id="${f.id}" data-name="${f.name}">
-              ${getFolderIconSvg('#4a82c3', '#1e56a0')}
-              <span class="folder-name">${escapeHTML(f.name)}</span>
-              ${isAdmin ? `
-                <div class="folder-actions-overlay">
-                  <button class="folder-btn btn-rename-folder" data-id="${f.id}" data-name="${f.name}" title="Rename">
-                    <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
-                  </button>
-                  <button class="folder-btn folder-btn-danger btn-delete-folder" data-id="${f.id}" title="Delete">
-                    <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
+        <div class="empty-state">
+          <i data-lucide="info" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--primary-light);"></i>
+          <p>No year folders created yet.</p>
+          ${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Click "Add Year Folder" to get started.</p>' : ''}
         </div>
       `;
-
-      // Attach Folder Navigation and CRUD Click Listeners
-      document.querySelectorAll('.notes-folder-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-          // If clicking rename or delete overlays, ignore navigation
-          if (e.target.closest('.folder-actions-overlay')) return;
-          currentNotesFolder = { id: card.getAttribute('data-id'), name: card.getAttribute('data-name') };
-          renderNotesView();
-        });
-      });
-
-      if (isAdmin) {
-        document.querySelectorAll('.btn-rename-folder').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openFolderModal('notes', btn.getAttribute('data-id'), btn.getAttribute('data-name'));
-          });
-        });
-
-        document.querySelectorAll('.btn-delete-folder').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.getAttribute('data-id');
-            if (!confirm('Are you sure you want to delete this folder and all notes inside?')) return;
-            const originalHTML = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 10px; height: 10px;"></i>';
-            refreshIcons();
-            try {
-              await api.deleteFolder(id);
-              await renderNotesView();
-            } catch (err) {
-              alert(err.message || 'Failed to delete folder');
-              btn.disabled = false;
-              btn.innerHTML = originalHTML;
-              refreshIcons();
-            }
-          });
-        });
-      }
-
-    } catch (err) {
-      content.innerHTML = `<div class="empty-state">Failed to load subject folders.</div>`;
+      refreshIcons();
+      return;
     }
-  } else {
-    // Documents list view inside folder
-    content.innerHTML = getListSkeleton();
-    try {
-      const docs = await api.getDocuments('notes', currentNotesFolder.id);
-      if (docs.length === 0) {
-        content.innerHTML = `
-          <div class="empty-state">
-            <i data-lucide="file-text" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
-            <p>No notes uploaded in this subject folder yet.</p>
-            ${isStaff ? '<p style="font-size: 14px; margin-top: 6px;">Click "Upload Note" to post the first PDF.</p>' : ''}
-          </div>
-        `;
-        refreshIcons();
-        return;
-      }
 
-      content.innerHTML = `
-        <h3 style="color: var(--primary-dark); margin-bottom: 16px;">Notes for ${escapeHTML(currentNotesFolder.name)}</h3>
+    let html = '';
+
+    if (hasSubFolders) {
+      const levelLabel = notesFolderStack.length === 0 ? 'Year' : (notesFolderStack.length === 1 ? 'Branch' : (notesFolderStack.length === 2 ? 'Subject' : 'Sub-folder'));
+      html += `
+        <div style="margin-bottom: ${hasDocs ? '28px' : '0'};">
+          ${parentId ? `<h4 style="color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">${levelLabel} Folders</h4>` : ''}
+          <div class="folders-grid">
+            ${subFolders.map(f => `
+              <div class="folder-item notes-folder-card" data-id="${f.id}" data-name="${f.name}">
+                ${getFolderIconSvg('#4a82c3', '#1e56a0')}
+                <span class="folder-name">${escapeHTML(f.name)}</span>
+                ${isAdmin ? `
+                  <div class="more-options-container" style="position: absolute; top: 12px; right: 12px; display: inline-block;">
+<button class="btn btn-secondary btn-sm btn-more-options" data-id="${f.id}" style="padding: 6px;"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button>
+<div class="more-options-dropdown" id="dropdown-${f.id}">
+<button class="dropdown-item btn-rename-notes-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="edit-2" style="width: 14px; height: 14px;"></i><span>Edit</span></button>
+<button class="dropdown-item btn-move-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>
+<button class="dropdown-item btn-delete-notes-folder" data-id="${f.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>
+</div></div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (hasDocs) {
+      html += `
+        ${hasSubFolders ? '<h4 style="color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">Notes</h4>' : ''}
         <div class="docs-list">
           ${docs.map(doc => `
             <div class="doc-card" style="position: relative;">
@@ -1814,50 +1818,27 @@ async function renderNotesView() {
                 <span class="like-count" style="font-size: 12px; font-weight: 700;">${doc.likesCount || 0}</span>
               </button>
               <div class="doc-info">
-                <div class="doc-icon-container">
-                  <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
-                </div>
+                <div class="doc-icon-container"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></div>
                 <div class="doc-meta">
                   <h5 style="display: flex; align-items: center; gap: 6px;">
                     ${doc.isPinned ? `<i data-lucide="pin" style="width: 14px; height: 14px; fill: var(--warning); color: var(--warning); flex-shrink: 0;" title="Pinned Document"></i>` : ''}
                     ${escapeHTML(doc.title)}
                   </h5>
                   <div class="doc-meta-details">
-                    <span>Academic Year: ${escapeHTML(doc.year)}</span>
-                    <span>&bull;</span>
-                    <span>${doc.uploadedByRole === 'student' ? 'Contributed By' : 'By'}: ${escapeHTML(doc.uploadedBy)}</span>
-                    <span>&bull;</span>
+                    <span>Academic Year: ${escapeHTML(doc.year)}</span><span>&bull;</span>
+                    <span>${doc.uploadedByRole === 'student' ? 'Contributed By' : 'By'}: ${escapeHTML(doc.uploadedBy)}</span><span>&bull;</span>
                     <span>${new Date(doc.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
               <div class="doc-actions" style="position: relative;">
-                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
-                  <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
-                </button>
+                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> View</button>
                 <div class="more-options-container" style="position: relative; display: inline-block;">
-                  <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
-                    <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
-                  </button>
+                  <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button>
                   <div class="more-options-dropdown" id="dropdown-${doc.id}">
-                    ${isStaff ? `
-                      <button class="dropdown-item btn-pin-doc" data-id="${doc.id}">
-                        <i data-lucide="pin" style="width: 14px; height: 14px; ${doc.isPinned ? 'fill: var(--warning); color: var(--warning);' : ''}"></i>
-                        <span>${doc.isPinned ? 'Unpin' : 'Pin'}</span>
-                      </button>
-                    ` : ''}
-                    ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `
-                      <button class="dropdown-item btn-move-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}">
-                        <i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i>
-                        <span>Shift</span>
-                      </button>
-                    ` : ''}
-                    ${canManageDocument(doc) ? `
-                      <button class="dropdown-item btn-delete-doc" data-id="${doc.id}">
-                        <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i>
-                        <span style="color: var(--danger);">Delete</span>
-                      </button>
-                    ` : ''}
+                    ${isStaff ? `<button class="dropdown-item btn-pin-doc" data-id="${doc.id}"><i data-lucide="pin" style="width: 14px; height: 14px; ${doc.isPinned ? 'fill: var(--warning); color: var(--warning);' : ''}"></i><span>${doc.isPinned ? 'Unpin' : 'Pin'}</span></button>` : ''}
+                    ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `<button class="dropdown-item btn-move-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>` : ''}
+                    ${canManageDocument(doc) ? `<button class="dropdown-item btn-delete-doc" data-id="${doc.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>` : ''}
                   </div>
                 </div>
               </div>
@@ -1865,41 +1846,79 @@ async function renderNotesView() {
           `).join('')}
         </div>
       `;
+    }
 
-      document.querySelectorAll('.btn-delete-doc').forEach(btn => {
-        btn.addEventListener('click', async () => {
+    if (!hasSubFolders && !hasDocs && parentId) {
+      html = `
+        <div class="empty-state">
+          <i data-lucide="file-text" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
+          <p>This folder is empty.</p>
+          ${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Add a sub-folder or upload a note using the buttons above.</p>' : (isStaff ? '<p style="font-size: 14px; margin-top: 6px;">Click "Upload Note" to add the first PDF.</p>' : '')}
+        </div>
+      `;
+    }
+
+    content.innerHTML = html;
+
+    document.querySelectorAll('.notes-folder-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.more-options-container')) return;
+        notesFolderStack.push({ id: card.getAttribute('data-id'), name: card.getAttribute('data-name') });
+        renderNotesView();
+      });
+    });
+
+    if (isAdmin) {
+      document.querySelectorAll('.btn-rename-notes-folder').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openFolderModal('notes', btn.getAttribute('data-id'), btn.getAttribute('data-name'), null);
+        });
+      });
+      document.querySelectorAll('.btn-delete-notes-folder').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
           const id = btn.getAttribute('data-id');
-          if (!confirm('Delete this note document?')) return;
+          if (!confirm('Delete this folder and all its contents?')) return;
           const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
-          refreshIcons();
+          btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 10px; height: 10px;"></i>'; refreshIcons();
           try {
-            await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
+            await api.deleteFolder(id); await renderNotesView();
           } catch (err) {
-            alert(err.message || 'Failed to delete note');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
-            refreshIcons();
+            alert(err.message || 'Failed to delete folder');
+            btn.disabled = false; btn.innerHTML = originalHTML; refreshIcons();
           }
         });
       });
-
-      document.querySelectorAll('.btn-like-doc').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          handleLikeToggle(e, renderNotesView);
-        });
-      });
-
-    } catch (err) {
-      content.innerHTML = `<div class="empty-state">Failed to load documents.</div>`;
     }
+
+    document.querySelectorAll('.btn-delete-doc').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Delete this note document?')) return;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>'; refreshIcons();
+        try {
+          await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
+        } catch (err) {
+          alert(err.message || 'Failed to delete note');
+          btn.disabled = false; btn.innerHTML = originalHTML; refreshIcons();
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-like-doc').forEach(btn => {
+      btn.addEventListener('click', (e) => { handleLikeToggle(e, renderNotesView); });
+    });
+
+  } catch (err) {
+    content.innerHTML = `<div class="empty-state">Failed to load folder contents.</div>`;
   }
   refreshIcons();
 }
 
 function backToNotesFolders() {
-  currentNotesFolder = null;
+  notesFolderStack = notesFolderStack.slice(0, -1);
   renderNotesView();
 }
 
@@ -1907,326 +1926,109 @@ function backToNotesFolders() {
 let paperSearchQuery = '';
 
 async function renderPapersView() {
-  localStorage.setItem('currentPapersFolder', JSON.stringify(currentPapersFolder));
+  localStorage.setItem('papersFolderStack', JSON.stringify(papersFolderStack));
   const breadcrumbs = document.getElementById('papers-breadcrumbs');
   const actions = document.getElementById('papers-header-actions');
   const content = document.getElementById('papers-content-container');
 
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
   const isStaff = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator');
+  const currentFolder = getCurrentPapersFolder();
 
-  // Breadcrumbs & Actions
-  if (!currentPapersFolder) {
-    breadcrumbs.innerHTML = `<span class="breadcrumb-item breadcrumb-active">Papers (PYQs)</span>`;
-    actions.innerHTML = isAdmin ? `
-      <button class="btn btn-primary" id="btn-add-papers-folder" style="display: flex; align-items: center; gap: 6px;">
-        <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> Add Subject Folder
-      </button>
-    ` : '';
+  let crumbsHTML = `<span class="breadcrumb-item ${papersFolderStack.length === 0 ? 'breadcrumb-active' : ''}" id="papers-root-crumb">Papers (PYQs)</span>`;
+  papersFolderStack.forEach((f, idx) => {
+    const isLast = idx === papersFolderStack.length - 1;
+    crumbsHTML += `<i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i><span class="breadcrumb-item ${isLast ? 'breadcrumb-active' : ''} papers-crumb-item" data-idx="${idx}" style="${!isLast ? 'cursor:pointer;' : ''}">${escapeHTML(f.name)}</span>`;
+  });
+  breadcrumbs.innerHTML = crumbsHTML;
 
-    if (isAdmin) {
-      document.getElementById('btn-add-papers-folder').addEventListener('click', () => {
-        openFolderModal('papers');
-      });
-    }
+  const rootCrumb = document.getElementById('papers-root-crumb');
+  if (rootCrumb && papersFolderStack.length > 0) { rootCrumb.style.cursor = 'pointer'; rootCrumb.addEventListener('click', () => { papersFolderStack = []; paperSearchQuery = ''; renderPapersView(); }); }
+  document.querySelectorAll('.papers-crumb-item').forEach(crumb => {
+    const idx = parseInt(crumb.getAttribute('data-idx'));
+    if (idx < papersFolderStack.length - 1) { crumb.addEventListener('click', () => { papersFolderStack = papersFolderStack.slice(0, idx + 1); paperSearchQuery = ''; renderPapersView(); }); }
+  });
+
+  if (papersFolderStack.length === 0) {
+    actions.innerHTML = isAdmin ? `<button class="btn btn-primary" id="btn-add-papers-folder" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> Add Year Folder</button>` : '';
+    if (isAdmin) document.getElementById('btn-add-papers-folder').addEventListener('click', () => openFolderModal('papers', '', '', null));
   } else {
-    breadcrumbs.innerHTML = `
-      <span class="breadcrumb-item" id="papers-back-crumb">Papers (PYQs)</span>
-      <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
-      <span class="breadcrumb-active">${escapeHTML(currentPapersFolder.name)}</span>
-    `;
     actions.innerHTML = `
-      <div style="display: flex; gap: 10px;">
-        <button class="btn btn-secondary" id="btn-papers-back">
-          <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back
-        </button>
-        ${isStaff ? `
-          <button class="btn btn-primary" id="btn-papers-upload" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload PYQ (PDF)
-          </button>
-        ` : (currentUser && currentUser.role === 'student' ? `
-          <button class="btn btn-primary" id="btn-papers-contribute-folder" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Contribute
-          </button>
-        ` : '')}
-      </div>
-    `;
-
-    document.getElementById('btn-papers-back').addEventListener('click', backToPapersFolders);
-    document.getElementById('papers-back-crumb').addEventListener('click', backToPapersFolders);
-    if (isStaff) {
-      document.getElementById('btn-papers-upload').addEventListener('click', () => {
-        openUploadModal('paper', currentPapersFolder.id, currentPapersFolder.name);
-      });
-    }
-    const papersContributeBtn = document.getElementById('btn-papers-contribute-folder');
-    if (papersContributeBtn) {
-      papersContributeBtn.addEventListener('click', () => {
-        if (window.openContributeModal) window.openContributeModal('papers', currentPapersFolder.id);
-      });
-    }
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" id="btn-papers-back"><i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back</button>
+        ${isAdmin ? `<button class="btn btn-secondary" id="btn-add-papers-subfolder" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> New Folder</button>` : ''}
+        ${isStaff ? `<button class="btn btn-primary" id="btn-papers-upload" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="upload" style="width: 18px; height: 18px;"></i> Upload PYQ (PDF)</button>` : (currentUser && currentUser.role === 'student' ? `<button class="btn btn-primary" id="btn-papers-contribute-folder" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="plus" style="width: 18px; height: 18px;"></i> Contribute</button>` : '')}
+      </div>`;
+    document.getElementById('btn-papers-back').addEventListener('click', () => { papersFolderStack = papersFolderStack.slice(0, -1); paperSearchQuery = ''; renderPapersView(); });
+    if (isAdmin) { const b = document.getElementById('btn-add-papers-subfolder'); if (b) b.addEventListener('click', () => openFolderModal('papers', '', '', currentFolder.id)); }
+    if (isStaff) { const b = document.getElementById('btn-papers-upload'); if (b) b.addEventListener('click', () => openUploadModal('paper', currentFolder.id, currentFolder.name)); }
+    const pb = document.getElementById('btn-papers-contribute-folder');
+    if (pb) pb.addEventListener('click', () => { if (window.openContributeModal) window.openContributeModal('papers', currentFolder.id); });
   }
 
-  // Render Content
-  if (!currentPapersFolder) {
-    // Folders Grid View
-    content.innerHTML = getGridSkeleton();
-    try {
-      const folders = await api.getFolders('papers');
-      if (folders.length === 0) {
-        content.innerHTML = `
-          <div class="empty-state">
-            <i data-lucide="info" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--primary-light);"></i>
-            <p>No paper subject folders created yet.</p>
-            ${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Click "Add Subject Folder" to get started.</p>' : ''}
-          </div>
-        `;
-        refreshIcons();
-        return;
-      }
+  const parentId = currentFolder ? currentFolder.id : null;
+  content.innerHTML = getGridSkeleton();
 
-      content.innerHTML = `
-        <div class="folders-grid">
-          ${folders.map(f => `
-            <div class="folder-item papers-folder-card" data-id="${f.id}" data-name="${f.name}">
-              ${getFolderIconSvg('#0284c7', '#0369a1')}
-              <span class="folder-name">${escapeHTML(f.name)}</span>
-              ${isAdmin ? `
-                <div class="folder-actions-overlay">
-                  <button class="folder-btn btn-rename-papers-folder" data-id="${f.id}" data-name="${f.name}" title="Rename">
-                    <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
-                  </button>
-                  <button class="folder-btn folder-btn-danger btn-delete-papers-folder" data-id="${f.id}" title="Delete">
-                    <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-      `;
+  try {
+    const [subFolders, docs] = await Promise.all([
+      api.getFolders('papers', parentId),
+      parentId ? api.getDocuments('paper', parentId) : Promise.resolve([])
+    ]);
+    const hasSubFolders = subFolders.length > 0;
+    const hasDocs = docs.length > 0;
 
-      // Folder Click Listeners
-      document.querySelectorAll('.papers-folder-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.folder-actions-overlay')) return;
-          currentPapersFolder = { id: card.getAttribute('data-id'), name: card.getAttribute('data-name') };
-          paperSearchQuery = '';
-          renderPapersView();
-        });
+    if (!hasSubFolders && !hasDocs && !parentId) {
+      content.innerHTML = `<div class="empty-state"><i data-lucide="info" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--primary-light);"></i><p>No year folders created yet.</p>${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Click &quot;Add Year Folder&quot; to get started.</p>' : ''}</div>`;
+      refreshIcons(); return;
+    }
+
+    let html = '';
+    if (hasSubFolders) {
+      const levelLabel = papersFolderStack.length === 0 ? 'Year' : (papersFolderStack.length === 1 ? 'Branch' : (papersFolderStack.length === 2 ? 'Subject' : 'Sub-folder'));
+      html += `<div style="margin-bottom: ${hasDocs ? '28px' : '0'};">${parentId ? `<h4 style="color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">${levelLabel} Folders</h4>` : ''}<div class="folders-grid">${subFolders.map(f => `<div class="folder-item papers-folder-card" data-id="${f.id}" data-name="${f.name}">${getFolderIconSvg('#0284c7', '#0369a1')}<span class="folder-name">${escapeHTML(f.name)}</span>${isAdmin ? `<div class="more-options-container" style="position: absolute; top: 12px; right: 12px; display: inline-block;">
+<button class="btn btn-secondary btn-sm btn-more-options" data-id="${f.id}" style="padding: 6px;"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button>
+<div class="more-options-dropdown" id="dropdown-${f.id}">
+<button class="dropdown-item btn-rename-papers-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="edit-2" style="width: 14px; height: 14px;"></i><span>Edit</span></button>
+<button class="dropdown-item btn-move-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>
+<button class="dropdown-item btn-delete-papers-folder" data-id="${f.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>
+</div></div>` : ''}</div>`).join('')}</div></div>`;
+    }
+    if (hasDocs) {
+      const getFiltered = () => !paperSearchQuery.trim() ? docs : docs.filter(d => ((d.title||'').toLowerCase().includes(paperSearchQuery.toLowerCase()) || (d.year||'').toLowerCase().includes(paperSearchQuery.toLowerCase())));
+      const filtered = getFiltered();
+      html += `${hasSubFolders ? '<h4 style="color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">Papers (PYQs)</h4>' : ''}<div class="search-input-wrapper" style="max-width: 300px; margin-bottom: 20px;"><i data-lucide="search" class="search-input-icon" style="width: 16px; height: 16px;"></i><input type="text" id="input-paper-search" class="form-input search-input" placeholder="Search by paper name/year..." value="${escapeHTML(paperSearchQuery)}" style="padding: 8px 12px 8px 36px; font-size: 14px;" /></div>${filtered.length === 0 && paperSearchQuery ? `<div class="empty-state"><p>No papers match "${escapeHTML(paperSearchQuery)}"</p></div>` : ''}<div class="docs-list">${filtered.map(doc => `<div class="doc-card" style="position: relative; border-left: 4px solid #0284c7;"><button class="btn-like-doc like-heart-btn ${doc.hasLiked ? 'liked' : ''}" data-id="${doc.id}" style="position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; color: ${doc.hasLiked ? 'var(--danger)' : 'var(--text-muted)'}; transition: transform 0.2s ease;"><i data-lucide="heart" style="width: 16px; height: 16px; fill: ${doc.hasLiked ? 'var(--danger)' : 'none'}; stroke: ${doc.hasLiked ? 'var(--danger)' : 'currentColor'};"></i><span class="like-count" style="font-size: 12px; font-weight: 700;">${doc.likesCount || 0}</span></button><div class="doc-info"><div class="doc-icon-container" style="background-color: #e0f2fe; color: #0284c7;"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></div><div class="doc-meta"><h5 style="display: flex; align-items: center; gap: 6px;">${doc.isPinned ? '<i data-lucide="pin" style="width: 14px; height: 14px; fill: var(--warning); color: var(--warning); flex-shrink: 0;" title="Pinned Document"></i>' : ''}${escapeHTML(doc.title)}</h5><div class="doc-meta-details"><span>Academic Year: ${escapeHTML(doc.year)}</span><span>&bull;</span><span>${doc.uploadedByRole === 'student' ? 'Contributed By' : 'By'}: ${escapeHTML(doc.uploadedBy)}</span><span>&bull;</span><span>${new Date(doc.createdAt).toLocaleDateString()}</span></div></div></div><div class="doc-actions" style="position: relative;"><button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;"><i data-lucide="eye" style="width: 14px; height: 14px;"></i> View</button><div class="more-options-container" style="position: relative; display: inline-block;"><button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button><div class="more-options-dropdown" id="dropdown-${doc.id}">${isStaff ? `<button class="dropdown-item btn-pin-doc" data-id="${doc.id}"><i data-lucide="pin" style="width: 14px; height: 14px; ${doc.isPinned ? 'fill: var(--warning); color: var(--warning);' : ''}"></i><span>${doc.isPinned ? 'Unpin' : 'Pin'}</span></button>` : ''}${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `<button class="dropdown-item btn-move-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>` : ''}${canManageDocument(doc) ? `<button class="dropdown-item btn-edit-uploaded-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}" data-subject="${escapeHTML(doc.subject || '')}" data-year="${escapeHTML(doc.year || '')}"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i><span>Edit</span></button>` : ''}${canManageDocument(doc) ? `<button class="dropdown-item btn-delete-papers-doc" data-id="${doc.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>` : ''}</div></div></div></div>`).join('')}</div>`;
+    }
+    if (!hasSubFolders && !hasDocs && parentId) {
+      html = `<div class="empty-state"><i data-lucide="file-text" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i><p>This folder is empty.</p>${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Add a sub-folder or upload a PYQ using the buttons above.</p>' : (isStaff ? '<p style="font-size: 14px; margin-top: 6px;">Click &quot;Upload PYQ&quot; to add the first PDF.</p>' : '')}</div>`;
+    }
+    content.innerHTML = html;
+
+    const si = document.getElementById('input-paper-search');
+    if (si) si.addEventListener('input', (e) => { paperSearchQuery = e.target.value; renderPapersView(); });
+
+    document.querySelectorAll('.papers-folder-card').forEach(card => {
+      card.addEventListener('click', (e) => { if (e.target.closest('.more-options-container')) return; papersFolderStack.push({ id: card.getAttribute('data-id'), name: card.getAttribute('data-name') }); paperSearchQuery = ''; renderPapersView(); });
+    });
+    if (isAdmin) {
+      document.querySelectorAll('.btn-rename-papers-folder').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); openFolderModal('papers', btn.getAttribute('data-id'), btn.getAttribute('data-name'), null); }); });
+      document.querySelectorAll('.btn-delete-papers-folder').forEach(btn => {
+        btn.addEventListener('click', async (e) => { e.stopPropagation(); const id = btn.getAttribute('data-id'); if (!confirm('Delete this folder and all its contents?')) return; const oh = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 10px; height: 10px;"></i>'; refreshIcons(); try { await api.deleteFolder(id); await renderPapersView(); } catch (err) { alert(err.message || 'Failed to delete'); btn.disabled = false; btn.innerHTML = oh; refreshIcons(); } });
       });
-
-      if (isAdmin) {
-        document.querySelectorAll('.btn-rename-papers-folder').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openFolderModal('papers', btn.getAttribute('data-id'), btn.getAttribute('data-name'));
-          });
-        });
-
-        document.querySelectorAll('.btn-delete-papers-folder').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.getAttribute('data-id');
-            if (!confirm('Are you sure you want to delete this folder and all papers inside?')) return;
-            const originalHTML = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 10px; height: 10px;"></i>';
-            refreshIcons();
-            try {
-              await api.deleteFolder(id);
-              await renderPapersView();
-            } catch (err) {
-              alert(err.message || 'Failed to delete folder');
-              btn.disabled = false;
-              btn.innerHTML = originalHTML;
-              refreshIcons();
-            }
-          });
-        });
-      }
-
-    } catch (err) {
-      content.innerHTML = `<div class="empty-state">Failed to load subject folders.</div>`;
     }
-  } else {
-    // Documents list inside folder
-    content.innerHTML = getListSkeleton();
-    try {
-      const docs = await api.getDocuments('paper', currentPapersFolder.id);
+    document.querySelectorAll('.btn-delete-papers-doc').forEach(btn => {
+      btn.addEventListener('click', async () => { const id = btn.getAttribute('data-id'); if (!confirm('Delete this paper?')) return; const oh = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>'; refreshIcons(); try { await api.deleteDocument(id); const c = btn.closest('.doc-card'); if(c) { c.style.transition = 'opacity 0.3s'; c.style.opacity = '0'; setTimeout(() => c.remove(), 300); } } catch (err) { alert(err.message || 'Failed to delete'); btn.disabled = false; btn.innerHTML = oh; refreshIcons(); } });
+    });
+    document.querySelectorAll('.btn-like-doc').forEach(btn => { btn.addEventListener('click', (e) => { handleLikeToggle(e, renderPapersView); }); });
 
-      // Filtering logic
-      const getFilteredDocs = () => {
-        if (!paperSearchQuery.trim()) return docs;
-        const q = paperSearchQuery.toLowerCase();
-        return docs.filter(d => {
-          const title = d.title || '';
-          const year = d.year || '';
-          return title.toLowerCase().includes(q) || year.toLowerCase().includes(q);
-        });
-      };
-
-      const renderDocsList = () => {
-        const filtered = getFilteredDocs();
-
-        let searchBarHTML = '';
-        if (docs.length > 0) {
-          searchBarHTML = `
-            <div class="search-input-wrapper" style="max-width: 300px; margin-bottom: 20px;">
-              <i data-lucide="search" class="search-input-icon" style="width: 16px; height: 16px;"></i>
-              <input
-                type="text"
-                id="input-paper-search"
-                class="form-input search-input"
-                placeholder="Search by paper name/year..."
-                value="${escapeHTML(paperSearchQuery)}"
-                style="padding: 8px 12px 8px 36px; font-size: 14px;"
-              />
-            </div>
-          `;
-        }
-
-        let listHTML = '';
-        if (docs.length === 0) {
-          listHTML = `
-            <div class="empty-state">
-              <i data-lucide="file-text" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
-              <p>No Previous Year Papers uploaded in this subject folder yet.</p>
-              ${isStaff ? '<p style="font-size: 14px; margin-top: 6px;">Click "Upload PYQ" to post the first PDF.</p>' : ''}
-            </div>
-          `;
-        } else if (filtered.length === 0) {
-          listHTML = `
-            <div class="empty-state">
-              <p>No papers match your search "${escapeHTML(paperSearchQuery)}"</p>
-            </div>
-          `;
-        } else {
-          listHTML = `
-            <div class="docs-list">
-              ${filtered.map(doc => `
-                <div class="doc-card" style="position: relative; border-left: 4px solid #0284c7;">
-                  <button class="btn-like-doc like-heart-btn ${doc.hasLiked ? 'liked' : ''}" data-id="${doc.id}" title="${doc.hasLiked ? 'Unlike' : 'Like'} this resource" style="position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; color: ${doc.hasLiked ? 'var(--danger)' : 'var(--text-muted)'}; transition: transform 0.2s ease;">
-                    <i data-lucide="heart" style="width: 16px; height: 16px; fill: ${doc.hasLiked ? 'var(--danger)' : 'none'}; stroke: ${doc.hasLiked ? 'var(--danger)' : 'currentColor'};"></i>
-                    <span class="like-count" style="font-size: 12px; font-weight: 700;">${doc.likesCount || 0}</span>
-                  </button>
-                  <div class="doc-info">
-                    <div class="doc-icon-container" style="background-color: #e0f2fe; color: #0284c7;">
-                      <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <div class="doc-meta">
-                      <h5 style="display: flex; align-items: center; gap: 6px;">
-                        ${doc.isPinned ? `<i data-lucide="pin" style="width: 14px; height: 14px; fill: var(--warning); color: var(--warning); flex-shrink: 0;" title="Pinned Document"></i>` : ''}
-                        ${escapeHTML(doc.title)}
-                      </h5>
-                      <div class="doc-meta-details">
-                        <span>Academic Year: ${escapeHTML(doc.year)}</span>
-                        <span>&bull;</span>
-                        <span>${doc.uploadedByRole === 'student' ? 'Contributed By' : 'By'}: ${escapeHTML(doc.uploadedBy)}</span>
-                        <span>&bull;</span>
-                        <span>${new Date(doc.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="doc-actions" style="position: relative;">
-                    <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm" style="padding: 8px 12px;">
-                      <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
-                    </button>
-                    <div class="more-options-container" style="position: relative; display: inline-block;">
-                      <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
-                        <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
-                      </button>
-                      <div class="more-options-dropdown" id="dropdown-${doc.id}">
-                        ${isStaff ? `
-                          <button class="dropdown-item btn-pin-doc" data-id="${doc.id}">
-                            <i data-lucide="pin" style="width: 14px; height: 14px; ${doc.isPinned ? 'fill: var(--warning); color: var(--warning);' : ''}"></i>
-                            <span>${doc.isPinned ? 'Unpin' : 'Pin'}</span>
-                          </button>
-                        ` : ''}
-                        ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `
-                          <button class="dropdown-item btn-move-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}">
-                            <i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i>
-                            <span>Shift</span>
-                          </button>
-                        ` : ''}
-                        ${canManageDocument(doc) ? `
-                          <button class="dropdown-item btn-delete-paper" data-id="${doc.id}">
-                            <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i>
-                            <span style="color: var(--danger);">Delete</span>
-                          </button>
-                        ` : ''}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          `;
-        }
-
-        content.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-            <h3 style="color: var(--primary-dark); margin: 0;">PYQs for ${escapeHTML(currentPapersFolder.name)}</h3>
-            ${searchBarHTML}
-          </div>
-          <div id="papers-list-render-mount">
-            ${listHTML}
-          </div>
-        `;
-
-        // Re-attach Search input handler
-        const searchInput = document.getElementById('input-paper-search');
-        if (searchInput) {
-          // Focus at the end of the text
-          searchInput.focus();
-          searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
-          
-          searchInput.addEventListener('input', (e) => {
-            paperSearchQuery = e.target.value;
-            renderDocsList();
-          });
-        }
-
-        // Re-attach Delete handler
-        document.querySelectorAll('.btn-delete-paper').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id');
-            if (!confirm('Delete this paper document?')) return;
-            const originalHTML = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
-            refreshIcons();
-            try {
-              await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
-            } catch (err) {
-              alert(err.message || 'Failed to delete paper');
-              btn.disabled = false;
-              btn.innerHTML = originalHTML;
-              refreshIcons();
-            }
-          });
-        });
-
-        // Re-attach Like handler
-        document.querySelectorAll('.btn-like-doc').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            handleLikeToggle(e, renderPapersView);
-          });
-        });
-        refreshIcons();
-      };
-
-      renderDocsList();
-
-    } catch (err) {
-      content.innerHTML = `<div class="empty-state">Failed to load papers documents.</div>`;
-    }
+  } catch (err) {
+    content.innerHTML = `<div class="empty-state">Failed to load folder contents.</div>`;
   }
   refreshIcons();
 }
 
 function backToPapersFolders() {
-  currentPapersFolder = null;
+  papersFolderStack = papersFolderStack.slice(0, -1);
+  paperSearchQuery = '';
   renderPapersView();
 }
 
@@ -2235,6 +2037,7 @@ async function renderResourcesView() {
   localStorage.setItem('currentResourcesSection', currentResourcesSection);
   localStorage.setItem('currentResourcesFolder', JSON.stringify(currentResourcesFolder));
   localStorage.setItem('roadmapFolderStack', JSON.stringify(roadmapFolderStack));
+  localStorage.setItem('labManualsFolderStack', JSON.stringify(labManualsFolderStack));
   const breadcrumbs = document.getElementById('resources-breadcrumbs');
   const actions = document.getElementById('resources-header-actions');
   const content = document.getElementById('resources-content-container');
@@ -2264,40 +2067,41 @@ async function renderResourcesView() {
         `;
       });
     } else {
+      // For lab_manuals / books / competitive: use labManualsFolderStack for multi-level breadcrumbs
+      const isLabSection = currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive';
+      const sectionLabel = currentResourcesSection === 'syllabus' ? 'Syllabus' : (currentResourcesSection.startsWith('lab_manuals') ? 'Lab Manuals' : (currentResourcesSection.startsWith('books') ? 'Books' : (currentResourcesSection.startsWith('competitive') ? 'Competitive Exam PYQs' : (currentResourcesSection === 'calculator' ? 'SGPA & CGPA Calculator' : ''))));
       crumbsHTML += `
         <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
-        <span class="breadcrumb-item ${!currentResourcesFolder ? 'breadcrumb-active' : ''}" id="crumb-resources-section">
-          ${currentResourcesSection === 'syllabus' ? 'Syllabus' : ''}
-          ${currentResourcesSection.startsWith('lab_manuals') ? 'Lab Manuals' : ''}
-          ${currentResourcesSection.startsWith('books') ? 'Books' : ''}
-          ${currentResourcesSection.startsWith('competitive') ? 'Competitive Exam PYQs' : ''}
-          ${currentResourcesSection === 'calculator' ? 'SGPA & CGPA Calculator' : ''}
-        </span>
+        <span class="breadcrumb-item ${labManualsFolderStack.length === 0 ? 'breadcrumb-active' : ''}" id="crumb-resources-section" style="${labManualsFolderStack.length > 0 ? 'cursor:pointer;' : ''}">${sectionLabel}</span>
       `;
-      if (currentResourcesFolder) {
+      labManualsFolderStack.forEach((folder, idx) => {
+        const isLast = idx === labManualsFolderStack.length - 1;
         crumbsHTML += `
           <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
-          <span class="breadcrumb-active">${escapeHTML(currentResourcesFolder.name)}</span>
+          <span class="breadcrumb-item ${isLast ? 'breadcrumb-active' : ''} res-lab-crumb-item" data-idx="${idx}" style="${!isLast ? 'cursor:pointer;' : ''}">${escapeHTML(folder.name)}</span>
         `;
-      }
+      });
     }
 
     // Header buttons
+    const isLabOrBooks = currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive';
+    const isInsideLabFolder = labManualsFolderStack.length > 0 && isLabOrBooks;
+    const currentLabFolder = labManualsFolderStack.length > 0 ? labManualsFolderStack[labManualsFolderStack.length - 1] : null;
     actionsHTML = `
-      <div style="display: flex; gap: 10px;">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="btn btn-secondary" id="btn-resources-back">
           <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> Back
         </button>
-        ${(isAdmin && (currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive')) || (isStaffOrEducator && (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') && !currentResourcesFolder) ? `
-          <button class="btn btn-primary" id="btn-resources-add-folder" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> Add Folder
+        ${(isAdmin && (isLabOrBooks)) || (isStaffOrEducator && (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') && !currentResourcesFolder) ? `
+          <button class="btn btn-secondary" id="btn-resources-add-folder" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="folder-plus" style="width: 18px; height: 18px;"></i> ${isInsideLabFolder ? 'New Folder' : 'Add Year Folder'}
           </button>
         ` : ''}
-        ${(isStaff && (currentResourcesSection === 'syllabus' || currentResourcesSection === 'lab_manuals_folder' || currentResourcesSection === 'books_folder' || currentResourcesSection === 'competitive_folder')) || (isStaffOrEducator && (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') && currentResourcesFolder) ? `
+        ${(isStaff && (currentResourcesSection === 'syllabus' || (isLabOrBooks && isInsideLabFolder))) || (isStaffOrEducator && (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') && currentResourcesFolder) ? `
           <button class="btn btn-primary" id="btn-resources-upload" style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Upload Simulation / PDF
+            <i data-lucide="upload" style="width: 18px; height: 18px;"></i> Upload PDF
           </button>
-        ` : (!isStaff && currentUser && currentUser.role === 'student' && (currentResourcesFolder || currentResourcesSection === 'syllabus') ? `
+        ` : (!isStaff && currentUser && currentUser.role === 'student' && (isInsideLabFolder || currentResourcesFolder || currentResourcesSection === 'syllabus') ? `
           <button class="btn btn-primary" id="btn-resources-contribute-folder" style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Contribute
           </button>
@@ -2311,17 +2115,26 @@ async function renderResourcesView() {
 
   // Crumb clicks
   const crumbRoot = document.getElementById('crumb-resources-root');
-  if (crumbRoot) crumbRoot.addEventListener('click', () => { currentResourcesSection = 'root'; currentResourcesFolder = null; simulationFolderStack = []; roadmapFolderStack = []; renderResourcesView(); });
+  if (crumbRoot) crumbRoot.addEventListener('click', () => { currentResourcesSection = 'root'; currentResourcesFolder = null; simulationFolderStack = []; roadmapFolderStack = []; labManualsFolderStack = []; renderResourcesView(); });
 
   const crumbSection = document.getElementById('crumb-resources-section');
   if (crumbSection) crumbSection.addEventListener('click', () => {
-    if (currentResourcesSection.endsWith('_folder')) {
-      currentResourcesSection = currentResourcesSection.replace('_folder', '');
-    }
+    labManualsFolderStack = [];
     currentResourcesFolder = null;
     simulationFolderStack = [];
     roadmapFolderStack = [];
     renderResourcesView();
+  });
+
+  // Lab/Books/Competitive crumb items
+  document.querySelectorAll('.res-lab-crumb-item').forEach(crumb => {
+    crumb.addEventListener('click', () => {
+      const idx = parseInt(crumb.getAttribute('data-idx'));
+      if (idx < labManualsFolderStack.length - 1) {
+        labManualsFolderStack = labManualsFolderStack.slice(0, idx + 1);
+        renderResourcesView();
+      }
+    });
   });
 
   // Re-attach breadcrumbs stack handlers
@@ -2339,7 +2152,11 @@ async function renderResourcesView() {
   if (backBtn) backBtn.addEventListener('click', handleResourcesBack);
 
   const addFolderBtn = document.getElementById('btn-resources-add-folder');
-  if (addFolderBtn) addFolderBtn.addEventListener('click', () => openFolderModal(currentResourcesSection));
+  if (addFolderBtn) {
+    const isLabSect = currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive';
+    const parentIdForNew = (isLabSect && labManualsFolderStack.length > 0) ? labManualsFolderStack[labManualsFolderStack.length - 1].id : null;
+    addFolderBtn.addEventListener('click', () => openFolderModal(currentResourcesSection, '', '', parentIdForNew));
+  }
 
   const uploadBtn = document.getElementById('btn-resources-upload');
   if (uploadBtn) {
@@ -2347,22 +2164,15 @@ async function renderResourcesView() {
       let docType = 'syllabus';
       let folderId = null;
       let folderName = '';
-      if (currentResourcesSection === 'lab_manuals_folder') {
-        docType = 'lab_manual';
-        folderId = currentResourcesFolder.id;
-        folderName = currentResourcesFolder.name;
-      } else if (currentResourcesSection === 'books_folder') {
-        docType = 'book';
-        folderId = currentResourcesFolder.id;
-        folderName = currentResourcesFolder.name;
-      } else if (currentResourcesSection === 'competitive_folder') {
-        docType = 'competitive';
-        folderId = currentResourcesFolder.id;
-        folderName = currentResourcesFolder.name;
+      const currentLabFolder = labManualsFolderStack.length > 0 ? labManualsFolderStack[labManualsFolderStack.length - 1] : null;
+      if (currentResourcesSection === 'lab_manuals' && currentLabFolder) {
+        docType = 'lab_manual'; folderId = currentLabFolder.id; folderName = currentLabFolder.name;
+      } else if (currentResourcesSection === 'books' && currentLabFolder) {
+        docType = 'book'; folderId = currentLabFolder.id; folderName = currentLabFolder.name;
+      } else if (currentResourcesSection === 'competitive' && currentLabFolder) {
+        docType = 'competitive'; folderId = currentLabFolder.id; folderName = currentLabFolder.name;
       } else if (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') {
-        docType = 'simulation';
-        folderId = currentResourcesFolder.id;
-        folderName = currentResourcesFolder.name;
+        docType = 'simulation'; folderId = currentResourcesFolder ? currentResourcesFolder.id : null; folderName = currentResourcesFolder ? currentResourcesFolder.name : '';
       }
       openUploadModal(docType, folderId, folderName);
     });
@@ -2376,8 +2186,10 @@ async function renderResourcesView() {
       else if (currentResourcesSection.startsWith('simulations') || currentResourcesSection.startsWith('roadmaps')) cat = 'simulations';
       else if (currentResourcesSection.startsWith('competitive')) cat = 'competitive';
       else if (currentResourcesSection === 'syllabus') cat = 'syllabus';
+      const currentLabFolder = labManualsFolderStack.length > 0 ? labManualsFolderStack[labManualsFolderStack.length - 1] : null;
+      const activeFolderId = currentLabFolder ? currentLabFolder.id : (currentResourcesFolder ? currentResourcesFolder.id : null);
       if (window.openContributeModal) {
-        window.openContributeModal(cat, currentResourcesFolder ? currentResourcesFolder.id : null);
+        window.openContributeModal(cat, activeFolderId);
       }
     });
   }
@@ -2442,9 +2254,11 @@ async function renderResourcesView() {
         currentResourcesFolder = null;
         simulationFolderStack = [];
         roadmapFolderStack = [];
+        labManualsFolderStack = [];
         renderResourcesView();
       });
     });
+
 
   } else if (currentResourcesSection === 'syllabus') {
     // Syllabus Documents View
@@ -2551,202 +2365,84 @@ async function renderResourcesView() {
     }
 
   } else if (currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive') {
-    // Folders Grid View for Lab Manuals, Books or Competitive Exams
+    // Multi-level Folders View for Lab Manuals, Books or Competitive Exams using labManualsFolderStack
     content.innerHTML = getGridSkeleton();
     try {
-      const folders = await api.getFolders(currentResourcesSection);
-      if (folders.length === 0) {
-        content.innerHTML = `
-          <div class="empty-state">
-            <i data-lucide="info" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
-            <p>No subject folders created yet.</p>
-            ${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Click "Add Subject Folder" to start.</p>' : ''}
-          </div>
-        `;
-        refreshIcons();
-        return;
-      }
-
       const isLab = currentResourcesSection === 'lab_manuals';
       const isComp = currentResourcesSection === 'competitive';
-      content.innerHTML = `
-        <div class="folders-grid">
-          ${folders.map(f => `
-            <div class="folder-item resources-folder-card" data-id="${f.id}" data-name="${f.name}">
-              ${isLab ? getFolderIconSvg('#f59e0b', '#d97706') : (isComp ? getFolderIconSvg('#f43f5e', '#e11d48') : getFolderIconSvg('#38bdf8', '#0369a1'))}
-              <span class="folder-name">${escapeHTML(f.name)}</span>
-              ${isAdmin ? `
-                <div class="folder-actions-overlay">
-                  <button class="folder-btn btn-rename-res-folder" data-id="${f.id}" data-name="${f.name}" title="Rename"><i data-lucide="edit-2" style="width:12px;height:12px;"></i></button>
-                  <button class="folder-btn folder-btn-danger btn-delete-res-folder" data-id="${f.id}" title="Delete"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-        </div>
-      `;
+      const currentLabFolder = labManualsFolderStack.length > 0 ? labManualsFolderStack[labManualsFolderStack.length - 1] : null;
+      const parentId = currentLabFolder ? currentLabFolder.id : null;
+      const docType = isLab ? 'lab_manual' : (isComp ? 'competitive' : 'book');
+
+      const [subFolders, docs] = await Promise.all([
+        api.getFolders(currentResourcesSection, parentId),
+        parentId ? api.getDocuments(docType, parentId) : Promise.resolve([])
+      ]);
+
+      const hasSubFolders = subFolders.length > 0;
+      const hasDocs = docs.length > 0;
+
+      if (!hasSubFolders && !hasDocs && !parentId) {
+        content.innerHTML = `<div class="empty-state"><i data-lucide="info" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i><p>No year folders created yet.</p>${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Click "Add Year Folder" to start.</p>' : ''}</div>`;
+        refreshIcons(); return;
+      }
+
+      let html = '';
+      if (hasSubFolders) {
+        const levelLabel = labManualsFolderStack.length === 0 ? 'Year' : (labManualsFolderStack.length === 1 ? 'Branch' : (labManualsFolderStack.length === 2 ? 'Subject' : 'Sub-folder'));
+        html += `<div style="margin-bottom: ${hasDocs ? '28px' : '0'};">${parentId ? `<h4 style="color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">${levelLabel} Folders</h4>` : ''}<div class="folders-grid">${subFolders.map(f => `<div class="folder-item resources-folder-card" data-id="${f.id}" data-name="${f.name}">${isLab ? getFolderIconSvg('#f59e0b', '#d97706') : (isComp ? getFolderIconSvg('#f43f5e', '#e11d48') : getFolderIconSvg('#38bdf8', '#0369a1'))}<span class="folder-name">${escapeHTML(f.name)}</span>${isAdmin ? `<div class="more-options-container" style="position: absolute; top: 12px; right: 12px; display: inline-block;">
+<button class="btn btn-secondary btn-sm btn-more-options" data-id="${f.id}" style="padding: 6px;"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button>
+<div class="more-options-dropdown" id="dropdown-${f.id}">
+<button class="dropdown-item btn-rename-res-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="edit-2" style="width: 14px; height: 14px;"></i><span>Edit</span></button>
+<button class="dropdown-item btn-move-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>
+<button class="dropdown-item btn-delete-res-folder" data-id="${f.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>
+</div></div>` : ''}</div>`).join('')}</div></div>`;
+      }
+      if (hasDocs) {
+        html += `${hasSubFolders ? `<h4 style="color: var(--text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px;">${isLab ? 'Lab Manuals' : (isComp ? 'PYQs' : 'Books')}</h4>` : ''}<div class="docs-list">${docs.map(doc => `<div class="doc-card" style="position: relative;"><button class="btn-like-doc like-heart-btn ${doc.hasLiked ? 'liked' : ''}" data-id="${doc.id}" style="position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; color: ${doc.hasLiked ? 'var(--danger)' : 'var(--text-muted)'}; transition: transform 0.2s ease;"><i data-lucide="heart" style="width: 16px; height: 16px; fill: ${doc.hasLiked ? 'var(--danger)' : 'none'}; stroke: ${doc.hasLiked ? 'var(--danger)' : 'currentColor'};"></i><span class="like-count" style="font-size: 12px; font-weight: 700;">${doc.likesCount || 0}</span></button><div class="doc-info"><div class="doc-icon-container"><i data-lucide="file-text" style="width: 20px; height: 20px;"></i></div><div class="doc-meta"><h5 style="display: flex; align-items: center; gap: 6px;">${doc.isPinned ? '<i data-lucide="pin" style="width: 14px; height: 14px; fill: var(--warning); color: var(--warning); flex-shrink: 0;" title="Pinned Document"></i>' : ''}${escapeHTML(doc.title)}</h5><div class="doc-meta-details"><span>Year: ${escapeHTML(doc.year)}</span><span>&bull;</span><span>${doc.uploadedByRole === 'student' ? 'Contributed By' : 'By'}: ${escapeHTML(doc.uploadedBy)}</span></div></div></div><div class="doc-actions" style="position: relative;"><button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button><div class="more-options-container" style="position: relative; display: inline-block;"><button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button><div class="more-options-dropdown" id="dropdown-${doc.id}">${isStaff ? `<button class="dropdown-item btn-pin-doc" data-id="${doc.id}"><i data-lucide="pin" style="width: 14px; height: 14px; ${doc.isPinned ? 'fill: var(--warning); color: var(--warning);' : ''}"></i><span>${doc.isPinned ? 'Unpin' : 'Pin'}</span></button>` : ''}${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `<button class="dropdown-item btn-move-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>` : ''}${canManageDocument(doc) ? `<button class="dropdown-item btn-edit-uploaded-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}" data-subject="${escapeHTML(doc.subject || '')}" data-year="${escapeHTML(doc.year || '')}"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i><span>Edit</span></button>` : ''}${canManageDocument(doc) ? `<button class="dropdown-item btn-delete-resource-doc" data-id="${doc.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>` : ''}</div></div></div></div>`).join('')}</div>`;
+      }
+      if (!hasSubFolders && !hasDocs && parentId) {
+        html = `<div class="empty-state"><i data-lucide="file-text" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i><p>This folder is empty.</p>${isAdmin ? '<p style="font-size: 14px; margin-top: 6px;">Add a sub-folder or upload a PDF using the buttons above.</p>' : (isStaff ? '<p style="font-size: 14px; margin-top: 6px;">Click "Upload PDF" to add files.</p>' : '')}</div>`;
+      }
+      content.innerHTML = html;
 
       document.querySelectorAll('.resources-folder-card').forEach(card => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.folder-actions-overlay')) return;
-          currentResourcesFolder = { id: card.getAttribute('data-id'), name: card.getAttribute('data-name') };
-          if (currentResourcesSection === 'lab_manuals') {
-            currentResourcesSection = 'lab_manuals_folder';
-          } else if (currentResourcesSection === 'competitive') {
-            currentResourcesSection = 'competitive_folder';
-          } else {
-            currentResourcesSection = 'books_folder';
-          }
+          if (e.target.closest('.more-options-container')) return;
+          labManualsFolderStack.push({ id: card.getAttribute('data-id'), name: card.getAttribute('data-name') });
           renderResourcesView();
         });
       });
 
       if (isAdmin) {
         document.querySelectorAll('.btn-rename-res-folder').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openFolderModal(currentResourcesSection, btn.getAttribute('data-id'), btn.getAttribute('data-name'));
-          });
+          btn.addEventListener('click', (e) => { e.stopPropagation(); openFolderModal(currentResourcesSection, btn.getAttribute('data-id'), btn.getAttribute('data-name'), null); });
         });
-
         document.querySelectorAll('.btn-delete-res-folder').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const id = btn.getAttribute('data-id');
-            if (!confirm('Are you sure you want to delete this folder and all documents inside?')) return;
-            const originalHTML = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 10px; height: 10px;"></i>';
-            refreshIcons();
-            try {
-              await api.deleteFolder(id);
-              await renderResourcesView();
-            } catch (err) {
-              alert(err.message || 'Failed to delete folder');
-              btn.disabled = false;
-              btn.innerHTML = originalHTML;
-              refreshIcons();
-            }
+            if (!confirm('Delete this folder and all documents inside?')) return;
+            const oh = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 10px; height: 10px;"></i>'; refreshIcons();
+            try { await api.deleteFolder(id); await renderResourcesView(); }
+            catch (err) { alert(err.message || 'Failed to delete folder'); btn.disabled = false; btn.innerHTML = oh; refreshIcons(); }
           });
         });
       }
 
-    } catch (err) {
-      content.innerHTML = `<div class="empty-state">Error loading folders.</div>`;
-    }
-
-  } else if (currentResourcesSection === 'lab_manuals_folder' || currentResourcesSection === 'books_folder' || currentResourcesSection === 'competitive_folder') {
-    // Documents inside specific Lab Manual, Book or Competitive Exam folder
-    content.innerHTML = getListSkeleton();
-    let docType = 'book';
-    if (currentResourcesSection === 'lab_manuals_folder') {
-      docType = 'lab_manual';
-    } else if (currentResourcesSection === 'competitive_folder') {
-      docType = 'competitive';
-    }
-
-    try {
-      const docs = await api.getDocuments(docType, currentResourcesFolder.id);
-      if (docs.length === 0) {
-        const canUpload = isStaff;
-        content.innerHTML = `
-          <div class="empty-state">
-            <i data-lucide="file-text" style="width: 30px; height: 30px; margin-bottom: 10px; color: var(--text-muted);"></i>
-            <p>No documents uploaded in this subject yet.</p>
-            ${canUpload ? '<p style="font-size: 14px; margin-top: 6px;">Click "Upload PDF" to add files.</p>' : ''}
-          </div>
-        `;
-        refreshIcons();
-        return;
-      }
-
-      content.innerHTML = `
-        <h3 style="color: var(--primary-dark); margin-bottom: 16px;">
-          Files in ${escapeHTML(currentResourcesFolder.name)} (${docType === 'lab_manual' ? 'Lab Manuals' : (docType === 'competitive' ? 'Competitive Exam PYQs' : 'Books')})
-        </h3>
-        <div class="docs-list">
-          ${docs.map(doc => `
-            <div class="doc-card" style="position: relative;">
-              <button class="btn-like-doc like-heart-btn ${doc.hasLiked ? 'liked' : ''}" data-id="${doc.id}" title="${doc.hasLiked ? 'Unlike' : 'Like'} this resource" style="position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; color: ${doc.hasLiked ? 'var(--danger)' : 'var(--text-muted)'}; transition: transform 0.2s ease;">
-                <i data-lucide="heart" style="width: 16px; height: 16px; fill: ${doc.hasLiked ? 'var(--danger)' : 'none'}; stroke: ${doc.hasLiked ? 'var(--danger)' : 'currentColor'};"></i>
-                <span class="like-count" style="font-size: 12px; font-weight: 700;">${doc.likesCount || 0}</span>
-              </button>
-              <div class="doc-info">
-                <div class="doc-icon-container">
-                  <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
-                </div>
-                <div class="doc-meta">
-                  <h5 style="display: flex; align-items: center; gap: 6px;">
-                    ${doc.isPinned ? `<i data-lucide="pin" style="width: 14px; height: 14px; fill: var(--warning); color: var(--warning); flex-shrink: 0;" title="Pinned Document"></i>` : ''}
-                    ${escapeHTML(doc.title)}
-                  </h5>
-                  <div class="doc-meta-details">
-                    <span>Year: ${escapeHTML(doc.year)}</span>
-                    <span>&bull;</span>
-                    <span>${doc.uploadedByRole === 'student' ? 'Contributed By' : 'By'}: ${escapeHTML(doc.uploadedBy)}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="doc-actions" style="position: relative;">
-                <button onclick="openDocumentViewer('${doc.id}', '${escapeHTML(doc.fileName)}', '${doc.type}')" class="btn btn-primary btn-sm"><i data-lucide="eye" style="width:14px;height:14px;"></i> View</button>
-                <div class="more-options-container" style="position: relative; display: inline-block;">
-                  <button class="btn btn-secondary btn-sm btn-more-options" data-id="${doc.id}" style="padding: 8px;" title="More Options">
-                    <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
-                  </button>
-                  <div class="more-options-dropdown" id="dropdown-${doc.id}">
-                    ${isStaff ? `
-                      <button class="dropdown-item btn-pin-doc" data-id="${doc.id}">
-                        <i data-lucide="pin" style="width: 14px; height: 14px; ${doc.isPinned ? 'fill: var(--warning); color: var(--warning);' : ''}"></i>
-                        <span>${doc.isPinned ? 'Unpin' : 'Pin'}</span>
-                      </button>
-                    ` : ''}
-                    ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `
-                      <button class="dropdown-item btn-move-doc" data-id="${doc.id}" data-title="${escapeHTML(doc.title)}">
-                        <i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i>
-                        <span>Shift</span>
-                      </button>
-                    ` : ''}
-                    ${canManageDocument(doc) ? `
-                      <button class="dropdown-item btn-delete-res-item-doc" data-id="${doc.id}">
-                        <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i>
-                        <span style="color: var(--danger);">Delete</span>
-                      </button>
-                    ` : ''}
-                  </div>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-
-      document.querySelectorAll('.btn-delete-res-item-doc').forEach(btn => {
+      document.querySelectorAll('.btn-delete-resource-doc').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.getAttribute('data-id');
-          if (!confirm('Delete this file?')) return;
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
-          refreshIcons();
-          try {
-            await api.deleteDocument(id); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) { cardToRemove.style.transition = 'opacity 0.3s'; cardToRemove.style.opacity = '0'; setTimeout(() => cardToRemove.remove(), 300); }
-          } catch (err) {
-            alert(err.message || 'Failed to delete');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
-            refreshIcons();
-          }
+          if (!confirm('Delete this document?')) return;
+          const oh = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>'; refreshIcons();
+          try { await api.deleteDocument(id); const c = btn.closest('.doc-card'); if(c) { c.style.transition = 'opacity 0.3s'; c.style.opacity = '0'; setTimeout(() => c.remove(), 300); } }
+          catch (err) { alert(err.message || 'Failed to delete'); btn.disabled = false; btn.innerHTML = oh; refreshIcons(); }
         });
       });
-
-      document.querySelectorAll('.btn-like-doc').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          handleLikeToggle(e, renderResourcesView);
-        });
-      });
+      document.querySelectorAll('.btn-like-doc').forEach(btn => { btn.addEventListener('click', (e) => { handleLikeToggle(e, renderResourcesView); }); });
 
     } catch (err) {
-      content.innerHTML = `<div class="empty-state">Error loading documents.</div>`;
+      content.innerHTML = `<div class="empty-state">Error loading folder contents.</div>`;
     }
 
   } else if (currentResourcesSection === 'simulations' || currentResourcesSection === 'roadmaps') {
@@ -2791,10 +2487,13 @@ async function renderResourcesView() {
                 ${getFolderIconSvg('#a21caf', '#701a75')}
                 <span class="folder-name">${escapeHTML(f.name)}</span>
                 ${isStaffOrEducator ? `
-                  <div class="folder-actions-overlay">
-                    <button class="folder-btn btn-rename-roadmap-folder" data-id="${f.id}" data-name="${f.name}" title="Rename"><i data-lucide="edit-2" style="width:12px;height:12px;"></i></button>
-                    <button class="folder-btn folder-btn-danger btn-delete-roadmap-folder" data-id="${f.id}" title="Delete"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>
-                  </div>
+                  <div class="more-options-container" style="position: absolute; top: 12px; right: 12px; display: inline-block;">
+<button class="btn btn-secondary btn-sm btn-more-options" data-id="${f.id}" style="padding: 6px;"><i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i></button>
+<div class="more-options-dropdown" id="dropdown-${f.id}">
+<button class="dropdown-item btn-rename-roadmap-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="edit-2" style="width: 14px; height: 14px;"></i><span>Edit</span></button>
+<button class="dropdown-item btn-move-folder" data-id="${f.id}" data-name="${f.name}"><i data-lucide="folder-sync" style="width: 14px; height: 14px;"></i><span>Shift</span></button>
+<button class="dropdown-item btn-delete-roadmap-folder" data-id="${f.id}"><i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--danger);"></i><span style="color: var(--danger);">Delete</span></button>
+</div></div>
                 ` : ''}
               </div>
             `).join('')}
@@ -2877,7 +2576,7 @@ async function renderResourcesView() {
       // Event listeners
       document.querySelectorAll('.simulation-folder-card, .roadmap-folder-card').forEach(card => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.folder-actions-overlay')) return;
+          if (e.target.closest('.more-options-container')) return;
           const folderId = card.getAttribute('data-id');
           const folderName = card.getAttribute('data-name');
           const folder = { id: folderId, name: folderName };
@@ -2970,21 +2669,19 @@ function handleResourcesBack() {
       currentResourcesSection = 'root';
       currentResourcesFolder = null;
     }
-  } else if (currentResourcesSection === 'lab_manuals_folder') {
-    currentResourcesSection = 'lab_manuals';
-    currentResourcesFolder = null;
-  } else if (currentResourcesSection === 'books_folder') {
-    currentResourcesSection = 'books';
-    currentResourcesFolder = null;
-  } else if (currentResourcesSection === 'competitive_folder') {
-    currentResourcesSection = 'competitive';
-    currentResourcesFolder = null;
+  } else if (currentResourcesSection === 'lab_manuals' || currentResourcesSection === 'books' || currentResourcesSection === 'competitive') {
+    if (labManualsFolderStack.length > 0) {
+      labManualsFolderStack.pop();
+    } else {
+      currentResourcesSection = 'root';
+    }
   } else {
     currentResourcesSection = 'root';
     currentResourcesFolder = null;
   }
   renderResourcesView();
 }
+
 
 // Render GPA Calculator sheets
 function renderGPAThresholdsView(mountElement) {
@@ -4016,7 +3713,7 @@ function renderAppearanceView() {
           <div style="flex: 1;">
             <div style="font-weight: 700; font-size: 15px; font-family: ${f.font}; color: var(--text-main);">${f.name}</div>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: ${f.font};">
-              ${f.category} • The quick brown fox jumps over the lazy dog (123)
+              ${f.category} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ The quick brown fox jumps over the lazy dog (123)
             </div>
           </div>
           <div style="width: 26px; height: 26px; border-radius: 50%; background: ${isActive ? 'var(--primary)' : 'var(--border-color)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px;">
@@ -4972,6 +4669,7 @@ function closeAllModals() {
   document.getElementById('modal-upload').style.display = 'none';
   if (document.getElementById('modal-edit-document')) document.getElementById('modal-edit-document').style.display = 'none';
   if (document.getElementById('modal-move-document')) document.getElementById('modal-move-document').style.display = 'none';
+  if (document.getElementById('modal-shift-item')) document.getElementById('modal-shift-item').style.display = 'none';
   if (document.getElementById('modal-send-message')) document.getElementById('modal-send-message').style.display = 'none';
   if (document.getElementById('modal-view-notification')) document.getElementById('modal-view-notification').style.display = 'none';
 
@@ -4986,21 +4684,33 @@ function closeAllModals() {
   if (galleryWrapper) galleryWrapper.style.display = 'block';
 }
 
-function openFolderModal(sectionType, folderId = '', folderName = '') {
+function openFolderModal(sectionType, folderId = '', folderName = '', parentId = null) {
   document.getElementById('modal-folder-id').value = folderId;
   document.getElementById('modal-folder-section-type').value = sectionType;
   document.getElementById('modal-folder-name').value = folderName;
+  // Store parentId for nested folder creation
+  let parentInput = document.getElementById('modal-folder-parent-id');
+  if (!parentInput) {
+    parentInput = document.createElement('input');
+    parentInput.type = 'hidden';
+    parentInput.id = 'modal-folder-parent-id';
+    document.getElementById('modal-folder-id').parentNode.appendChild(parentInput);
+  }
+  parentInput.value = parentId || '';
   
   const title = document.getElementById('modal-folder-title');
   if (folderId) {
-    title.textContent = 'Rename Subject Folder';
+    title.textContent = 'Rename Folder';
+  } else if (parentId) {
+    title.textContent = 'Add New Folder';
   } else {
-    title.textContent = 'Add Subject Folder';
+    title.textContent = 'Add Year Folder';
   }
 
   document.getElementById('modal-folder').style.display = 'flex';
   document.getElementById('modal-folder-name').focus();
 }
+
 
 // Compress image client side using Canvas to Jpeg 0.7
 function compressImage(file) {
@@ -5598,18 +5308,7 @@ function openEditDocumentModal(docId, title, subject, year) {
 }
 
 function openMoveDocumentModal(docId, docTitle) {
-  document.getElementById('move-doc-id').value = docId;
-  document.getElementById('move-doc-section').value = '';
-  document.getElementById('move-doc-folder-group').style.display = 'none';
-  document.getElementById('move-doc-folder').removeAttribute('required');
-  document.getElementById('move-doc-error-alert').style.display = 'none';
-  
-  const titleEl = document.querySelector('#modal-move-document .modal-title');
-  if (titleEl) {
-    titleEl.textContent = `Shift Document: ${docTitle}`;
-  }
-  
-  document.getElementById('modal-move-document').style.display = 'flex';
+  openUnifiedShiftModal('document', docId, docTitle, '');
 }
 
 async function loadSupportHistory() {
@@ -7632,9 +7331,9 @@ function initEventHandlers() {
   if (roleSelect && roleHint) {
     roleSelect.addEventListener('change', (e) => {
       if (e.target.value === 'student') {
-        roleHint.textContent = 'âœ“ Instant approval. Get immediate access.';
+        roleHint.textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Instant approval. Get immediate access.';
       } else {
-        roleHint.textContent = 'âš  Requires Admin manual approval before logging in.';
+        roleHint.textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  Requires Admin manual approval before logging in.';
       }
     });
   }
@@ -7708,6 +7407,8 @@ function initEventHandlers() {
     const folderId = document.getElementById('modal-folder-id').value;
     const name = document.getElementById('modal-folder-name').value.trim();
     const sectionType = document.getElementById('modal-folder-section-type').value;
+    const parentIdInput = document.getElementById('modal-folder-parent-id');
+    const parentId = parentIdInput ? (parentIdInput.value || null) : null;
 
     if (!name) return;
 
@@ -7721,8 +7422,8 @@ function initEventHandlers() {
         // Rename folder
         await api.renameFolder(folderId, name);
       } else {
-        // Create new folder
-        await api.createFolder(name, sectionType);
+        // Create new folder (with optional parentId for nesting)
+        await api.createFolder(name, sectionType, parentId);
       }
       closeAllModals();
 
@@ -7735,12 +7436,13 @@ function initEventHandlers() {
         await renderResourcesView();
       }
     } catch (err) {
-      alert(err.message || 'Failed to save subject folder');
+      alert(err.message || 'Failed to save folder');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
     }
   });
+
 
   // 5. DOCUMENT UPLOAD MODAL FORM
   const uploadForm = document.getElementById('form-upload');
@@ -8220,113 +7922,296 @@ function initEventHandlers() {
     });
   }
 
-    // Move Document Modal Handlers (Admin Only)
-    const moveDocForm = document.getElementById('form-move-document');
-    const closeMoveDocModal = () => {
-      document.getElementById('modal-move-document').style.display = 'none';
+    
+    // ===== UNIFIED SHIFT TREE SYSTEM =====
+    const SHIFT_SECTIONS = [
+      { key: 'notes', label: 'Notes', icon: 'notebook-pen', apiType: 'notes' },
+      { key: 'papers', label: 'Papers', icon: 'file-text', apiType: 'paper' },
+      { key: 'lab_manuals', label: 'Lab Manuals', icon: 'flask-conical', apiType: 'lab_manual' },
+      { key: 'books', label: 'Books', icon: 'book-open', apiType: 'book' },
+      { key: 'simulations', label: 'Simulations / Roadmaps', icon: 'route', apiType: 'simulation' },
+      { key: 'competitive', label: 'Competitive Exam PYQs', icon: 'trophy', apiType: 'competitive' },
+      { key: 'syllabus', label: 'Syllabus', icon: 'list-checks', apiType: 'syllabus', noFolders: true }
+    ];
+
+    let _shiftSelectedSection = null;
+    let _shiftSelectedFolderId = null;
+    let _shiftAllFoldersCache = {};
+
+    function closeShiftModal() {
+      document.getElementById('modal-shift-item').style.display = 'none';
+      _shiftSelectedSection = null;
+      _shiftSelectedFolderId = null;
+      _shiftAllFoldersCache = {};
+    }
+
+
+    function buildCascadingSelectsForMove(folders, wrapperId, currentFolderId, allowSelectNull = true) {
+      const wrapper = document.getElementById(wrapperId);
+      wrapper.innerHTML = '';
+      
+      const childrenMap = new Map();
+      folders.forEach(f => {
+        const pid = f.parentId ? String(f.parentId) : 'root';
+        if (!childrenMap.has(pid)) childrenMap.set(pid, []);
+        childrenMap.get(pid).push(f);
+      });
+      
+      function renderSelectForParent(parentId, depth) {
+        const existingSelects = Array.from(wrapper.querySelectorAll('.move-cascading-select'));
+        existingSelects.forEach(sel => {
+          if (parseInt(sel.getAttribute('data-depth')) >= depth) sel.remove();
+        });
+        
+        let children = childrenMap.get(parentId) || [];
+        if (currentFolderId) {
+          children = children.filter(c => String(c.id) !== String(currentFolderId));
+        }
+        if (children.length === 0) return;
+        
+        children.sort((a, b) => a.name.localeCompare(b.name));
+        
+        const select = document.createElement('select');
+        select.className = 'form-select move-cascading-select';
+        select.setAttribute('data-depth', depth);
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        defaultOption.textContent = depth === 0 ? 'Select Top Level Folder...' : 'Select Sub-folder...';
+        select.appendChild(defaultOption);
+        
+        if (depth === 0 && allowSelectNull) {
+            const rootOpt = document.createElement('option');
+            rootOpt.value = 'null';
+            rootOpt.textContent = 'Root (No Parent)';
+            select.appendChild(rootOpt);
+        }
+        
+        children.forEach(child => {
+          const opt = document.createElement('option');
+          opt.value = child.id;
+          opt.textContent = child.name;
+          select.appendChild(opt);
+        });
+        
+        select.addEventListener('change', (e) => {
+          const selectedId = e.target.value;
+          _shiftSelectedFolderId = selectedId;
+          document.getElementById('btn-shift-submit').disabled = false;
+
+          if (selectedId && selectedId !== 'null') {
+             renderSelectForParent(selectedId, depth + 1);
+          } else {
+             renderSelectForParent('root', depth + 1); // remove deeper ones
+          }
+        });
+        
+        wrapper.appendChild(select);
+      }
+      
+      renderSelectForParent('root', 0);
+    }
+    
+    function getSelectedCascadingValue(wrapperId) {
+      const selects = Array.from(document.getElementById(wrapperId).querySelectorAll('.move-cascading-select'));
+      const validSelects = selects.filter(s => s.value && s.value !== '');
+      if (validSelects.length > 0) return validSelects[validSelects.length - 1].value;
+      return null;
+    }
+
+    window.openUnifiedShiftModal = async function(itemType, itemId, itemName, originSection) {
+      _shiftSelectedSection = null;
+      _shiftSelectedFolderId = null;
+
+      const modal = document.getElementById('modal-shift-item');
+      const titleEl = document.getElementById('shift-modal-title');
+      const errorAlert = document.getElementById('shift-error-alert');
+      const submitBtn = document.getElementById('btn-shift-submit');
+      
+      const sectionSelect = document.getElementById('shift-section-select');
+      const cascadingGroup = document.getElementById('shift-cascading-group');
+      const cascadingWrapper = document.getElementById('shift-cascading-wrapper');
+
+      titleEl.textContent = itemType === 'folder' ? `Shift Folder: ${itemName}` : `Shift Document: ${itemName}`;
+      errorAlert.style.display = 'none';
+      submitBtn.disabled = true;
+      
+      sectionSelect.value = '';
+      cascadingGroup.style.display = 'none';
+      cascadingWrapper.innerHTML = '';
+
+      document.getElementById('shift-item-id').value = itemId;
+      document.getElementById('shift-item-type').value = itemType;
+      document.getElementById('shift-item-section').value = originSection;
+
+      modal.style.display = 'flex';
     };
 
-    const btnCloseMoveDoc = document.getElementById('modal-move-document-close');
-    if (btnCloseMoveDoc) {
-      btnCloseMoveDoc.addEventListener('click', closeMoveDocModal);
-    }
-    const btnCancelMoveDoc = document.getElementById('modal-move-document-cancel');
-    if (btnCancelMoveDoc) {
-      btnCancelMoveDoc.addEventListener('click', closeMoveDocModal);
-    }
-
-    // Handle section selection change
-    const moveDocSectionSel = document.getElementById('move-doc-section');
-    if (moveDocSectionSel) {
-      moveDocSectionSel.addEventListener('change', async (e) => {
+    const shiftSectionSelect = document.getElementById('shift-section-select');
+    if (shiftSectionSelect) {
+      shiftSectionSelect.addEventListener('change', async (e) => {
         const section = e.target.value;
-        const folderGroup = document.getElementById('move-doc-folder-group');
-        const folderSelect = document.getElementById('move-doc-folder');
+        _shiftSelectedSection = section;
+        const cascadingGroup = document.getElementById('shift-cascading-group');
+        const cascadingWrapper = document.getElementById('shift-cascading-wrapper');
+        const submitBtn = document.getElementById('btn-shift-submit');
+        const itemType = document.getElementById('shift-item-type').value;
+        const itemId = document.getElementById('shift-item-id').value;
 
-        if (!section || section === 'syllabus') {
-          folderGroup.style.display = 'none';
-          folderSelect.removeAttribute('required');
-        } else {
-          folderSelect.innerHTML = '<option value="">Loading folders...</option>';
-          folderGroup.style.display = 'block';
-          folderSelect.setAttribute('required', 'required');
+        submitBtn.disabled = true;
+        _shiftSelectedFolderId = null;
 
-          try {
-            const folders = await api.getFolders(section);
-            if (folders.length === 0) {
-              folderSelect.innerHTML = '<option value="">No folders available in this section</option>';
-            } else {
-              folderSelect.innerHTML = '<option value="">Select Target Folder</option>' +
-                folders.map(f => `<option value="${f.id}">${escapeHTML(f.name)}</option>`).join('');
-            }
-          } catch (err) {
-            console.error('Error loading folders for move:', err);
-            folderSelect.innerHTML = '<option value="">Error loading folders</option>';
+        if (!section) {
+          cascadingGroup.style.display = 'none';
+          return;
+        }
+
+        if (section === 'syllabus') {
+          cascadingGroup.style.display = 'none';
+          if (itemType === 'document') {
+             submitBtn.disabled = false; // can submit directly to syllabus
           }
+          return;
+        }
+
+        cascadingGroup.style.display = 'block';
+        cascadingWrapper.innerHTML = '<div>Loading folders...</div>';
+
+        try {
+          let folders = [];
+          if (section === 'simulations') {
+            const [a, b] = await Promise.all([
+              api.getAllFolders('simulations'),
+              api.getAllFolders('roadmaps')
+            ]);
+            folders = [...a];
+            b.forEach(bf => {
+              if (!folders.some(m => String(m.id) === String(bf.id))) folders.push(bf);
+            });
+          } else {
+            folders = await api.getAllFolders(section);
+          }
+          
+          if (folders.length === 0 && itemType === 'folder') {
+             // Let them shift to root if no folders exist
+             cascadingWrapper.innerHTML = '<div style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">No folders exist here yet.</div>';
+             const rootBtn = document.createElement('button');
+             rootBtn.type = 'button';
+             rootBtn.className = 'btn btn-secondary btn-sm';
+             rootBtn.textContent = 'Shift to Root';
+             rootBtn.onclick = () => {
+                _shiftSelectedFolderId = 'null';
+                submitBtn.disabled = false;
+                rootBtn.style.border = '2px solid var(--primary)';
+             };
+             cascadingWrapper.appendChild(rootBtn);
+          } else if (folders.length === 0) {
+            cascadingWrapper.innerHTML = '<div style="color:var(--text-muted)">No folders available in this section.</div>';
+          } else {
+            // If shifting folder, pass it to filter out moving into itself. If doc, pass null.
+            const filterId = itemType === 'folder' ? itemId : null;
+            buildCascadingSelectsForMove(folders, 'shift-cascading-wrapper', filterId, itemType === 'folder');
+          }
+        } catch (err) {
+          cascadingWrapper.innerHTML = '<div style="color:red">Error loading folders</div>';
         }
       });
     }
 
-    if (moveDocForm) {
-      moveDocForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const errorAlert = document.getElementById('move-doc-error-alert');
-        const docId = document.getElementById('move-doc-id').value;
-        const section = document.getElementById('move-doc-section').value;
-        const folderId = document.getElementById('move-doc-folder').value;
-        const saveBtnSubmit = document.getElementById('btn-move-document-submit');
+    // Close and Cancel handlers
+    const btnShiftClose = document.getElementById('modal-shift-close');
+    if (btnShiftClose) btnShiftClose.addEventListener('click', closeShiftModal);
+    const btnShiftCancel = document.getElementById('modal-shift-cancel');
+    if (btnShiftCancel) btnShiftCancel.addEventListener('click', closeShiftModal);
+
+    // Submit handler
+    const btnShiftSubmit = document.getElementById('btn-shift-submit');
+    if (btnShiftSubmit) {
+      btnShiftSubmit.addEventListener('click', async () => {
+        const itemType = document.getElementById('shift-item-type').value;
+        const itemId = document.getElementById('shift-item-id').value;
+        const originSection = document.getElementById('shift-item-section').value;
+        const errorAlert = document.getElementById('shift-error-alert');
+
+        if (!_shiftSelectedSection) {
+          errorAlert.textContent = 'Please select a destination.';
+          errorAlert.style.display = 'block';
+          return;
+        }
 
         errorAlert.style.display = 'none';
-
-        if (!section) {
-          errorAlert.textContent = 'Target section is required';
-          errorAlert.style.display = 'block';
-          return;
-        }
-
-        if (section !== 'syllabus' && !folderId) {
-          errorAlert.textContent = 'Target folder is required';
-          errorAlert.style.display = 'block';
-          return;
-        }
-
-        // Map section to targetType for API
-        let apiType = '';
-        if (section === 'notes') apiType = 'notes';
-        else if (section === 'papers') apiType = 'paper';
-        else if (section === 'lab_manuals') apiType = 'lab_manual';
-        else if (section === 'books') apiType = 'book';
-        else if (section === 'simulations' || section === 'roadmaps') apiType = 'simulation';
-        else if (section === 'syllabus') apiType = 'syllabus';
-        else if (section === 'competitive') apiType = 'competitive';
-
-        saveBtnSubmit.disabled = true;
-        saveBtnSubmit.textContent = 'Shifting document...';
+        btnShiftSubmit.disabled = true;
+        const origHTML = btnShiftSubmit.innerHTML;
+        btnShiftSubmit.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 15px; height: 15px;"></i> <span>Shifting...</span>';
+        refreshIcons();
 
         try {
-          await api.moveDocument(docId, apiType, folderId || null);
-          closeMoveDocModal();
+          if (itemType === 'folder') {
+            // Move folder to new parent
+            const parentId = _shiftSelectedFolderId === 'null' ? null : _shiftSelectedFolderId;
+            await api.moveFolder(itemId, parentId);
+          } else {
+            // Move document to new section + folder
+            const sectionConfig = SHIFT_SECTIONS.find(s => s.key === _shiftSelectedSection);
+            const apiType = sectionConfig ? sectionConfig.apiType : _shiftSelectedSection;
+            const folderId = _shiftSelectedFolderId && _shiftSelectedFolderId !== 'null' ? _shiftSelectedFolderId : null;
+            await api.moveDocument(itemId, apiType, folderId);
+          }
+
+          closeShiftModal();
 
           // Refresh active views
           const hash = window.location.hash || '#/';
-          if (hash === '#/my-uploads') {
-            await renderMyUploadsView();
-          } else if (hash === '#/notes') {
-            await renderNotesView();
-          } else if (hash === '#/papers') {
-            await renderPapersView();
-          } else if (hash === '#/resources') {
-            await renderResourcesView();
-          }
+          if (hash === '#/my-uploads') await renderMyUploadsView();
+          else if (hash === '#/notes') await renderNotesView();
+          else if (hash === '#/papers') await renderPapersView();
+          else if (hash === '#/resources') await renderResourcesView();
+
         } catch (err) {
-          errorAlert.textContent = err.message || 'Failed to move document';
+          errorAlert.textContent = err.message || 'Failed to shift item. Please try again.';
           errorAlert.style.display = 'block';
         } finally {
-          saveBtnSubmit.disabled = false;
-          saveBtnSubmit.textContent = 'Shift Document';
+          btnShiftSubmit.disabled = false;
+          btnShiftSubmit.innerHTML = origHTML;
+          refreshIcons();
         }
       });
     }
+
+    // Global listener for folder shift buttons
+    document.addEventListener('click', async (e) => {
+      const moveFolderTrigger = e.target.closest('.btn-move-folder');
+      if (moveFolderTrigger) {
+        e.preventDefault();
+        const id = moveFolderTrigger.getAttribute('data-id');
+        const name = moveFolderTrigger.getAttribute('data-name');
+        
+        // Determine section from closest view container
+        let section = 'notes';
+        if (moveFolderTrigger.closest('#view-papers')) section = 'papers';
+        else if (moveFolderTrigger.closest('#view-resources')) section = 'resources';
+        
+        openUnifiedShiftModal('folder', id, name, section);
+      }
+    });
+
+    // Keep legacy references working — old move modal handlers are now no-ops
+    // since we use the unified shift modal instead
+
+    // Global listener for edit document
+    document.addEventListener('click', async (e) => {
+      const editDocTrigger = e.target.closest('.btn-edit-uploaded-doc');
+      if (editDocTrigger) {
+        e.preventDefault();
+        const id = editDocTrigger.getAttribute('data-id');
+        const title = editDocTrigger.getAttribute('data-title');
+        const subject = editDocTrigger.getAttribute('data-subject');
+        const year = editDocTrigger.getAttribute('data-year');
+        openEditDocumentModal(id, title, subject, year);
+      }
+    });
 
   // SEND MESSAGE MODAL (Admin Only)
   const sendMessageForm = document.getElementById('form-send-message');
@@ -8695,14 +8580,14 @@ async function initApp() {
 
   // Restore view states from localStorage
   try {
-    const savedNotesFolder = localStorage.getItem('currentNotesFolder');
-    if (savedNotesFolder && savedNotesFolder !== 'null') currentNotesFolder = JSON.parse(savedNotesFolder);
-  } catch (e) { console.error('Error restoring currentNotesFolder:', e); }
+    const savedNotesStack = localStorage.getItem('notesFolderStack');
+    if (savedNotesStack && savedNotesStack !== 'null') notesFolderStack = JSON.parse(savedNotesStack);
+  } catch (e) { console.error('Error restoring notesFolderStack:', e); }
 
   try {
-    const savedPapersFolder = localStorage.getItem('currentPapersFolder');
-    if (savedPapersFolder && savedPapersFolder !== 'null') currentPapersFolder = JSON.parse(savedPapersFolder);
-  } catch (e) { console.error('Error restoring currentPapersFolder:', e); }
+    const savedPapersStack = localStorage.getItem('papersFolderStack');
+    if (savedPapersStack && savedPapersStack !== 'null') papersFolderStack = JSON.parse(savedPapersStack);
+  } catch (e) { console.error('Error restoring papersFolderStack:', e); }
 
   try {
     const savedResourcesFolder = localStorage.getItem('currentResourcesFolder');
@@ -8717,10 +8602,17 @@ async function initApp() {
     }
   } catch (e) { console.error('Error restoring simulationFolderStack:', e); }
 
+  try {
+    const savedLabStack = localStorage.getItem('labManualsFolderStack');
+    if (savedLabStack && savedLabStack !== 'null') labManualsFolderStack = JSON.parse(savedLabStack);
+  } catch (e) { console.error('Error restoring labManualsFolderStack:', e); }
+
   const savedResourcesSection = localStorage.getItem('currentResourcesSection');
   if (savedResourcesSection) {
     currentResourcesSection = savedResourcesSection === 'roadmaps' ? 'simulations' : savedResourcesSection;
   }
+
+
 
   // Initialize and run the elegant cursive calligraphy loading animation
   const loaderAnimPromise = initCursiveLoader();
@@ -8927,7 +8819,7 @@ function initCursiveLoader() {
 }
 
 /* ============================================================
-   AUTH PAGE — REAL 3D OPEN BOOK DESIGN & CONTINUOUS PAGE FLIP
+   AUTH PAGE ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â REAL 3D OPEN BOOK DESIGN & CONTINUOUS PAGE FLIP
    ============================================================ */
 let _currentAuthBookMode = 'login'; // 'login' | 'signup'
 let _bookFlipInProgress = false;
@@ -8936,7 +8828,7 @@ function spawnAuthParticles() { initAuthScene(); } // legacy alias
 
 function setAuthFlipDirection(dir) { /* no-op alias */ }
 
-/* ── setAuthBookMode: Instantly or cleanly sets the book to Login or Signup ── */
+/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ setAuthBookMode: Instantly or cleanly sets the book to Login or Signup ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
 function setAuthBookMode(targetMode, animate = false) {
   if (animate && targetMode !== _currentAuthBookMode) {
     flipAuthPage(targetMode);
@@ -8959,23 +8851,23 @@ function setAuthBookMode(targetMode, animate = false) {
     if (headerTitle) headerTitle.textContent = 'SCHOLAR REGISTRATION';
     if (headerPage) headerPage.textContent = 'PAGE 3';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Login';
-    if (curlLabel) curlLabel.textContent = 'LOGIN ➔';
-    if (footerSection) footerSection.textContent = '• SECTION B : NEW ENROLLMENT •';
+    if (curlLabel) curlLabel.textContent = 'LOGIN ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
+    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : NEW ENROLLMENT ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
   } else {
     if (panelSignup) panelSignup.classList.remove('active');
     if (panelLogin) panelLogin.classList.add('active');
     if (headerTitle) headerTitle.textContent = 'STUDENT ACCESS';
     if (headerPage) headerPage.textContent = 'PAGE 2';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Sign Up';
-    if (curlLabel) curlLabel.textContent = 'SIGN UP ➔';
-    if (footerSection) footerSection.textContent = '• SECTION B : PORTAL CREDENTIALS •';
+    if (curlLabel) curlLabel.textContent = 'SIGN UP ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
+    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : PORTAL CREDENTIALS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
   }
 
   // Ensure scene atmosphere is running
   initAuthScene();
 }
 
-/* ── flipAuthPage: Continuous, photorealistic 3D page turn around center spine ── */
+/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ flipAuthPage: Continuous, photorealistic 3D page turn around center spine ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
 function flipAuthPage(targetMode) {
   if (_bookFlipInProgress || targetMode === _currentAuthBookMode) return;
   _bookFlipInProgress = true;
@@ -9003,7 +8895,7 @@ function flipAuthPage(targetMode) {
     return;
   }
 
-  // ── FORWARD FLIP: LOGIN ➔ SIGNUP ──
+  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ FORWARD FLIP: LOGIN ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â SIGNUP ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
   if (targetMode === 'signup') {
     // 1. Reveal Signup panel immediately on base page underneath the leaf
     const panelLogin = document.getElementById('auth-panel-login');
@@ -9035,8 +8927,8 @@ function flipAuthPage(targetMode) {
     if (headerTitle) headerTitle.textContent = 'SCHOLAR REGISTRATION';
     if (headerPage) headerPage.textContent = 'PAGE 3';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Login';
-    if (curlLabel) curlLabel.textContent = 'LOGIN ➔';
-    if (footerSection) footerSection.textContent = '• SECTION B : NEW ENROLLMENT •';
+    if (curlLabel) curlLabel.textContent = 'LOGIN ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
+    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : NEW ENROLLMENT ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
 
     // 3. Play GSAP Physics Timeline
     const tl = gsap.timeline({
@@ -9049,7 +8941,7 @@ function flipAuthPage(targetMode) {
       }
     });
 
-    // Step A: Lift & paper curl (0deg ➔ -90deg)
+    // Step A: Lift & paper curl (0deg ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â -90deg)
     tl.to(leaf, {
       rotateY: -90,
       skewY: -6,
@@ -9061,7 +8953,7 @@ function flipAuthPage(targetMode) {
     .to(castShadow, { opacity: 0.6, scaleX: 1.15, duration: 0.38, ease: 'power2.in' }, 0)
     .to(bookCasing, { rotateY: -1.5, duration: 0.42, ease: 'power1.inOut' }, 0);
 
-    // Step B: Sweep over spine & settle onto left page (-90deg ➔ -180deg)
+    // Step B: Sweep over spine & settle onto left page (-90deg ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â -180deg)
     tl.to(leaf, {
       rotateY: -180,
       skewY: 0,
@@ -9074,7 +8966,7 @@ function flipAuthPage(targetMode) {
     .to(bookCasing, { rotateY: 0, duration: 0.48, ease: 'back.out(1.4)' }, 0.42);
 
   } else {
-    // ── BACKWARD FLIP: SIGNUP ➔ LOGIN ──
+    // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ BACKWARD FLIP: SIGNUP ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â LOGIN ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
     const panelLogin = document.getElementById('auth-panel-login');
     const panelSignup = document.getElementById('auth-panel-signup');
     if (panelSignup) panelSignup.classList.remove('active');
@@ -9102,8 +8994,8 @@ function flipAuthPage(targetMode) {
     if (headerTitle) headerTitle.textContent = 'STUDENT ACCESS';
     if (headerPage) headerPage.textContent = 'PAGE 2';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Sign Up';
-    if (curlLabel) curlLabel.textContent = 'SIGN UP ➔';
-    if (footerSection) footerSection.textContent = '• SECTION B : PORTAL CREDENTIALS •';
+    if (curlLabel) curlLabel.textContent = 'SIGN UP ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
+    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : PORTAL CREDENTIALS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
 
     const tl = gsap.timeline({
       onComplete: () => {
@@ -9115,7 +9007,7 @@ function flipAuthPage(targetMode) {
       }
     });
 
-    // Lift off left page (-180deg ➔ -90deg)
+    // Lift off left page (-180deg ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â -90deg)
     tl.to(leaf, {
       rotateY: -90,
       skewY: 6,
@@ -9127,7 +9019,7 @@ function flipAuthPage(targetMode) {
     .to(castShadow, { opacity: 0.65, scaleX: 1.2, duration: 0.38, ease: 'power2.in' }, 0)
     .to(bookCasing, { rotateY: 1.5, duration: 0.42, ease: 'power1.inOut' }, 0);
 
-    // Settle onto right page (-90deg ➔ 0deg)
+    // Settle onto right page (-90deg ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â 0deg)
     tl.to(leaf, {
       rotateY: 0,
       skewY: 0,
@@ -9141,7 +9033,7 @@ function flipAuthPage(targetMode) {
   }
 }
 
-/* ── initAuthScene: Atmosphere, Lucide icons, event listeners, and 3D desk tilt ── */
+/* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ initAuthScene: Atmosphere, Lucide icons, event listeners, and 3D desk tilt ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
 function initAuthScene() {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
@@ -9153,7 +9045,7 @@ function initAuthScene() {
   const scene = document.querySelector('.auth-scene');
   if (!scene) return;
 
-  // ── Spawn Floating Study Bubbles ──
+  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Spawn Floating Study Bubbles ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
   const BUBBLE_COUNT = 20;
   for (let i = 0; i < BUBBLE_COUNT; i++) {
     const b = document.createElement('div');
@@ -9173,7 +9065,7 @@ function initAuthScene() {
     scene.appendChild(b);
   }
 
-  // ── Spawn Sparkles ──
+  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Spawn Sparkles ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
   const SPARKLE_COUNT = 14;
   for (let i = 0; i < SPARKLE_COUNT; i++) {
     const s = document.createElement('div');
@@ -9191,7 +9083,7 @@ function initAuthScene() {
     scene.appendChild(s);
   }
 
-  // ── 3D Desk Mouse Tilt (Desktop only) ──
+  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ 3D Desk Mouse Tilt (Desktop only) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
   const bookStand = document.querySelector('.real-book-stand');
   if (bookStand && window.innerWidth > 860 && !bookStand._tiltBound) {
     bookStand._tiltBound = true;
@@ -9223,7 +9115,7 @@ function initAuthScene() {
     };
   }
 
-  // ── Wire Interactive Flip Triggers ──
+  // ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Wire Interactive Flip Triggers ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬
   const btnToggle = document.getElementById('btn-turn-page-toggle');
   if (btnToggle && !btnToggle._flipBound) {
     btnToggle._flipBound = true;
@@ -9343,46 +9235,6 @@ async function renderTeacherDashboardView() {
     statsOwnLikes.textContent = stats.ownLikesCount;
     statsTotalTeacherUploads.textContent = stats.totalTeacherFiles;
 
-    const ranking = await api.getTeacherRanking();
-    if (ranking.length === 0) {
-      rankingListContainer.innerHTML = '<div class="empty-state">No educators registered yet.</div>';
-      return;
-    }
-
-    rankingListContainer.innerHTML = ranking.map((t, index) => {
-      const rankNum = index + 1;
-      let trophy = '';
-      if (rankNum === 1) trophy = '🏆';
-      else if (rankNum === 2) trophy = '🥈';
-      else if (rankNum === 3) trophy = '🥉';
-
-      const isSelf = currentUser && currentUser.id === t.id;
-      const highlightStyle = isSelf ? 'border-left: 4px solid var(--success); background-color: rgba(34, 197, 94, 0.05);' : '';
-
-      return `
-        <div class="card" style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; ${highlightStyle}">
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="font-size: 18px; font-weight: 800; min-width: 70px; display: flex; align-items: center; gap: 4px;">
-              #${rankNum} ${trophy}
-            </div>
-            <div>
-              <h4 style="margin: 0; color: var(--primary-dark); font-size: 15px;">
-                ${escapeHTML(capitalizeName(t.name))}
-                ${isSelf ? '<span class="user-tag" style="background-color: var(--success-accent); color: var(--success); font-size: 10px; padding: 2px 6px;">You</span>' : ''}
-              </h4>
-              <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">
-                ${t.uploads} uploads &bull; ${t.likes} likes
-              </p>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <span class="user-tag" style="font-weight: 700; font-size: 13px; background-color: var(--primary-accent); color: var(--primary-dark); padding: 4px 10px;">
-              ${t.points} pts
-            </span>
-          </div>
-        </div>
-      `;
-    }).join('');
 
     refreshIcons();
   } catch (err) {
@@ -9512,45 +9364,111 @@ function initContributionEventHandlers() {
   };
 
   async function populateFoldersForCategory(category, preselectedFolderId = null) {
-    if (!subjectSelect) return;
-    subjectSelect.disabled = true;
-    subjectSelect.innerHTML = '<option value="" disabled selected>Loading folders...</option>';
+    const container = document.getElementById('contribute-folder-container');
+    if (!container) return;
+    
+    container.innerHTML = `<label class="form-label">Target Folder / Subject</label><select id="contribute-subject" class="form-select" disabled><option>Loading folders...</option></select>`;
 
     if (!category) {
-      subjectSelect.innerHTML = '<option value="" disabled selected>Select Target Folder</option>';
+      container.innerHTML = `<label class="form-label">Target Folder / Subject</label><select id="contribute-subject" class="form-select" disabled><option>Select Category First</option></select>`;
       return;
     }
 
     try {
       if (category === 'syllabus') {
-        subjectSelect.innerHTML = '<option value="general" selected>General Syllabus (No Folder Required)</option>';
-        subjectSelect.disabled = false;
+        container.innerHTML = `<label class="form-label">Target Folder / Subject</label><select id="contribute-subject" class="form-select"><option value="general" selected>General Syllabus (No Folder Required)</option></select>`;
         return;
       }
 
-      // Fetch all folders for this category
       const folders = await api.getAllFolders(category);
       if (!folders || folders.length === 0) {
-        subjectSelect.innerHTML = `<option value="general" selected>General / Root ${escapeHTML(capitalizeName(category))} (No Subfolder)</option>`;
-        subjectSelect.disabled = false;
-      } else {
-        let optionsHTML = '<option value="" disabled selected>Select Target Folder</option>';
-        folders.forEach(f => {
-          const isSelected = preselectedFolderId && String(f.id) === String(preselectedFolderId);
-          optionsHTML += `<option value="${f.id}" ${isSelected ? 'selected' : ''}>${escapeHTML(f.name)}</option>`;
+        container.innerHTML = `<label class="form-label">Target Folder / Subject</label><select id="contribute-subject" class="form-select"><option value="general" selected>General / Root ${escapeHTML(capitalizeName(category))} (No Subfolder)</option></select>`;
+        return;
+      }
+
+      // Group folders by parentId
+      const childrenMap = new Map();
+      const folderMap = new Map();
+      folders.forEach(f => {
+        folderMap.set(String(f.id), f);
+        const pid = f.parentId ? String(f.parentId) : 'root';
+        if (!childrenMap.has(pid)) childrenMap.set(pid, []);
+        childrenMap.get(pid).push(f);
+      });
+
+      // Clear container for cascading selects
+      container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><div id="cascading-selects-wrapper" style="display:flex; flex-direction:column; gap:8px;"></div>`;
+      const wrapper = document.getElementById('cascading-selects-wrapper');
+
+      function renderSelectForParent(parentId, depth) {
+        // Remove any existing selects at this depth or deeper
+        const existingSelects = Array.from(wrapper.querySelectorAll('.cascading-folder-select'));
+        existingSelects.forEach(sel => {
+          if (parseInt(sel.getAttribute('data-depth')) >= depth) {
+            sel.remove();
+          }
         });
-        subjectSelect.innerHTML = optionsHTML;
-        subjectSelect.disabled = false;
-        if (preselectedFolderId) {
-          subjectSelect.value = preselectedFolderId;
+
+        const children = childrenMap.get(parentId) || [];
+        if (children.length === 0) return; // No subfolders, stop here
+
+        // Sort alphabetically
+        children.sort((a, b) => a.name.localeCompare(b.name));
+
+        const select = document.createElement('select');
+        select.className = 'form-select cascading-folder-select';
+        select.setAttribute('data-depth', depth);
+        select.required = true;
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        defaultOption.textContent = depth === 0 ? 'Select Top Level Folder...' : 'Select Sub-folder...';
+        select.appendChild(defaultOption);
+
+        children.forEach(child => {
+          const opt = document.createElement('option');
+          opt.value = child.id;
+          opt.textContent = child.name;
+          select.appendChild(opt);
+        });
+
+        select.addEventListener('change', (e) => {
+          const selectedId = e.target.value;
+          renderSelectForParent(selectedId, depth + 1);
+        });
+
+        wrapper.appendChild(select);
+      }
+
+      renderSelectForParent('root', 0);
+
+      // Preselection logic
+      if (preselectedFolderId && folderMap.has(String(preselectedFolderId))) {
+        // Trace path to root
+        let pathIds = [];
+        let curr = folderMap.get(String(preselectedFolderId));
+        while(curr) {
+          pathIds.unshift(String(curr.id));
+          curr = curr.parentId && folderMap.has(String(curr.parentId)) ? folderMap.get(String(curr.parentId)) : null;
+        }
+        
+        // Render step by step
+        for (let i = 0; i < pathIds.length; i++) {
+          const sel = wrapper.querySelector(`.cascading-folder-select[data-depth="${i}"]`);
+          if (sel) {
+            sel.value = pathIds[i];
+            renderSelectForParent(pathIds[i], i + 1);
+          }
         }
       }
+
     } catch (err) {
       console.error('Failed to load folders for category:', err);
-      subjectSelect.innerHTML = '<option value="" disabled selected>Error loading folders</option>';
+      container.innerHTML = `<label class="form-label">Target Folder / Subject</label><select id="contribute-subject" class="form-select" disabled><option>Error loading folders</option></select>`;
     }
   }
-
   function openContributeModal(targetCategory = null, targetFolderId = null) {
     if (!contributeModal) return;
     contributeModal.style.display = 'flex';
@@ -9582,12 +9500,14 @@ function initContributionEventHandlers() {
     let autoCat = targetCategory;
     let autoFolderId = targetFolderId;
     if (!autoCat) {
-      if (currentNotesFolder) {
+      const notesCurrent = getCurrentNotesFolder();
+      const papersCurrent = getCurrentPapersFolder();
+      if (notesCurrent) {
         autoCat = 'notes';
-        autoFolderId = currentNotesFolder.id;
-      } else if (currentPapersFolder) {
+        autoFolderId = notesCurrent.id;
+      } else if (papersCurrent) {
         autoCat = 'papers';
-        autoFolderId = currentPapersFolder.id;
+        autoFolderId = papersCurrent.id;
       } else if (currentResourcesFolder) {
         if (currentResourcesSection.startsWith('lab_manuals')) autoCat = 'lab_manuals';
         else if (currentResourcesSection.startsWith('books')) autoCat = 'books';
@@ -9598,6 +9518,7 @@ function initContributionEventHandlers() {
         autoCat = 'syllabus';
       }
     }
+
 
     if (autoCat && categorySelect) {
       categorySelect.value = autoCat;
@@ -9762,6 +9683,32 @@ function initContributionEventHandlers() {
     }
   }
 
+  function applyPdfZoom() {
+    const container = document.getElementById('pdf-viewer-container');
+    const docViewerBody = document.getElementById('doc-viewer-body');
+    if (!container) return;
+    
+    container.style.transform = 'none';
+    container.style.width = `${currentCssScale * 100}%`;
+    
+    // Ensure canvases scale up with the container properly
+    const canvases = container.querySelectorAll('canvas');
+    canvases.forEach(c => {
+      c.style.maxWidth = '100%';
+      c.style.width = '100%';
+      c.style.height = 'auto';
+    });
+
+    // If zoomed in, prevent center alignment clipping by aligning to start
+    if (currentCssScale > 1) {
+      if (docViewerBody) docViewerBody.style.alignItems = 'flex-start';
+      container.style.margin = '0 auto';
+    } else {
+      if (docViewerBody) docViewerBody.style.alignItems = 'center';
+      container.style.margin = '0';
+    }
+  }
+
   // Zoom controls setup
   const zoomInBtn = document.getElementById('pdf-zoom-in');
   const zoomOutBtn = document.getElementById('pdf-zoom-out');
@@ -9770,25 +9717,22 @@ function initContributionEventHandlers() {
   
   if (zoomInBtn) {
     zoomInBtn.addEventListener('click', () => {
-      const container = document.getElementById('pdf-viewer-container');
-      currentCssScale = Math.min(3, currentCssScale + 0.2);
-      container.style.transform = `scale(${currentCssScale})`;
+      currentCssScale = Math.min(4, currentCssScale + 0.25);
+      applyPdfZoom();
     });
   }
   
   if (zoomOutBtn) {
     zoomOutBtn.addEventListener('click', () => {
-      const container = document.getElementById('pdf-viewer-container');
-      currentCssScale = Math.max(0.5, currentCssScale - 0.2);
-      container.style.transform = `scale(${currentCssScale})`;
+      currentCssScale = Math.max(0.5, currentCssScale - 0.25);
+      applyPdfZoom();
     });
   }
   
   if (zoomResetBtn) {
     zoomResetBtn.addEventListener('click', () => {
-      const container = document.getElementById('pdf-viewer-container');
       currentCssScale = 1;
-      container.style.transform = `scale(${currentCssScale})`;
+      applyPdfZoom();
     });
   }
   
@@ -9796,13 +9740,12 @@ function initContributionEventHandlers() {
     docViewerBody.addEventListener('wheel', (e) => {
       if (e.ctrlKey) {
         e.preventDefault();
-        const container = document.getElementById('pdf-viewer-container');
         if (e.deltaY < 0) {
-          currentCssScale = Math.min(3, currentCssScale + 0.1);
+          currentCssScale = Math.min(4, currentCssScale + 0.1);
         } else {
           currentCssScale = Math.max(0.5, currentCssScale - 0.1);
         }
-        container.style.transform = `scale(${currentCssScale})`;
+        applyPdfZoom();
       }
     }, { passive: false });
   }
@@ -9875,8 +9818,26 @@ function initContributionEventHandlers() {
 
       const title = document.getElementById('contribute-doc-title').value.trim();
       const category = categorySelect.value;
-      const folderId = subjectSelect.value;
       const year = yearSelect.value;
+      
+      let folderId = '';
+      let folderText = '';
+      const cascadingSelects = Array.from(document.querySelectorAll('.cascading-folder-select'));
+      if (cascadingSelects.length > 0) {
+        // Find the deepest one with a valid value
+        const validSelects = cascadingSelects.filter(sel => sel.value && sel.value !== '');
+        if (validSelects.length > 0) {
+          const targetSelect = validSelects[validSelects.length - 1];
+          folderId = targetSelect.value;
+          folderText = targetSelect.options[targetSelect.selectedIndex].text;
+        }
+      } else {
+        const fallbackSelect = document.getElementById('contribute-subject');
+        if (fallbackSelect) {
+          folderId = fallbackSelect.value;
+          if (fallbackSelect.selectedIndex >= 0) folderText = fallbackSelect.options[fallbackSelect.selectedIndex].text;
+        }
+      }
       
       if (!title || !category || !folderId) {
         if (errorAlert) {
@@ -9894,10 +9855,10 @@ function initContributionEventHandlers() {
       else if (category === 'competitive') docType = 'competitive';
       else if (category === 'syllabus') docType = 'syllabus';
 
-      const folderOption = subjectSelect.options[subjectSelect.selectedIndex];
-      const subject = (folderOption && folderOption.value !== 'general')
-        ? folderOption.text
+      const subject = (folderId !== 'general' && folderText)
+        ? folderText
         : (categorySelect.options[categorySelect.selectedIndex] ? categorySelect.options[categorySelect.selectedIndex].text : category);
+
 
       if (submitBtn) {
         submitBtn.disabled = true;
