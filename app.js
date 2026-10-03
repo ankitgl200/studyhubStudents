@@ -3713,7 +3713,7 @@ function renderAppearanceView() {
           <div style="flex: 1;">
             <div style="font-weight: 700; font-size: 15px; font-family: ${f.font}; color: var(--text-main);">${f.name}</div>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: ${f.font};">
-              ${f.category} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ The quick brown fox jumps over the lazy dog (123)
+              ${f.category} • The quick brown fox jumps over the lazy dog (123)
             </div>
           </div>
           <div style="width: 26px; height: 26px; border-radius: 50%; background: ${isActive ? 'var(--primary)' : 'var(--border-color)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px;">
@@ -7331,9 +7331,9 @@ function initEventHandlers() {
   if (roleSelect && roleHint) {
     roleSelect.addEventListener('change', (e) => {
       if (e.target.value === 'student') {
-        roleHint.textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ Instant approval. Get immediate access.';
+        roleHint.textContent = '✓ Instant approval. Get immediate access.';
       } else {
-        roleHint.textContent = 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  Requires Admin manual approval before logging in.';
+        roleHint.textContent = '⚠ Requires Admin manual approval before logging in.';
       }
     });
   }
@@ -8852,7 +8852,7 @@ function setAuthBookMode(targetMode, animate = false) {
     if (headerPage) headerPage.textContent = 'PAGE 3';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Login';
     if (curlLabel) curlLabel.textContent = 'LOGIN ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
-    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : NEW ENROLLMENT ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
+    if (footerSection) footerSection.textContent = '• SECTION B : NEW ENROLLMENT •';
   } else {
     if (panelSignup) panelSignup.classList.remove('active');
     if (panelLogin) panelLogin.classList.add('active');
@@ -8860,7 +8860,7 @@ function setAuthBookMode(targetMode, animate = false) {
     if (headerPage) headerPage.textContent = 'PAGE 2';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Sign Up';
     if (curlLabel) curlLabel.textContent = 'SIGN UP ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
-    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : PORTAL CREDENTIALS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
+    if (footerSection) footerSection.textContent = '• SECTION B : PORTAL CREDENTIALS •';
   }
 
   // Ensure scene atmosphere is running
@@ -8928,7 +8928,7 @@ function flipAuthPage(targetMode) {
     if (headerPage) headerPage.textContent = 'PAGE 3';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Login';
     if (curlLabel) curlLabel.textContent = 'LOGIN ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
-    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : NEW ENROLLMENT ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
+    if (footerSection) footerSection.textContent = '• SECTION B : NEW ENROLLMENT •';
 
     // 3. Play GSAP Physics Timeline
     const tl = gsap.timeline({
@@ -8995,7 +8995,7 @@ function flipAuthPage(targetMode) {
     if (headerPage) headerPage.textContent = 'PAGE 2';
     if (btnToggleText) btnToggleText.textContent = 'Turn Page to Sign Up';
     if (curlLabel) curlLabel.textContent = 'SIGN UP ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â';
-    if (footerSection) footerSection.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ SECTION B : PORTAL CREDENTIALS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢';
+    if (footerSection) footerSection.textContent = '• SECTION B : PORTAL CREDENTIALS •';
 
     const tl = gsap.timeline({
       onComplete: () => {
