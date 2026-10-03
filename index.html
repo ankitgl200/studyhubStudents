@@ -13,6 +13,17 @@
     content="BTKIT, Btkit, btkit, studyhub btkit, studyhub, BTKIT studyhub, btkit notes, btkit PYQs, btkit lab manuals, btkit resources, Dwarahat, engineering notes, B.Tech study material, Kumaon Engineering College, KEC Dwarahat">
   <link rel="canonical" href="https://studyhub4students.vercel.app/">
 
+
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XVC53SDXVC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-XVC53SDXVC');
+  </script>
   <!-- Structured Data / Rich Snippets (Schema.org Markup) -->
   <script type="application/ld+json">
   {
@@ -337,7 +348,7 @@
   }
 
 
-  /* Desktop Scrolled Bottom Dock Styling â€” Bigger, Frosted Glass, Beautiful Active Badges */
+  /* Desktop Scrolled Bottom Dock Styling — Bigger, Frosted Glass, Beautiful Active Badges */
   @media (min-width: 769px) {
     .mobile-bottom-nav.desktop-scrolled-show {
       --rise: 0px !important;
@@ -847,7 +858,7 @@
           <!-- Subtitle Branding -->
           <div class="sh-loader-subtitle" id="sh-loader-subtitle">
             <div class="sh-sub-line"></div>
-            <div class="sh-sub-text">Academic Portal â€¢ BTKIT Dwarahat</div>
+            <div class="sh-sub-text">Academic Portal • BTKIT Dwarahat</div>
             <div class="sh-sub-line right"></div>
           </div>
         </div>
@@ -858,81 +869,85 @@
         <div class="home-container">
           <!-- Hero Section -->
           <section class="hero">
-              <div class="hero-content sh-reveal-left">
-                <h1 style="margin-top: 40px;">
-                  All Your <span style="color: var(--primary);">BTKIT</span> Study
-                  Notes & PYQs in
-                  One Place
-                </h1>
-                <p>
-                  Welcome to <strong>Studyhub BTKIT</strong>, the ultimate academic resource sharing portal. Easily
-                  download and share engineering lecture notes, previous year question papers (PYQs), lab manuals, and
-                  syllabus resources organized semester-wise for BTKIT Dwarahat students.
-                </p>
-                <div class="hero-actions sh-reveal-stagger">
-                  <a href="#/notes" class="btn btn-primary">Browse Notes</a>
-                  <a href="#/papers" class="btn btn-secondary">Previous Year Papers</a>
-                  <a href="#/contributors" id="home-btn-contributors" class="btn btn-secondary"
-                    style="display: inline-flex; align-items: center; gap: 8px;">
-                    <i data-lucide="trophy" style="color: #fbbf24; width: 16px; height: 16px;"></i> Contributors
-                  </a>
-                </div>
-
-
+            <div class="hero-content sh-reveal-left">
+              <h1 style="margin-top: 40px;">
+                All Your <span style="color: var(--primary);">BTKIT</span> Study
+                Notes & PYQs in
+                One Place
+              </h1>
+              <p>
+                Welcome to <strong>Studyhub BTKIT</strong>, the ultimate academic resource sharing portal. Easily
+                download and share engineering lecture notes, previous year question papers (PYQs), lab manuals, and
+                syllabus resources organized semester-wise for BTKIT Dwarahat students.
+              </p>
+              <div class="hero-actions sh-reveal-stagger">
+                <a href="#/notes" class="btn btn-primary">Browse Notes</a>
+                <a href="#/papers" class="btn btn-secondary">Previous Year Papers</a>
+                <a href="#/contributors" id="home-btn-contributors" class="btn btn-secondary"
+                  style="display: inline-flex; align-items: center; gap: 8px;">
+                  <i data-lucide="trophy" style="color: #fbbf24; width: 16px; height: 16px;"></i> Contributors
+                </a>
               </div>
 
 
-              <!-- Right Side Container: Leaderboard + Stats -->
-              <div class="sh-reveal-right"
-                style="display: flex; flex-direction: column; gap: 16px; width: 100%; align-self: start;">
+            </div>
+
+
+            <!-- Right Side Container: Leaderboard + Stats -->
+            <div class="sh-reveal-right"
+              style="display: flex; flex-direction: column; gap: 16px; width: 100%; align-self: start;">
               <!-- Contributor Leaderboard Card -->
-              <div class="why-card" id="contributor-ranking-card" style="margin: 0; padding: 28px 32px; cursor: pointer;" onclick="window.location.hash='#/contributors'">
-                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 12px; color: var(--primary-dark);">
+              <div class="why-card" id="contributor-ranking-card"
+                style="margin: 0; padding: 28px 32px; cursor: pointer;" onclick="window.location.hash='#/contributors'">
+                <h3
+                  style="display: flex; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 12px; color: var(--primary-dark);">
                   <i data-lucide="trophy" style="color: var(--warning); width: 22px; height: 22px;"></i>
                   Top Contributors
                 </h3>
-                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Ranked by approved uploads</p>
-                <div id="contributor-ranking-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 290px; overflow-y: auto; padding-right: 8px;">
+                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Ranked by approved uploads
+                </p>
+                <div id="contributor-ranking-list"
+                  style="display: flex; flex-direction: column; gap: 10px; max-height: 290px; overflow-y: auto; padding-right: 8px;">
                   <!-- Populated dynamically via JS -->
                 </div>
               </div>
 
-                <!-- Quick Stats / Reviews Card -->
-                <a href="#/reviews" class="why-card site-stats-card" id="site-stats-card"
-                  style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; text-decoration: none; color: inherit; transition: var(--transition); border: 1px solid rgba(30, 86, 160, 0.08); background: var(--white); cursor: pointer; box-shadow: var(--shadow-sm);">
-                  <!-- Left Side: Resources Count -->
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div
-                      style="background-color: var(--primary-accent); color: var(--primary); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                      <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <div>
-                      <h4 id="stat-resources-count"
-                        style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; line-height: 1.2;">
-                        Counting...</h4>
-                      <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Total Resources Shared</p>
-                    </div>
+              <!-- Quick Stats / Reviews Card -->
+              <a href="#/reviews" class="why-card site-stats-card" id="site-stats-card"
+                style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; text-decoration: none; color: inherit; transition: var(--transition); border: 1px solid rgba(30, 86, 160, 0.08); background: var(--white); cursor: pointer; box-shadow: var(--shadow-sm);">
+                <!-- Left Side: Resources Count -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div
+                    style="background-color: var(--primary-accent); color: var(--primary); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
                   </div>
-
-                  <div style="width: 1px; height: 32px; background-color: var(--border-color);"></div>
-
-                  <!-- Right Side: Average Rating -->
-                  <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
-                    <div>
-                      <h4 id="stat-average-rating"
-                        style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; line-height: 1.2;">
-                        4.8 <i data-lucide="star"
-                          style="width: 14px; height: 14px; color: #f59e0b; fill: #f59e0b; display: inline-block; vertical-align: middle; margin-top: -3px;"></i>
-                      </h4>
-                      <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Average User Rating</p>
-                    </div>
-                    <div
-                      style="background-color: var(--warning-light); color: var(--warning); padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                      <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
-                    </div>
+                  <div>
+                    <h4 id="stat-resources-count"
+                      style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; line-height: 1.2;">
+                      Counting...</h4>
+                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Total Resources Shared</p>
                   </div>
-                </a>
-              </div>
+                </div>
+
+                <div style="width: 1px; height: 32px; background-color: var(--border-color);"></div>
+
+                <!-- Right Side: Average Rating -->
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                  <div>
+                    <h4 id="stat-average-rating"
+                      style="font-size: 16px; font-weight: 800; color: var(--primary-dark); margin: 0; line-height: 1.2;">
+                      4.8 <i data-lucide="star"
+                        style="width: 14px; height: 14px; color: #f59e0b; fill: #f59e0b; display: inline-block; vertical-align: middle; margin-top: -3px;"></i>
+                    </h4>
+                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Average User Rating</p>
+                  </div>
+                  <div
+                    style="background-color: var(--warning-light); color: var(--warning); padding: 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                  </div>
+                </div>
+              </a>
+            </div>
 
           </section>
 
@@ -1022,7 +1037,7 @@
             <div class="real-book-casing">
               <div class="book-pages-container">
 
-                <!-- â”€â”€ LEFT PAGE: STUDYHUB DIRECTORY â”€â”€ -->
+                <!-- ── LEFT PAGE: STUDYHUB DIRECTORY ── -->
                 <div class="book-page book-page-left">
                   <!-- Page Header -->
                   <div class="book-page-header">
@@ -1037,14 +1052,14 @@
                       <div class="book-crest-icon">
                         <i data-lucide="book-open"></i>
                       </div>
-                      <div class="book-crest-stars">âœ¦ âœ¦ âœ¦</div>
+                      <div class="book-crest-stars">✦ ✦ ✦</div>
                     </div>
 
                     <h1 class="book-title">StudyHub</h1>
                     <p class="book-edition">Central Academic Repository</p>
 
                     <div class="book-divider-ornament">
-                      <span></span><i>â–</i><span></span>
+                      <span></span><i>�?�</i><span></span>
                     </div>
 
                     <p class="book-desc">
@@ -1070,23 +1085,23 @@
                     <div class="book-switch-container">
                       <button type="button" class="btn-turn-page" id="btn-turn-page-toggle">
                         <span id="btn-turn-page-text">Turn Page to Sign Up</span>
-                        <span class="turn-icon">âž”</span>
+                        <span class="turn-icon">➔</span>
                       </button>
                     </div>
                   </div>
 
                   <!-- Page Footer -->
                   <div class="book-page-footer">
-                    <span>â€¢ SECTION A : REPOSITORY GUIDE â€¢</span>
+                    <span>• SECTION A : REPOSITORY GUIDE •</span>
                   </div>
                 </div>
 
-                <!-- â”€â”€ CENTER GUTTER / DEEP SPINE â”€â”€ -->
+                <!-- ── CENTER GUTTER / DEEP SPINE ── -->
                 <div class="book-gutter-spine">
                   <div class="book-ribbon-bookmark"></div>
                 </div>
 
-                <!-- â”€â”€ RIGHT PAGE: FORM LEAF â”€â”€ -->
+                <!-- ── RIGHT PAGE: FORM LEAF ── -->
                 <div class="book-page book-page-right" id="book-page-right-content">
                   <!-- Page Header -->
                   <div class="book-page-header">
@@ -1095,7 +1110,7 @@
                     <span class="book-header-page" id="book-header-page-num">PAGE 2</span>
                   </div>
 
-                  <!-- â”€â”€ LOGIN FORM PANEL â”€â”€ -->
+                  <!-- ── LOGIN FORM PANEL ── -->
                   <div id="auth-panel-login" class="auth-panel active">
                     <div class="book-form-header">
                       <h2>Welcome Back</h2>
@@ -1121,8 +1136,7 @@
                           <i data-lucide="lock"
                             style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
                           <input id="login-password" type="password" class="form-input"
-                            style="padding-left: 44px; padding-right: 44px;" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
-                            required />
+                            style="padding-left: 44px; padding-right: 44px;" placeholder="••••••••" required />
                           <button type="button" id="btn-show-login-password"
                             style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
                             title="Show Password">
@@ -1153,7 +1167,7 @@
                     </div>
                   </div><!-- /auth-panel-login -->
 
-                  <!-- â”€â”€ SIGNUP FORM PANEL â”€â”€ -->
+                  <!-- ── SIGNUP FORM PANEL ── -->
                   <div id="auth-panel-signup" class="auth-panel">
                     <div class="book-form-header">
                       <h2>Create Account</h2>
@@ -1251,16 +1265,16 @@
 
                   <!-- Page Footer -->
                   <div class="book-page-footer">
-                    <span id="book-footer-section-text">â€¢ SECTION B : PORTAL CREDENTIALS â€¢</span>
+                    <span id="book-footer-section-text">• SECTION B : PORTAL CREDENTIALS •</span>
                   </div>
 
                   <!-- Corner Dog-Ear Page Turn Tab -->
                   <div class="corner-page-curl" id="corner-curl-trigger" title="Turn Page">
-                    <span class="curl-label" id="curl-label-text">SIGN UP âž”</span>
+                    <span class="curl-label" id="curl-label-text">SIGN UP ➔</span>
                   </div>
                 </div><!-- /book-page-right -->
 
-                <!-- â”€â”€ THE 3D FLIPPING SHEET LEAF â”€â”€ -->
+                <!-- ── THE 3D FLIPPING SHEET LEAF ── -->
                 <div class="book-turning-leaf" id="book-turning-leaf">
                   <div class="leaf-face leaf-face-front">
                     <div class="leaf-lighting-overlay" id="leaf-front-lighting"></div>
@@ -1269,7 +1283,7 @@
                     <div class="leaf-back-watermark">
                       <i data-lucide="graduation-cap"></i>
                       <span>STUDYHUB UNIVERSITY ARCHIVES</span>
-                      <p>Knowledge Shared â€¢ Futures Built</p>
+                      <p>Knowledge Shared • Futures Built</p>
                     </div>
                     <div class="leaf-lighting-overlay" id="leaf-back-lighting"></div>
                   </div>
@@ -1349,7 +1363,7 @@
                     style="color: var(--primary); display: block; margin-top: 2px;"></strong>
                   <span
                     style="display: inline-block; margin-top: 6px; font-size: 11px; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px;">
-                    â±ï¸ Code expires in 10 minutes
+                    �?��? Code expires in 10 minutes
                   </span>
                 </p>
               </div>
@@ -1903,200 +1917,200 @@
 
       <!-- ADMIN DASHBOARD VIEW -->
       <div id="view-admin" class="page-view" style="display: none;">
-          <div class="folder-page-header">
-            <div class="folder-breadcrumbs"
-              style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13px;">
-              <a href="#/profile"
-                style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 4px;">
-                <i data-lucide="user" style="width: 16px; height: 16px;"></i> Profile
-              </a>
-              <span style="color: var(--text-muted); font-size: 12px;">&sol;</span>
-              <span class="breadcrumb-active"
-                style="display: flex; align-items: center; gap: 4px; color: var(--text-muted);">
-                <i data-lucide="shield-check" style="color: var(--primary); width: 18px; height: 18px;"></i>
-                Control Panel (<span id="admin-panel-role-label">Admin</span>)
-              </span>
-              <span style="color: var(--text-muted); font-size: 12px;">&sol;</span>
-              <span id="admin-panel-subpage-title" style="font-weight: 700; color: var(--primary);">Approvals</span>
-            </div>
-          </div>
-
-          <div id="admin-error-alert" class="alert alert-danger" style="display: none;"></div>
-
-          <div class="admin-subviews-container" style="margin-top: 20px;">
-            <!-- Section: Pending Approvals -->
-            <div id="admin-section-approvals" class="admin-subview" style="display: none;">
-              <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-                <i data-lucide="shield-alert" style="color: var(--warning); width: 20px; height: 20px;"></i>
-                Pending Approvals (<span id="pending-users-count">0</span>)
-              </h3>
-              <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-                Educators and admins require registration approval before accessing Studyhub contents.
-              </p>
-              <div id="pending-users-list-container">
-                <!-- Rendered via JS -->
-              </div>
-            </div>
-
-            <!-- Section: User Directory -->
-            <div id="admin-section-users" class="admin-subview" style="display: none;">
-              <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-                <i data-lucide="users" style="color: var(--primary); width: 20px; height: 20px;"></i>
-                User Directory (<span id="all-users-count">0</span>)
-              </h3>
-              <p id="admin-directory-hint" style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-                Admin view: You can manage and delete Student accounts only.
-              </p>
-              <div class="search-box-container" style="display: flex; gap: 8px; margin-bottom: 20px; max-width: 100%;">
-                <div style="position: relative; flex: 1;">
-                  <input type="text" id="admin-user-search-input" placeholder="Search by name or phone..."
-                    style="width: 100%; padding: 10px 16px 10px 40px; border-radius: var(--radius-md); border: 1px solid var(--border-color); background-color: var(--bg-card); color: var(--text-main); font-size: 14px; outline: none; transition: border-color 0.2s;" />
-                  <i data-lucide="search"
-                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;"></i>
-                </div>
-                <button id="btn-admin-user-search" class="btn btn-primary"
-                  style="padding: 10px 20px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                  <span class="search-btn-text">Search</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                    class="search-btn-icon" style="display: none; width: 18px; height: 18px;">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.3-4.3" />
-                  </svg>
-                </button>
-                <button id="btn-admin-user-search-clear" class="btn btn-secondary"
-                  style="padding: 10px 16px; display: none; align-items: center; justify-content: center; background-color: #fee2e2; color: #ef4444; border: 1px solid #fee2e2;"
-                  title="Clear Search">
-                  <i data-lucide="x" style="width: 18px; height: 18px;"></i>
-                </button>
-              </div>
-              <div class="calculator-tabs" id="directory-tabs" style="margin-bottom: 20px;">
-                <!-- Dynamic tabs loaded here -->
-              </div>
-              <div id="all-users-list-container" class="users-list">
-                <!-- Rendered via JS -->
-              </div>
-              <div id="directory-show-more-container" style="margin-top: 16px; display: flex; justify-content: center;">
-              </div>
-            </div>
-
-            <!-- Section: Pending Contributions -->
-            <div id="admin-section-contributions" class="admin-subview" style="display: none;">
-              <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-                <i data-lucide="upload-cloud" style="color: var(--warning); width: 22px; height: 22px;"></i>
-                Pending Contributions (<span id="pending-docs-count">0</span>)
-              </h3>
-              <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-                Review resources contributed by students. You can view, accept, or delete them.
-              </p>
-              <div id="pending-docs-list-container">
-                <!-- Rendered via JS -->
-              </div>
-            </div>
-
-            <!-- Section: Help & Support Requests -->
-            <div id="admin-section-support" class="admin-subview" style="display: none;">
-              <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-                <i data-lucide="help-circle" style="color: var(--primary); width: 20px; height: 20px;"></i>
-                Help & Support Requests (<span id="support-requests-count">0</span>)
-              </h3>
-              <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-                View and manage support tickets, feature requests, or queries submitted by educators and students.
-              </p>
-              <div id="support-requests-list-container">
-                <!-- Rendered via JS -->
-              </div>
-              <div id="support-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
-              </div>
-            </div>
-
-            <!-- Section: Sent Notifications & Requests -->
-            <div id="admin-section-notifications" class="admin-subview" style="display: none;">
-              <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-                <i data-lucide="mail" style="color: var(--primary); width: 20px; height: 20px;"></i>
-                Sent Notifications & Requests (<span id="superadmin-messages-count">0</span>)
-              </h3>
-              <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-                Admin Control: View, edit (unseen only), or delete all direct notification messages sent to users.
-              </p>
-              <div id="superadmin-messages-list-container">
-                <!-- Rendered via JS -->
-              </div>
-              <div id="messages-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
-              </div>
-            </div>
-
-            <!-- Section: User Ratings & Reviews -->
-            <div id="admin-section-reviews" class="admin-subview" style="display: none;">
-              <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                <div>
-                  <h3 class="section-title" style="margin: 0; font-size: 20px;">
-                    <i data-lucide="star"
-                      style="color: var(--warning); width: 22px; height: 22px; fill: var(--warning);"></i>
-                    User Ratings & Reviews (<span id="admin-reviews-count">0</span>)
-                  </h3>
-                  <p style="color: var(--text-muted); margin-top: 4px; font-size: 14px; margin-bottom: 0;">
-                    Average Rating: <strong id="admin-reviews-average" style="color: var(--primary);">0.0</strong> / 5.0
-                  </p>
-                </div>
-              </div>
-              <div id="admin-reviews-list-container">
-                <!-- Rendered via JS -->
-              </div>
-              <div id="reviews-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
-              </div>
-            </div>
+        <div class="folder-page-header">
+          <div class="folder-breadcrumbs"
+            style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13px;">
+            <a href="#/profile"
+              style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="user" style="width: 16px; height: 16px;"></i> Profile
+            </a>
+            <span style="color: var(--text-muted); font-size: 12px;">&sol;</span>
+            <span class="breadcrumb-active"
+              style="display: flex; align-items: center; gap: 4px; color: var(--text-muted);">
+              <i data-lucide="shield-check" style="color: var(--primary); width: 18px; height: 18px;"></i>
+              Control Panel (<span id="admin-panel-role-label">Admin</span>)
+            </span>
+            <span style="color: var(--text-muted); font-size: 12px;">&sol;</span>
+            <span id="admin-panel-subpage-title" style="font-weight: 700; color: var(--primary);">Approvals</span>
           </div>
         </div>
 
-        <!-- MY UPLOADS VIEW -->
-        <div id="view-my-uploads" class="page-view" style="display: none;">
-          <div class="folder-page-header">
-            <div class="folder-breadcrumbs">
-              <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="folder-heart" style="color: var(--primary); width: 22px; height: 22px;"></i>
-                My Uploaded Documents
-              </span>
-            </div>
-          </div>
+        <div id="admin-error-alert" class="alert alert-danger" style="display: none;"></div>
 
-          <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
-            <p style="color: var(--text-muted); font-size: 15px; margin: 0;">
-              Below is the list of documents (notes, papers, textbooks) that you have uploaded. You can view, edit, or
-              delete them.
+        <div class="admin-subviews-container" style="margin-top: 20px;">
+          <!-- Section: Pending Approvals -->
+          <div id="admin-section-approvals" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="shield-alert" style="color: var(--warning); width: 20px; height: 20px;"></i>
+              Pending Approvals (<span id="pending-users-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Educators and admins require registration approval before accessing Studyhub contents.
             </p>
-            <div class="search-input-wrapper" style="max-width: 400px; margin-top: 10px;">
-              <i data-lucide="search" class="search-input-icon" style="width: 18px; height: 18px;"></i>
-              <input type="text" id="my-uploads-search" class="form-input search-input"
-                placeholder="Search your uploads..." />
+            <div id="pending-users-list-container">
+              <!-- Rendered via JS -->
             </div>
           </div>
 
-          <!-- Analytics Stats Cards -->
-          <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-            <div class="card"
-              style="padding: 16px 24px; text-align: center; border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-              <div
-                style="color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
-                Total Uploaded Documents</div>
-              <div id="stats-uploads-count" style="font-size: 28px; font-weight: 800; color: var(--primary-dark);">0
+          <!-- Section: User Directory -->
+          <div id="admin-section-users" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="users" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              User Directory (<span id="all-users-count">0</span>)
+            </h3>
+            <p id="admin-directory-hint" style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Admin view: You can manage and delete Student accounts only.
+            </p>
+            <div class="search-box-container" style="display: flex; gap: 8px; margin-bottom: 20px; max-width: 100%;">
+              <div style="position: relative; flex: 1;">
+                <input type="text" id="admin-user-search-input" placeholder="Search by name or phone..."
+                  style="width: 100%; padding: 10px 16px 10px 40px; border-radius: var(--radius-md); border: 1px solid var(--border-color); background-color: var(--bg-card); color: var(--text-main); font-size: 14px; outline: none; transition: border-color 0.2s;" />
+                <i data-lucide="search"
+                  style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;"></i>
+              </div>
+              <button id="btn-admin-user-search" class="btn btn-primary"
+                style="padding: 10px 20px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                <span class="search-btn-text">Search</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="search-btn-icon" style="display: none; width: 18px; height: 18px;">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </button>
+              <button id="btn-admin-user-search-clear" class="btn btn-secondary"
+                style="padding: 10px 16px; display: none; align-items: center; justify-content: center; background-color: #fee2e2; color: #ef4444; border: 1px solid #fee2e2;"
+                title="Clear Search">
+                <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+              </button>
+            </div>
+            <div class="calculator-tabs" id="directory-tabs" style="margin-bottom: 20px;">
+              <!-- Dynamic tabs loaded here -->
+            </div>
+            <div id="all-users-list-container" class="users-list">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="directory-show-more-container" style="margin-top: 16px; display: flex; justify-content: center;">
+            </div>
+          </div>
+
+          <!-- Section: Pending Contributions -->
+          <div id="admin-section-contributions" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="upload-cloud" style="color: var(--warning); width: 22px; height: 22px;"></i>
+              Pending Contributions (<span id="pending-docs-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Review resources contributed by students. You can view, accept, or delete them.
+            </p>
+            <div id="pending-docs-list-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Section: Help & Support Requests -->
+          <div id="admin-section-support" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="help-circle" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              Help & Support Requests (<span id="support-requests-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              View and manage support tickets, feature requests, or queries submitted by educators and students.
+            </p>
+            <div id="support-requests-list-container">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="support-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
+            </div>
+          </div>
+
+          <!-- Section: Sent Notifications & Requests -->
+          <div id="admin-section-notifications" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="mail" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              Sent Notifications & Requests (<span id="superadmin-messages-count">0</span>)
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Admin Control: View, edit (unseen only), or delete all direct notification messages sent to users.
+            </p>
+            <div id="superadmin-messages-list-container">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="messages-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
+            </div>
+          </div>
+
+          <!-- Section: User Ratings & Reviews -->
+          <div id="admin-section-reviews" class="admin-subview" style="display: none;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 class="section-title" style="margin: 0; font-size: 20px;">
+                  <i data-lucide="star"
+                    style="color: var(--warning); width: 22px; height: 22px; fill: var(--warning);"></i>
+                  User Ratings & Reviews (<span id="admin-reviews-count">0</span>)
+                </h3>
+                <p style="color: var(--text-muted); margin-top: 4px; font-size: 14px; margin-bottom: 0;">
+                  Average Rating: <strong id="admin-reviews-average" style="color: var(--primary);">0.0</strong> / 5.0
+                </p>
               </div>
             </div>
-            <div class="card"
-              style="padding: 16px 24px; text-align: center; border-left: 4px solid var(--success); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-              <div
-                style="color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
-                Total Likes Received</div>
-              <div id="stats-uploads-likes" style="font-size: 28px; font-weight: 800; color: var(--success);">0</div>
+            <div id="admin-reviews-list-container">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="reviews-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
             </div>
           </div>
+        </div>
+      </div>
 
-          <div id="my-uploads-list-container" class="docs-list">
-            <!-- Populated dynamically via JS -->
+      <!-- MY UPLOADS VIEW -->
+      <div id="view-my-uploads" class="page-view" style="display: none;">
+        <div class="folder-page-header">
+          <div class="folder-breadcrumbs">
+            <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="folder-heart" style="color: var(--primary); width: 22px; height: 22px;"></i>
+              My Uploaded Documents
+            </span>
           </div>
         </div>
+
+        <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+          <p style="color: var(--text-muted); font-size: 15px; margin: 0;">
+            Below is the list of documents (notes, papers, textbooks) that you have uploaded. You can view, edit, or
+            delete them.
+          </p>
+          <div class="search-input-wrapper" style="max-width: 400px; margin-top: 10px;">
+            <i data-lucide="search" class="search-input-icon" style="width: 18px; height: 18px;"></i>
+            <input type="text" id="my-uploads-search" class="form-input search-input"
+              placeholder="Search your uploads..." />
+          </div>
+        </div>
+
+        <!-- Analytics Stats Cards -->
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+          <div class="card"
+            style="padding: 16px 24px; text-align: center; border-left: 4px solid var(--primary); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div
+              style="color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+              Total Uploaded Documents</div>
+            <div id="stats-uploads-count" style="font-size: 28px; font-weight: 800; color: var(--primary-dark);">0
+            </div>
+          </div>
+          <div class="card"
+            style="padding: 16px 24px; text-align: center; border-left: 4px solid var(--success); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div
+              style="color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+              Total Likes Received</div>
+            <div id="stats-uploads-likes" style="font-size: 28px; font-weight: 800; color: var(--success);">0</div>
+          </div>
+        </div>
+
+        <div id="my-uploads-list-container" class="docs-list">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
       <!-- TEACHER DASHBOARD VIEW -->
       <div id="view-teacher-dashboard" class="page-view" style="display: none;">
         <div class="folder-page-header">
@@ -2143,460 +2157,460 @@
       </div>
 
       <!-- MY CONTRIBUTIONS VIEW -->
-        <div id="view-my-contributions" class="page-view" style="display: none;">
-          <!-- Rendered dynamically via JS -->
-        </div>
+      <div id="view-my-contributions" class="page-view" style="display: none;">
+        <!-- Rendered dynamically via JS -->
+      </div>
 
-        <!-- ABOUT US VIEW -->
-        <div id="view-about" class="page-view" style="display: none;">
-          <div style="max-width: 900px; margin: 0 auto; padding: 0 16px;">
-            <!-- Header -->
-            <div class="auth-header" style="margin-bottom: 32px; text-align: center;">
-              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i data-lucide="info" style="color: var(--primary); width: 32px; height: 32px;"></i>
-                About Us
-              </h2>
-              <p style="color: var(--text-muted); font-size: 16px; margin-top: 12px; font-weight: 500;">Empowering
-                students with centralized academic resources and intelligent study tools.</p>
+      <!-- ABOUT US VIEW -->
+      <div id="view-about" class="page-view" style="display: none;">
+        <div style="max-width: 900px; margin: 0 auto; padding: 0 16px;">
+          <!-- Header -->
+          <div class="auth-header" style="margin-bottom: 32px; text-align: center;">
+            <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i data-lucide="info" style="color: var(--primary); width: 32px; height: 32px;"></i>
+              About Us
+            </h2>
+            <p style="color: var(--text-muted); font-size: 16px; margin-top: 12px; font-weight: 500;">Empowering
+              students with centralized academic resources and intelligent study tools.</p>
+          </div>
+
+          <!-- Content Sections -->
+          <div class="about-content-sections"
+            style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 40px;">
+            <div class="card" style="padding: 24px;">
+              <h3
+                style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
+                <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
+                What is StudyHub?
+              </h3>
+              <p style="color: var(--text-color); line-height: 1.6; font-size: 15px;">
+                <strong>StudyHub</strong> is a modern, student-centric digital library and sharing platform designed
+                to make academic life simpler, more collaborative, and highly efficient. Created specifically for
+                BTKIT students, StudyHub serves as a centralized hub where anyone can access, search, and download a
+                wide variety of academic materials.
+              </p>
+              <ul
+                style="margin-top: 16px; color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>Subject-Wise Notes:</strong> Comprehensive and high-quality lecture notes structured for
+                  easy understanding.</li>
+                <li><strong>Previous Year Questions (PYQs):</strong> Organized archives of past exams to help students
+                  analyze exam patterns and practice effectively.</li>
+                <li><strong>Academic Resources & Textbooks:</strong> Curated links and documents, including lab
+                  manuals, study roadmaps, and reference textbooks.</li>
+                <li><strong>SONIC AI Study Assistant:</strong> An interactive study companion powered by generative AI
+                  to explain complex concepts, solve study-related queries, and provide instant academic support.</li>
+              </ul>
             </div>
 
-            <!-- Content Sections -->
-            <div class="about-content-sections"
-              style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 40px;">
-              <div class="card" style="padding: 24px;">
-                <h3
-                  style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
-                  <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
-                  What is StudyHub?
-                </h3>
-                <p style="color: var(--text-color); line-height: 1.6; font-size: 15px;">
-                  <strong>StudyHub</strong> is a modern, student-centric digital library and sharing platform designed
-                  to make academic life simpler, more collaborative, and highly efficient. Created specifically for
-                  BTKIT students, StudyHub serves as a centralized hub where anyone can access, search, and download a
-                  wide variety of academic materials.
-                </p>
-                <ul
-                  style="margin-top: 16px; color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
-                  <li><strong>Subject-Wise Notes:</strong> Comprehensive and high-quality lecture notes structured for
-                    easy understanding.</li>
-                  <li><strong>Previous Year Questions (PYQs):</strong> Organized archives of past exams to help students
-                    analyze exam patterns and practice effectively.</li>
-                  <li><strong>Academic Resources & Textbooks:</strong> Curated links and documents, including lab
-                    manuals, study roadmaps, and reference textbooks.</li>
-                  <li><strong>SONIC AI Study Assistant:</strong> An interactive study companion powered by generative AI
-                    to explain complex concepts, solve study-related queries, and provide instant academic support.</li>
-                </ul>
-              </div>
-
-              <div class="card" style="padding: 24px; border-left: 4px solid var(--danger);">
-                <h3
-                  style="display: flex; align-items: center; gap: 8px; color: var(--danger); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
-                  <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
-                  The Problem Statement
-                </h3>
-                <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">Navigating
-                  college academics is often harder than it needs to be due to several persistent challenges:</p>
-                <ul
-                  style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
-                  <li><strong>Lack of Organized Study Resources:</strong> Lecture slides, notes, and study material are
-                    usually scattered across different chats, emails, and drives. Students spend valuable time searching
-                    for resources instead of studying them.</li>
-                  <li><strong>Difficulty Finding PYQs:</strong> Previous Year Questions are critical for exam
-                    preparation, yet they are rarely cataloged systematically, leaving students guessing about past
-                    trends.</li>
-                  <li><strong>Lack of Centralized Guidance:</strong> Without a single platform, juniors struggle to seek
-                    guidance from seniors, leading to a disconnect and unnecessary stress during exams.</li>
-                </ul>
-              </div>
-
-              <div class="card" style="padding: 24px; border-left: 4px solid var(--success);">
-                <h3
-                  style="display: flex; align-items: center; gap: 8px; color: var(--success); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
-                  <i data-lucide="lightbulb" style="width: 20px; height: 20px;"></i>
-                  Our Solution
-                </h3>
-                <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">StudyHub
-                  solves these pain points by offering a unified, clean, and accessible portal:</p>
-                <ul
-                  style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
-                  <li><strong>One-Click Access:</strong> Streamlined storage allows students to access notes and files
-                    instantly without jumping between platforms.</li>
-                  <li><strong>Systematic Archives:</strong> Categorized and semester-wise sorted papers make finding
-                    PYQs completely effortless.</li>
-                  <li><strong>Organized & Responsive Interface:</strong> A user-friendly, responsive Single Page
-                    Application (SPA) designed to work beautifully on both desktop and mobile devices.</li>
-                  <li><strong>Community-Driven Support:</strong> Built by seniors who understand the curriculum,
-                    ensuring the resources are always relevant and accurate.</li>
-                </ul>
-              </div>
-
-              <div class="card" style="padding: 24px;">
-                <h3
-                  style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
-                  <i data-lucide="heart-handshake" style="width: 20px; height: 20px;"></i>
-                  How to Contribute
-                </h3>
-                <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">
-                  We believe StudyHub belongs to the student community. If you want to help grow the platform, improve
-                  the resources, or fix a bug, here is how you can contribute:
-                </p>
-                <ul
-                  style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
-                  <li><strong>Fork the Repository:</strong> Create a personal copy of the repository on your GitHub
-                    account.</li>
-                  <li><strong>Add or Improve Resources:</strong> Add high-quality study materials, missing PYQs, or
-                    clean lecture notes. Improve documentation or optimize features in the client application.</li>
-                  <li><strong>Submit a Pull Request:</strong> Submit your changes back to the main repository for
-                    review. Our team will review and merge it.</li>
-                </ul>
-                <p
-                  style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-top: 12px; font-style: italic;">
-                  â€œKnowledge multiplies when shared.â€ We invite every student to make the most of StudyHub, and
-                  encourage contributors to help us expand it!
-                </p>
-              </div>
+            <div class="card" style="padding: 24px; border-left: 4px solid var(--danger);">
+              <h3
+                style="display: flex; align-items: center; gap: 8px; color: var(--danger); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
+                <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+                The Problem Statement
+              </h3>
+              <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">Navigating
+                college academics is often harder than it needs to be due to several persistent challenges:</p>
+              <ul
+                style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>Lack of Organized Study Resources:</strong> Lecture slides, notes, and study material are
+                  usually scattered across different chats, emails, and drives. Students spend valuable time searching
+                  for resources instead of studying them.</li>
+                <li><strong>Difficulty Finding PYQs:</strong> Previous Year Questions are critical for exam
+                  preparation, yet they are rarely cataloged systematically, leaving students guessing about past
+                  trends.</li>
+                <li><strong>Lack of Centralized Guidance:</strong> Without a single platform, juniors struggle to seek
+                  guidance from seniors, leading to a disconnect and unnecessary stress during exams.</li>
+              </ul>
             </div>
 
-            <!-- Ownership & Roles -->
-            <div class="auth-header" style="margin-bottom: 24px; text-align: center;">
-              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i data-lucide="users" style="color: var(--primary); width: 28px; height: 28px;"></i>
-                Ownership & Roles
-              </h2>
-              <p style="color: var(--text-muted); font-size: 15px; margin-top: 8px;">StudyHub is built and maintained by
-                a dedicated team committed to improving the academic experience.</p>
+            <div class="card" style="padding: 24px; border-left: 4px solid var(--success);">
+              <h3
+                style="display: flex; align-items: center; gap: 8px; color: var(--success); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
+                <i data-lucide="lightbulb" style="width: 20px; height: 20px;"></i>
+                Our Solution
+              </h3>
+              <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">StudyHub
+                solves these pain points by offering a unified, clean, and accessible portal:</p>
+              <ul
+                style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>One-Click Access:</strong> Streamlined storage allows students to access notes and files
+                  instantly without jumping between platforms.</li>
+                <li><strong>Systematic Archives:</strong> Categorized and semester-wise sorted papers make finding
+                  PYQs completely effortless.</li>
+                <li><strong>Organized & Responsive Interface:</strong> A user-friendly, responsive Single Page
+                  Application (SPA) designed to work beautifully on both desktop and mobile devices.</li>
+                <li><strong>Community-Driven Support:</strong> Built by seniors who understand the curriculum,
+                  ensuring the resources are always relevant and accurate.</li>
+              </ul>
             </div>
 
-            <div id="about-team-management" class="card"
-              style="display: none; padding: 24px; margin-bottom: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--primary); background: linear-gradient(to bottom right, var(--card-bg), rgba(59, 130, 246, 0.03));">
-              <h4
-                style="margin-top: 0; font-size: 18px; margin-bottom: 24px; color: var(--primary); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
-                <i data-lucide="user-cog" style="width: 22px; height: 22px;"></i>
-                Manage Team Member
-              </h4>
+            <div class="card" style="padding: 24px;">
+              <h3
+                style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: 18px; margin-bottom: 12px; font-weight: 700;">
+                <i data-lucide="heart-handshake" style="width: 20px; height: 20px;"></i>
+                How to Contribute
+              </h3>
+              <p style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-bottom: 12px;">
+                We believe StudyHub belongs to the student community. If you want to help grow the platform, improve
+                the resources, or fix a bug, here is how you can contribute:
+              </p>
+              <ul
+                style="color: var(--text-color); line-height: 1.6; font-size: 15px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>Fork the Repository:</strong> Create a personal copy of the repository on your GitHub
+                  account.</li>
+                <li><strong>Add or Improve Resources:</strong> Add high-quality study materials, missing PYQs, or
+                  clean lecture notes. Improve documentation or optimize features in the client application.</li>
+                <li><strong>Submit a Pull Request:</strong> Submit your changes back to the main repository for
+                  review. Our team will review and merge it.</li>
+              </ul>
+              <p
+                style="color: var(--text-color); line-height: 1.6; font-size: 15px; margin-top: 12px; font-style: italic;">
+                “Knowledge multiplies when shared.�? We invite every student to make the most of StudyHub, and
+                encourage contributors to help us expand it!
+              </p>
+            </div>
+          </div>
 
-              <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
-                <div class="form-group" style="margin: 0;">
-                  <label
-                    style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Full
-                    Name <span style="color: var(--danger);">*</span></label>
-                  <input type="text" id="admin-team-name" class="form-control" placeholder="e.g. Jane Doe"
-                    style="width: 100%; padding: 12px; border-radius: 8px;" required>
-                </div>
-                <div class="form-group" style="margin: 0;">
-                  <label
-                    style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Role
-                    <span style="color: var(--danger);">*</span></label>
-                  <input type="text" id="admin-team-role" class="form-control" placeholder="e.g. Content Manager"
-                    style="width: 100%; padding: 12px; border-radius: 8px;" required>
-                </div>
-              </div>
+          <!-- Ownership & Roles -->
+          <div class="auth-header" style="margin-bottom: 24px; text-align: center;">
+            <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i data-lucide="users" style="color: var(--primary); width: 28px; height: 28px;"></i>
+              Ownership & Roles
+            </h2>
+            <p style="color: var(--text-muted); font-size: 15px; margin-top: 8px;">StudyHub is built and maintained by
+              a dedicated team committed to improving the academic experience.</p>
+          </div>
 
-              <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
-                <div class="form-group" style="margin: 0;">
-                  <label
-                    style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Profile
-                    Image URL <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
-                  <input type="url" id="admin-team-image" class="form-control"
-                    placeholder="https://example.com/photo.jpg" style="width: 100%; padding: 12px; border-radius: 8px;">
-                  <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Leave blank to use the default
-                    cartoon avatar.</p>
-                </div>
-                <div class="form-group" style="margin: 0;">
-                  <label
-                    style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Position
-                    / Order <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
-                  <input type="number" id="admin-team-order" class="form-control" placeholder="e.g. 1" min="1"
-                    style="width: 100%; padding: 12px; border-radius: 8px;">
-                  <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Determines display order. Blank
-                    adds to the end.</p>
-                </div>
-              </div>
+          <div id="about-team-management" class="card"
+            style="display: none; padding: 24px; margin-bottom: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--primary); background: linear-gradient(to bottom right, var(--card-bg), rgba(59, 130, 246, 0.03));">
+            <h4
+              style="margin-top: 0; font-size: 18px; margin-bottom: 24px; color: var(--primary); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 12px;">
+              <i data-lucide="user-cog" style="width: 22px; height: 22px;"></i>
+              Manage Team Member
+            </h4>
 
-              <div class="form-group" style="margin-bottom: 28px;">
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
+              <div class="form-group" style="margin: 0;">
                 <label
-                  style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Short
-                  Bio <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
-                <textarea id="admin-team-bio" class="form-control" placeholder="Write a short description..." rows="3"
-                  style="width: 100%; padding: 12px; border-radius: 8px; resize: vertical; min-height: 80px;"></textarea>
+                  style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Full
+                  Name <span style="color: var(--danger);">*</span></label>
+                <input type="text" id="admin-team-name" class="form-control" placeholder="e.g. Jane Doe"
+                  style="width: 100%; padding: 12px; border-radius: 8px;" required>
               </div>
-
-              <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
-                <button id="btn-admin-cancel-edit-team" class="btn btn-secondary"
-                  style="display: none; padding: 10px 20px; font-weight: 600; border-radius: 8px;">Cancel</button>
-                <button id="btn-admin-add-team" class="btn btn-primary"
-                  style="padding: 10px 24px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
-                  <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
-                  Save Member
-                </button>
+              <div class="form-group" style="margin: 0;">
+                <label
+                  style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Role
+                  <span style="color: var(--danger);">*</span></label>
+                <input type="text" id="admin-team-role" class="form-control" placeholder="e.g. Content Manager"
+                  style="width: 100%; padding: 12px; border-radius: 8px;" required>
               </div>
             </div>
 
-            <div id="about-team-grid"
-              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px;">
-              <!-- Rendered dynamically via JS -->
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
+              <div class="form-group" style="margin: 0;">
+                <label
+                  style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Profile
+                  Image URL <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
+                <input type="url" id="admin-team-image" class="form-control" placeholder="https://example.com/photo.jpg"
+                  style="width: 100%; padding: 12px; border-radius: 8px;">
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Leave blank to use the default
+                  cartoon avatar.</p>
+              </div>
+              <div class="form-group" style="margin: 0;">
+                <label
+                  style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Position
+                  / Order <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
+                <input type="number" id="admin-team-order" class="form-control" placeholder="e.g. 1" min="1"
+                  style="width: 100%; padding: 12px; border-radius: 8px;">
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Determines display order. Blank
+                  adds to the end.</p>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- HELP & SUPPORT VIEW -->
-        <div id="view-support" class="page-view" style="display: none;">
-          <div class="support-container" style="max-width: 600px; margin: 0 auto;">
-            <div class="card support-card">
-              <div class="auth-header" style="margin-bottom: 24px;">
-                <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                  <i data-lucide="help-circle" style="color: var(--primary); width: 28px; height: 28px;"></i>
-                  Help & Support
-                </h2>
-                <p>Share your requests, questions, or issues with our admin team</p>
-              </div>
+            <div class="form-group" style="margin-bottom: 28px;">
+              <label
+                style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Short
+                Bio <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
+              <textarea id="admin-team-bio" class="form-control" placeholder="Write a short description..." rows="3"
+                style="width: 100%; padding: 12px; border-radius: 8px; resize: vertical; min-height: 80px;"></textarea>
+            </div>
 
-              <div id="support-email-request-notice" class="alert alert-warning"
-                style="display: none; align-items: flex-start; gap: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;">
-                <i data-lucide="alert-circle" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
-                <div>
-                  <strong>No Email Linked to Account:</strong> To reset your password, please submit this application
-                  with your email address. The Admin will link your email so you can reset your password.
-                </div>
-              </div>
-
-              <div id="support-error-alert" class="alert alert-danger" style="display: none;"></div>
-              <div id="support-success-alert" class="alert alert-success" style="display: none;"></div>
-
-              <form id="form-support">
-                <div class="form-group-grid"
-                  style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                  <div class="form-group" style="margin: 0;">
-                    <label class="form-label">Your Name</label>
-                    <input id="support-user-name" type="text" class="form-input" disabled />
-                  </div>
-                  <div class="form-group" style="margin: 0;">
-                    <label class="form-label">Phone Number</label>
-                    <input id="support-user-phone" type="text" class="form-input" disabled />
-                  </div>
-                </div>
-
-                <div class="form-group" style="margin-top: 16px;">
-                  <label class="form-label">Role</label>
-                  <input id="support-user-role" type="text" class="form-input" style="text-transform: capitalize;"
-                    disabled />
-                </div>
-
-                <div class="form-group" id="support-requested-email-group" style="display: none;">
-                  <label class="form-label" for="support-requested-email">Email Address to Link</label>
-                  <div style="position: relative;">
-                    <i data-lucide="mail"
-                      style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
-                    <input id="support-requested-email" type="email" class="form-input" style="padding-left: 44px;"
-                      placeholder="Enter your email (e.g. name@gmail.com)" />
-                  </div>
-                  <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">
-                    Admin will link this email to your account so you can reset your password.
-                  </span>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="support-subject">Subject</label>
-                  <input id="support-subject" type="text" class="form-input"
-                    placeholder="e.g., Unable to download Engineering Physics PYQ" required />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="support-message">Message</label>
-                  <textarea id="support-message" class="form-input" style="min-height: 120px; resize: vertical;"
-                    placeholder="Provide details of your request or issue..." required></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                  <span id="support-btn-content"
-                    style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <i data-lucide="send" style="width: 18px; height: 18px;"></i> Submit Request
-                  </span>
-                </button>
-                <button type="button" id="btn-show-support-history" class="btn btn-secondary"
-                  style="width: 100%; margin-top: 10px; display: none;">
-                  <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <i data-lucide="history" style="width: 18px; height: 18px;"></i> Show History
-                  </span>
-                </button>
-              </form>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+              <button id="btn-admin-cancel-edit-team" class="btn btn-secondary"
+                style="display: none; padding: 10px 20px; font-weight: 600; border-radius: 8px;">Cancel</button>
+              <button id="btn-admin-add-team" class="btn btn-primary"
+                style="padding: 10px 24px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                Save Member
+              </button>
             </div>
           </div>
-        </div>
 
-        <!-- REVIEWS VIEW -->
-        <div id="view-reviews" class="page-view" style="display: none;">
-          <div class="support-container" style="max-width: 600px; margin: 0 auto;">
-            <div class="card support-card">
-              <div class="auth-header" style="margin-bottom: 24px;">
-                <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                  <i data-lucide="star"
-                    style="color: var(--warning); width: 28px; height: 28px; fill: var(--warning);"></i>
-                  Reviews & Ratings
-                </h2>
-                <p>We value your feedback! Rate your experience and leave a review.</p>
-              </div>
-
-              <div id="review-error-alert" class="alert alert-danger" style="display: none;"></div>
-              <div id="review-success-alert" class="alert alert-success" style="display: none;"></div>
-
-              <!-- Existing review display card -->
-              <div id="existing-review-container"
-                style="display: none; background-color: rgba(243, 248, 255, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; margin-bottom: 16px;">
-                <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Your
-                  Submitted Feedback</div>
-                <div id="existing-review-stars"
-                  style="display: flex; justify-content: center; gap: 4px; margin-bottom: 12px; font-size: 24px; color: var(--warning);">
-                </div>
-                <p id="existing-review-comment"
-                  style="font-style: italic; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap;">
-                </p>
-                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Submitted on <span
-                    id="existing-review-date"></span></div>
-                <div
-                  style="font-size: 12px; font-weight: 600; color: var(--success); margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                  <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> You have already submitted a
-                  review.
-                </div>
-              </div>
-
-              <!-- Review submission form -->
-              <form id="form-review">
-                <div class="form-group" style="text-align: center; margin-bottom: 24px;">
-                  <label class="form-label"
-                    style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 700; color: var(--text-main);">Tap
-                    stars to rate us</label>
-                  <div class="star-rating-input"
-                    style="display: flex; justify-content: center; gap: 8px; font-size: 32px; cursor: pointer; color: #cbd5e1;">
-                    <span class="star-btn" data-value="1" style="transition: color 0.15s;"><i data-lucide="star"
-                        style="width: 32px; height: 32px;"></i></span>
-                    <span class="star-btn" data-value="2" style="transition: color 0.15s;"><i data-lucide="star"
-                        style="width: 32px; height: 32px;"></i></span>
-                    <span class="star-btn" data-value="3" style="transition: color 0.15s;"><i data-lucide="star"
-                        style="width: 32px; height: 32px;"></i></span>
-                    <span class="star-btn" data-value="4" style="transition: color 0.15s;"><i data-lucide="star"
-                        style="width: 32px; height: 32px;"></i></span>
-                    <span class="star-btn" data-value="5" style="transition: color 0.15s;"><i data-lucide="star"
-                        style="width: 32px; height: 32px;"></i></span>
-                  </div>
-                  <input type="hidden" id="review-rating-value" value="0" required />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="review-comment">Review Comment <span
-                      style="font-weight: normal; color: var(--text-muted);">(Optional)</span></label>
-                  <textarea id="review-comment" class="form-input" style="min-height: 120px; resize: vertical;"
-                    placeholder="Tell us what you like or how we can improve..." maxlength="1000"></textarea>
-                </div>
-
-                <button type="submit" id="btn-submit-review" class="btn btn-primary"
-                  style="width: 100%; margin-top: 10px;">
-                  <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <i data-lucide="check" style="width: 18px; height: 18px;"></i> Submit Review
-                  </span>
-                </button>
-              </form>
-            </div>
+          <div id="about-team-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px;">
+            <!-- Rendered dynamically via JS -->
           </div>
         </div>
+      </div>
 
-        <!-- RESET PASSWORD VIEW -->
-        <div id="view-reset-password" class="page-view" style="display: none;">
-          <div class="auth-container">
-            <div class="card auth-card"
-              style="box-shadow: var(--shadow-lg); border-top: 4px solid var(--primary); max-width: 450px; width: 100%;">
-              <div class="auth-header">
-                <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                  <i data-lucide="key-round" style="color: var(--primary); width: 28px; height: 28px;"></i>
-                  Reset Password
-                </h2>
-                <p>Change your account password securely</p>
+      <!-- HELP & SUPPORT VIEW -->
+      <div id="view-support" class="page-view" style="display: none;">
+        <div class="support-container" style="max-width: 600px; margin: 0 auto;">
+          <div class="card support-card">
+            <div class="auth-header" style="margin-bottom: 24px;">
+              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i data-lucide="help-circle" style="color: var(--primary); width: 28px; height: 28px;"></i>
+                Help & Support
+              </h2>
+              <p>Share your requests, questions, or issues with our admin team</p>
+            </div>
+
+            <div id="support-email-request-notice" class="alert alert-warning"
+              style="display: none; align-items: flex-start; gap: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.4;">
+              <i data-lucide="alert-circle" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
+              <div>
+                <strong>No Email Linked to Account:</strong> To reset your password, please submit this application
+                with your email address. The Admin will link your email so you can reset your password.
+              </div>
+            </div>
+
+            <div id="support-error-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="support-success-alert" class="alert alert-success" style="display: none;"></div>
+
+            <form id="form-support">
+              <div class="form-group-grid"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label">Your Name</label>
+                  <input id="support-user-name" type="text" class="form-input" disabled />
+                </div>
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label">Phone Number</label>
+                  <input id="support-user-phone" type="text" class="form-input" disabled />
+                </div>
               </div>
 
-              <div id="reset-password-error-alert" class="alert alert-danger" style="display: none;"></div>
-              <div id="reset-password-success-alert" class="alert alert-success" style="display: none;"></div>
+              <div class="form-group" style="margin-top: 16px;">
+                <label class="form-label">Role</label>
+                <input id="support-user-role" type="text" class="form-input" style="text-transform: capitalize;"
+                  disabled />
+              </div>
 
-              <form id="form-reset-password">
-                <div class="form-group">
-                  <label class="form-label" for="reset-old-password">Old Password</label>
-                  <div style="position: relative;">
-                    <i data-lucide="lock"
-                      style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
-                    <input id="reset-old-password" type="password" class="form-input"
-                      style="padding-left: 44px; padding-right: 44px;" placeholder="Enter old password" required />
-                    <button type="button" id="btn-show-reset-old-password"
-                      style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
-                      title="Show Password">
-                      <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
-                    </button>
-                  </div>
+              <div class="form-group" id="support-requested-email-group" style="display: none;">
+                <label class="form-label" for="support-requested-email">Email Address to Link</label>
+                <div style="position: relative;">
+                  <i data-lucide="mail"
+                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
+                  <input id="support-requested-email" type="email" class="form-input" style="padding-left: 44px;"
+                    placeholder="Enter your email (e.g. name@gmail.com)" />
                 </div>
+                <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">
+                  Admin will link this email to your account so you can reset your password.
+                </span>
+              </div>
 
-                <div class="form-group">
-                  <label class="form-label" for="reset-new-password">New Password</label>
-                  <div style="position: relative;">
-                    <i data-lucide="key-round"
-                      style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
-                    <input id="reset-new-password" type="password" class="form-input"
-                      style="padding-left: 44px; padding-right: 44px;" placeholder="Enter new password (min 6 chars)"
-                      required />
-                    <button type="button" id="btn-show-reset-new-password"
-                      style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
-                      title="Show Password">
-                      <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
-                    </button>
-                  </div>
+              <div class="form-group">
+                <label class="form-label" for="support-subject">Subject</label>
+                <input id="support-subject" type="text" class="form-input"
+                  placeholder="e.g., Unable to download Engineering Physics PYQ" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="support-message">Message</label>
+                <textarea id="support-message" class="form-input" style="min-height: 120px; resize: vertical;"
+                  placeholder="Provide details of your request or issue..." required></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                <span id="support-btn-content"
+                  style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="send" style="width: 18px; height: 18px;"></i> Submit Request
+                </span>
+              </button>
+              <button type="button" id="btn-show-support-history" class="btn btn-secondary"
+                style="width: 100%; margin-top: 10px; display: none;">
+                <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="history" style="width: 18px; height: 18px;"></i> Show History
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS VIEW -->
+      <div id="view-reviews" class="page-view" style="display: none;">
+        <div class="support-container" style="max-width: 600px; margin: 0 auto;">
+          <div class="card support-card">
+            <div class="auth-header" style="margin-bottom: 24px;">
+              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i data-lucide="star"
+                  style="color: var(--warning); width: 28px; height: 28px; fill: var(--warning);"></i>
+                Reviews & Ratings
+              </h2>
+              <p>We value your feedback! Rate your experience and leave a review.</p>
+            </div>
+
+            <div id="review-error-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="review-success-alert" class="alert alert-success" style="display: none;"></div>
+
+            <!-- Existing review display card -->
+            <div id="existing-review-container"
+              style="display: none; background-color: rgba(243, 248, 255, 0.5); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; margin-bottom: 16px;">
+              <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Your
+                Submitted Feedback</div>
+              <div id="existing-review-stars"
+                style="display: flex; justify-content: center; gap: 4px; margin-bottom: 12px; font-size: 24px; color: var(--warning);">
+              </div>
+              <p id="existing-review-comment"
+                style="font-style: italic; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap;">
+              </p>
+              <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Submitted on <span
+                  id="existing-review-date"></span></div>
+              <div
+                style="font-size: 12px; font-weight: 600; color: var(--success); margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> You have already submitted a
+                review.
+              </div>
+            </div>
+
+            <!-- Review submission form -->
+            <form id="form-review">
+              <div class="form-group" style="text-align: center; margin-bottom: 24px;">
+                <label class="form-label"
+                  style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 700; color: var(--text-main);">Tap
+                  stars to rate us</label>
+                <div class="star-rating-input"
+                  style="display: flex; justify-content: center; gap: 8px; font-size: 32px; cursor: pointer; color: #cbd5e1;">
+                  <span class="star-btn" data-value="1" style="transition: color 0.15s;"><i data-lucide="star"
+                      style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="2" style="transition: color 0.15s;"><i data-lucide="star"
+                      style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="3" style="transition: color 0.15s;"><i data-lucide="star"
+                      style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="4" style="transition: color 0.15s;"><i data-lucide="star"
+                      style="width: 32px; height: 32px;"></i></span>
+                  <span class="star-btn" data-value="5" style="transition: color 0.15s;"><i data-lucide="star"
+                      style="width: 32px; height: 32px;"></i></span>
                 </div>
+                <input type="hidden" id="review-rating-value" value="0" required />
+              </div>
 
-                <div class="form-group">
-                  <label class="form-label" for="reset-confirm-password">Confirm New Password</label>
-                  <div style="position: relative;">
-                    <i data-lucide="check-circle"
-                      style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
-                    <input id="reset-confirm-password" type="password" class="form-input"
-                      style="padding-left: 44px; padding-right: 44px;" placeholder="Confirm new password" required />
-                    <button type="button" id="btn-show-reset-confirm-password"
-                      style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
-                      title="Show Password">
-                      <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
-                    </button>
-                  </div>
-                </div>
+              <div class="form-group">
+                <label class="form-label" for="review-comment">Review Comment <span
+                    style="font-weight: normal; color: var(--text-muted);">(Optional)</span></label>
+                <textarea id="review-comment" class="form-input" style="min-height: 120px; resize: vertical;"
+                  placeholder="Tell us what you like or how we can improve..." maxlength="1000"></textarea>
+              </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                  <span id="reset-password-btn-content"
-                    style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <i data-lucide="save" style="width: 18px; height: 18px;"></i> Change Password
-                  </span>
-                </button>
+              <button type="submit" id="btn-submit-review" class="btn btn-primary"
+                style="width: 100%; margin-top: 10px;">
+                <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="check" style="width: 18px; height: 18px;"></i> Submit Review
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
 
-                <div
-                  style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border-color); text-align: center;">
-                  <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Don't remember your old
-                    password?</p>
-                  <button type="button" id="btn-reset-page-forgot" class="btn btn-secondary"
-                    style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600;">
-                    <i data-lucide="key-round" style="width: 16px; height: 16px; color: var(--primary);"></i> Forgot
-                    Password? Reset via OTP
+      <!-- RESET PASSWORD VIEW -->
+      <div id="view-reset-password" class="page-view" style="display: none;">
+        <div class="auth-container">
+          <div class="card auth-card"
+            style="box-shadow: var(--shadow-lg); border-top: 4px solid var(--primary); max-width: 450px; width: 100%;">
+            <div class="auth-header">
+              <h2 style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i data-lucide="key-round" style="color: var(--primary); width: 28px; height: 28px;"></i>
+                Reset Password
+              </h2>
+              <p>Change your account password securely</p>
+            </div>
+
+            <div id="reset-password-error-alert" class="alert alert-danger" style="display: none;"></div>
+            <div id="reset-password-success-alert" class="alert alert-success" style="display: none;"></div>
+
+            <form id="form-reset-password">
+              <div class="form-group">
+                <label class="form-label" for="reset-old-password">Old Password</label>
+                <div style="position: relative;">
+                  <i data-lucide="lock"
+                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
+                  <input id="reset-old-password" type="password" class="form-input"
+                    style="padding-left: 44px; padding-right: 44px;" placeholder="Enter old password" required />
+                  <button type="button" id="btn-show-reset-old-password"
+                    style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
+                    title="Show Password">
+                    <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
                   </button>
                 </div>
-              </form>
-            </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="reset-new-password">New Password</label>
+                <div style="position: relative;">
+                  <i data-lucide="key-round"
+                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
+                  <input id="reset-new-password" type="password" class="form-input"
+                    style="padding-left: 44px; padding-right: 44px;" placeholder="Enter new password (min 6 chars)"
+                    required />
+                  <button type="button" id="btn-show-reset-new-password"
+                    style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
+                    title="Show Password">
+                    <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="reset-confirm-password">Confirm New Password</label>
+                <div style="position: relative;">
+                  <i data-lucide="check-circle"
+                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
+                  <input id="reset-confirm-password" type="password" class="form-input"
+                    style="padding-left: 44px; padding-right: 44px;" placeholder="Confirm new password" required />
+                  <button type="button" id="btn-show-reset-confirm-password"
+                    style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 0;"
+                    title="Show Password">
+                    <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                <span id="reset-password-btn-content"
+                  style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="save" style="width: 18px; height: 18px;"></i> Change Password
+                </span>
+              </button>
+
+              <div
+                style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border-color); text-align: center;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Don't remember your old
+                  password?</p>
+                <button type="button" id="btn-reset-page-forgot" class="btn btn-secondary"
+                  style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600;">
+                  <i data-lucide="key-round" style="width: 16px; height: 16px; color: var(--primary);"></i> Forgot
+                  Password? Reset via OTP
+                </button>
+              </div>
+            </form>
           </div>
         </div>
+      </div>
 
 
 
-        <!-- Shared ad placement: replace this placeholder with ad network code later. -->
-        <aside class="site-ad-space" id="site-ad-space" aria-label="Advertisement">
-          <div class="site-ad-placeholder">
-            <i data-lucide="rectangle-horizontal"></i>
-            <strong>Advertisement Space</strong>
-            <span>Reserved for future ads</span>
-          </div>
-        </aside>
+      <!-- Shared ad placement: replace this placeholder with ad network code later. -->
+      <aside class="site-ad-space" id="site-ad-space" aria-label="Advertisement">
+        <div class="site-ad-placeholder">
+          <i data-lucide="rectangle-horizontal"></i>
+          <strong>Advertisement Space</strong>
+          <span>Reserved for future ads</span>
+        </div>
+      </aside>
 
     </main>
 
@@ -2872,7 +2886,7 @@
 
       <!-- Cascading Selects Container -->
       <div id="shift-tree-container" style="flex: 1; overflow-y: auto; padding: 12px;">
-        
+
         <div class="form-group">
           <label class="form-label" for="shift-section-select">Target Section</label>
           <select id="shift-section-select" class="form-select">
@@ -2917,7 +2931,9 @@
     <button id="modal-move-folder-cancel"></button>
     <button id="btn-move-folder-submit"></button>
     <input type="hidden" id="move-doc-id" value="">
-    <select id="move-doc-section"><option value="">Select</option></select>
+    <select id="move-doc-section">
+      <option value="">Select</option>
+    </select>
     <div id="move-doc-error-alert"></div>
     <div id="move-doc-folder-group"></div>
     <div id="move-doc-cascading-wrapper"></div>
@@ -3047,7 +3063,7 @@
         <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
           <button type="button" id="btn-editor-rotate" class="btn btn-secondary btn-sm"
             style="flex: 1; min-width: 100px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px;">
-            <i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i> Rotate 90Â°
+            <i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i> Rotate 90°
           </button>
           <button type="button" id="btn-editor-filter-bw" class="btn btn-secondary btn-sm"
             style="flex: 1; min-width: 100px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px;">
