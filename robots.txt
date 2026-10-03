@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Sitemap Location
-Sitemap: https://studyhub4students.vercel.app/sitemap.xml
+Sitemap: https://studymyte.tech/sitemap.xml
