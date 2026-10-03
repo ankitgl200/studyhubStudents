@@ -1572,7 +1572,7 @@ body {
   align-items: center;
 }
 
-@media (max-width: 1150px) {
+@media (max-width: 1350px) {
   .papers-filter-bar {
     flex-direction: column;
     align-items: stretch;
@@ -1858,7 +1858,7 @@ body {
 }
 
 /* --- Mobile Responsiveness Adjustments --- */
-@media (max-width: 1150px) {
+@media (max-width: 1350px) {
   .navbar {
     position: fixed;
     height: 80px;
