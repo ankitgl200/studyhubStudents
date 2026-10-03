@@ -756,7 +756,7 @@ function updateNavbar() {
           <a href="#/reviews" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <i data-lucide="star" style="width: 14px; height: 14px; color: var(--primary);"></i> Write a Review
           </a>
-          <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
+          <a href="https://github.com/ankitgl200/studymyteStudents" target="_blank" rel="noopener noreferrer" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute
           </a>
           <a href="#/terms" class="profile-dropdown-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--radius-sm); transition: var(--transition); margin-bottom: 6px; border: 1px solid var(--border-color); background-color: var(--primary-accent);">
@@ -819,7 +819,7 @@ function updateNavbar() {
         <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
 
         <a href="#/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
-        <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-contribute"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute</a>
+        <a href="https://github.com/ankitgl200/studymyteStudents" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-contribute"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute</a>
 
         ${currentUser.role === 'student' ? `
           <a href="#/my-contributions" class="mobile-nav-link" id="mob-nav-my-contributions"><i data-lucide="award" style="width: 18px; height: 18px;"></i> My Contributions</a>
@@ -880,7 +880,7 @@ function updateNavbar() {
     // Populate Mobile Menu (Logged out)
     mobMenu.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
-        <span style="font-weight: 800; font-size: 18px; color: var(--primary-dark);">Studyhub</span>
+        <span style="font-weight: 800; font-size: 18px; color: var(--primary-dark);">StudyMyte</span>
         <button id="btn-close-mobile-menu" class="btn-close-mobile-menu" style="margin: 0; padding: 4px;" aria-label="Close Menu">
           <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
@@ -1391,7 +1391,7 @@ async function router() {
   // Update mobile top bar page title
   const titleEl = document.getElementById('mobile-page-title');
   if (titleEl) {
-    if (cleanPath === '/' || cleanPath === '') titleEl.textContent = 'Study Hub';
+    if (cleanPath === '/' || cleanPath === '') titleEl.textContent = 'StudyMyte';
     else if (cleanPath === '/notes') titleEl.textContent = 'Notes';
     else if (cleanPath === '/papers') titleEl.textContent = 'Papers';
     else if (cleanPath === '/resources') titleEl.textContent = 'Resources';
@@ -1404,7 +1404,7 @@ async function router() {
     else if (cleanPath === '/reset-password') titleEl.textContent = 'Reset Password';
     else if (cleanPath === '/terms') titleEl.textContent = 'Terms';
     else if (cleanPath === '/privacy') titleEl.textContent = 'Privacy';
-    else titleEl.textContent = 'Study Hub';
+    else titleEl.textContent = 'StudyMyte';
   }
 
   const activeView = Array.from(document.querySelectorAll('.page-view'))
@@ -3013,7 +3013,7 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="star"></i><span>Write a Review</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
-        <a href="https://github.com/ankitgl200/studyhubStudents" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+        <a href="https://github.com/ankitgl200/studymyteStudents" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
           <div class="item-left">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
             <span>Contribute</span>
@@ -3100,7 +3100,7 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
-        <a href="https://www.instagram.com/studyhub_0fficial?utm_source=qr&igsh=dGh3cG02MnFhbTJl" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+        <a href="https://www.instagram.com/studymyte_0fficial?utm_source=qr&igsh=dGh3cG02MnFhbTJl" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
           <div class="item-left">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
             <span>Instagram</span>
@@ -3211,7 +3211,7 @@ function renderProfileView() {
   // Add event listener to mobile theme toggle and set initial checked state
   const mobThemeToggle = document.getElementById('theme-mode-toggle-mobile');
   if (mobThemeToggle) {
-    const currentTheme = localStorage.getItem('studyhub-theme-mode') || 'light';
+    const currentTheme = localStorage.getItem('studymyte-theme-mode') || 'light';
     mobThemeToggle.checked = (currentTheme === 'dark');
     mobThemeToggle.addEventListener('change', (e) => {
       const isDark = e.target.checked;
@@ -3285,7 +3285,7 @@ async function downloadUserManual() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(...WHITE);
-    doc.text('STUDYHUB - ACADEMIC PORTAL & CENTRAL LIBRARY GUIDE', 15, 8);
+    doc.text('STUDYMYTE - ACADEMIC PORTAL & CENTRAL LIBRARY GUIDE', 15, 8);
     
     // Footer bar
     doc.setFillColor(...TEXT_MAIN);
@@ -3293,7 +3293,7 @@ async function downloadUserManual() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...WHITE);
-    doc.text('StudyHub Official User Manual', 15, 293.5);
+    doc.text('StudyMyte Official User Manual', 15, 293.5);
     doc.text(`Page ${pageNum} of ${totalPages}`, 180, 293.5);
   }
 
@@ -3331,7 +3331,7 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(36);
   doc.setTextColor(...WHITE);
-  doc.text('StudyHub', 20, 45);
+  doc.text('StudyMyte', 20, 45);
   
   // Tagline/Subtitle
   doc.setFont('helvetica', 'normal');
@@ -3353,13 +3353,13 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(...TEXT_MAIN);
-  doc.text('Welcome to StudyHub', 20, 130);
+  doc.text('Welcome to StudyMyte', 20, 130);
   
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10.5);
   doc.setTextColor(...TEXT_MAIN);
   let yPos = 138;
-  const introText = "StudyHub is a modern, student-centric digital library and study platform. This document serves as your guide to getting the most out of our centralized resource bank, folders directory, and built-in A4 file tools.";
+  const introText = "StudyMyte is a modern, student-centric digital library and study platform. This document serves as your guide to getting the most out of our centralized resource bank, folders directory, and built-in A4 file tools.";
   yPos = printWrappedText(doc, introText, 20, yPos, 170, 6);
   
   // Table of Contents block
@@ -3384,7 +3384,7 @@ async function downloadUserManual() {
     { page: 'Page 2', title: '2. Built-in Practical File Generators & Scan Filters' },
     { page: 'Page 3', title: '3. Uploading & Downloading Rules (Students, Teachers, Admins)' },
     { page: 'Page 3', title: '4. Contribution Leaderboard & Points Structure' },
-    { page: 'Page 4', title: '5. About StudyHub (Overview, Problems Statement, Solution & Credits)' },
+    { page: 'Page 4', title: '5. About StudyMyte (Overview, Problems Statement, Solution & Credits)' },
     { page: 'Page 5', title: '6. User Interface Visual Tour & Screenshot Gallery' }
   ];
   
@@ -3415,7 +3415,7 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9.5);
   doc.setTextColor(...TEXT_MAIN);
-  const notesText = "StudyHub categorizes study materials into notes and previous year question papers. You can select semesters, browse subject folders, like documents for quick reference, and filter files instantly. All files load and view in-browser or download with one tap.";
+  const notesText = "StudyMyte categorizes study materials into notes and previous year question papers. You can select semesters, browse subject folders, like documents for quick reference, and filter files instantly. All files load and view in-browser or download with one tap.";
   yPos = printWrappedText(doc, notesText, 20, yPos, 170, 5);
   yPos += 5;
   
@@ -3542,13 +3542,13 @@ async function downloadUserManual() {
   }
   
   // ----------------------------------------------------
-  // PAGE 4: ABOUT STUDYHUB (PASTED HTML CONTENT)
+  // PAGE 4: ABOUT STUDYMYTE (PASTED HTML CONTENT)
   // ----------------------------------------------------
   doc.addPage();
   drawPageTemplate(4, 5);
   
   yPos = 25;
-  yPos = drawSectionHeader('5. About StudyHub', 20, yPos);
+  yPos = drawSectionHeader('5. About StudyMyte', 20, yPos);
   yPos += 2;
   
   doc.setFont('helvetica', 'bold');
@@ -3560,7 +3560,7 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_MAIN);
-  const aboutOverview = "StudyHub is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for university and college students, StudyHub serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. Beyond being a repository, StudyHub integrates intelligent features to guide students through their academic journey.";
+  const aboutOverview = "StudyMyte is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for university and college students, StudyMyte serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. Beyond being a repository, StudyMyte integrates intelligent features to guide students through their academic journey.";
   yPos = printWrappedText(doc, aboutOverview, 20, yPos, 170, 4.5);
   yPos += 4;
   
@@ -3586,7 +3586,7 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_MAIN);
-  const aboutSolution = "StudyHub solves these pain points by offering a unified, clean, and accessible portal: One-Click Access: Streamlined storage allows students to access notes and files instantly without jumping between platforms. Systematic Archives: Categorized and semester-wise sorted papers make finding PYQs completely effortless. Organized & Responsive Interface: A user-friendly, responsive Single Page Application (SPA) designed to work beautifully on both desktop and mobile devices. Community-Driven Support: Built by seniors who understand the curriculum, ensuring the resources are always relevant and accurate.";
+  const aboutSolution = "StudyMyte solves these pain points by offering a unified, clean, and accessible portal: One-Click Access: Streamlined storage allows students to access notes and files instantly without jumping between platforms. Systematic Archives: Categorized and semester-wise sorted papers make finding PYQs completely effortless. Organized & Responsive Interface: A user-friendly, responsive Single Page Application (SPA) designed to work beautifully on both desktop and mobile devices. Community-Driven Support: Built by seniors who understand the curriculum, ensuring the resources are always relevant and accurate.";
   yPos = printWrappedText(doc, aboutSolution, 20, yPos, 170, 4.5);
   yPos += 4;
   
@@ -3614,7 +3614,7 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...TEXT_MAIN);
-  const aboutContribute = "We believe StudyHub belongs to the student community. If you want to help grow the platform, improve the resources, or fix a bug, here is how you can contribute: Fork the Repository: Create a personal copy of the repository on your GitHub account. Add or Improve Resources: Add high-quality study materials, missing PYQs, or clean lecture notes. Submit a Pull Request: Submit your changes back to the main repository for review. Our team will review and merge it.";
+  const aboutContribute = "We believe StudyMyte belongs to the student community. If you want to help grow the platform, improve the resources, or fix a bug, here is how you can contribute: Fork the Repository: Create a personal copy of the repository on your GitHub account. Add or Improve Resources: Add high-quality study materials, missing PYQs, or clean lecture notes. Submit a Pull Request: Submit your changes back to the main repository for review. Our team will review and merge it.";
   yPos = printWrappedText(doc, aboutContribute, 20, yPos, 170, 4.5);
   
   // ----------------------------------------------------
@@ -3630,7 +3630,7 @@ async function downloadUserManual() {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9.5);
   doc.setTextColor(...TEXT_MAIN);
-  const tourText = "Below is the main document listing page where students can view academic papers, likes, and upload details. StudyHub is fully responsive and adjusts fluidly to provide a native mobile app experience on smaller devices.";
+  const tourText = "Below is the main document listing page where students can view academic papers, likes, and upload details. StudyMyte is fully responsive and adjusts fluidly to provide a native mobile app experience on smaller devices.";
   yPos = printWrappedText(doc, tourText, 20, yPos, 170, 5);
   
   if (imgNotes) {
@@ -3642,7 +3642,7 @@ async function downloadUserManual() {
   }
   
   // Open PDF in viewer
-  window.openBlobViewer(doc.output('bloburl'), 'StudyHub User Manual');
+  window.openBlobViewer(doc.output('bloburl'), 'StudyMyte User Manual');
 }
 
 function showAboutModal() {
@@ -3678,7 +3678,7 @@ const FONT_STYLES = [
 
 function clearLegacyColorTheme() {
   try {
-    localStorage.removeItem('studyhub-color-theme');
+    localStorage.removeItem('studymyte-color-theme');
     const root = document.documentElement;
     root.style.removeProperty('--primary');
     root.style.removeProperty('--primary-dark');
@@ -3696,14 +3696,14 @@ function applyFontStyle(fontId, save = true) {
   root.style.setProperty('--app-font-family', fontObj.font);
   document.body.style.fontFamily = fontObj.font;
   if (save) {
-    localStorage.setItem('studyhub-app-font', fontObj.id);
+    localStorage.setItem('studymyte-app-font', fontObj.id);
   }
 }
 
 function renderAppearanceView() {
   const fontContainer = document.getElementById('theme-font-list');
   if (fontContainer) {
-    const activeFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
+    const activeFontKey = localStorage.getItem('studymyte-app-font') || 'inter';
 
     // Render 10 Font Styles
     fontContainer.innerHTML = FONT_STYLES.map(f => {
@@ -3726,7 +3726,7 @@ function renderAppearanceView() {
 
   const appToggle = document.getElementById('theme-mode-toggle-appearance');
   if (appToggle) {
-    const isDark = (localStorage.getItem('studyhub-theme-mode') === 'dark');
+    const isDark = (localStorage.getItem('studymyte-theme-mode') === 'dark');
     appToggle.checked = isDark;
     appToggle.onchange = (e) => {
       setThemeMode(e.target.checked ? 'dark' : 'light', true);
@@ -7066,8 +7066,8 @@ function initEventHandlers() {
   if (btnDownloadAndroid) {
     btnDownloadAndroid.addEventListener('click', () => {
       const link = document.createElement('a');
-      link.href = '/studyhub.apk';
-      link.download = 'studyhub.apk';
+      link.href = '/studymyte.apk';
+      link.download = 'studymyte.apk';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -8676,11 +8676,11 @@ async function initApp() {
   // Initialize Scroll Progress Bar
   initScrollProgressBar();
   
-  // Clear legacy color theme overrides to ensure StudyHub classic blue default
+  // Clear legacy color theme overrides to ensure StudyMyte classic blue default
   clearLegacyColorTheme();
 
   // Initialize Font Style from localStorage
-  const savedFontKey = localStorage.getItem('studyhub-app-font') || 'inter';
+  const savedFontKey = localStorage.getItem('studymyte-app-font') || 'inter';
   applyFontStyle(savedFontKey, false);
 
   // Initialize Theme Mode (Light / Dark)
@@ -10057,7 +10057,7 @@ async function renderMyContributionsView() {
 
 /* --- THEME MODE CONTROLLER (LIGHT / DARK) --- */
 function initThemeModeToggle() {
-  const currentTheme = localStorage.getItem('studyhub-theme-mode') || 'light';
+  const currentTheme = localStorage.getItem('studymyte-theme-mode') || 'light';
   syncThemeCheckboxes(currentTheme === 'dark');
 
   const toggles = document.querySelectorAll('#theme-mode-toggle, #theme-mode-toggle-mobile, #theme-mode-toggle-appearance');
@@ -10090,7 +10090,7 @@ function syncThemeCheckboxes(isDark) {
 
 function setThemeMode(mode, animate = true) {
   const isDark = (mode === 'dark');
-  localStorage.setItem('studyhub-theme-mode', isDark ? 'dark' : 'light');
+  localStorage.setItem('studymyte-theme-mode', isDark ? 'dark' : 'light');
 
   syncThemeCheckboxes(isDark);
 
@@ -10115,6 +10115,12 @@ function setThemeMode(mode, animate = true) {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
     }
+    
+    // Switch logos based on theme
+    const logos = document.querySelectorAll('.logo-image');
+    logos.forEach(logo => {
+      logo.src = isDark ? '/logodrk.png' : '/logowht.png';
+    });
   };
 
   if (!animate) {
