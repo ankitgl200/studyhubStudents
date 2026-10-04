@@ -256,6 +256,17 @@ const api = {
     });
   },
 
+  async getSetting(key) {
+    return await request(`/settings/${key}`);
+  },
+
+  async setSetting(key, value) {
+    return await request(`/settings/${key}`, {
+      method: 'PUT',
+      body: { value }
+    });
+  },
+
   async getPendingUsers() {
     return await request('/auth/pending');
   },
@@ -3858,6 +3869,39 @@ async function renderAdminDashboardView(currentHash) {
   }
   if (errorAlert) {
     errorAlert.style.display = 'none';
+  }
+
+  // Load App Settings
+  const globalSettings = document.getElementById('admin-global-settings');
+  if (globalSettings && (currentUser.role === 'superadmin' || currentUser.role === 'admin')) {
+    globalSettings.style.display = 'flex';
+    const versionInput = document.getElementById('admin-latest-app-version');
+    const saveBtn = document.getElementById('btn-save-app-version');
+    
+    if (versionInput && !versionInput.dataset.loaded) {
+      versionInput.dataset.loaded = 'true';
+      api.getSetting('latestAppVersion').then(res => {
+        if (res && res.value) {
+          versionInput.value = res.value;
+        }
+      }).catch(err => console.log('No latestAppVersion setting found yet.'));
+
+      saveBtn.addEventListener('click', async () => {
+        const val = versionInput.value.trim();
+        if (!val) return;
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        try {
+          await api.setSetting('latestAppVersion', val);
+          alert('Latest app version updated successfully! Users on older versions will be forced to update.');
+        } catch (err) {
+          alert('Failed to save app version.');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+      });
+    }
   }
 
   // Handle visibility of the sub-view containers based on Mobile vs PC viewport
@@ -8694,6 +8738,45 @@ async function initApp() {
       e.preventDefault();
     }
   }, { passive: false });
+
+  // App Force Update Check
+  setTimeout(async () => {
+    // Check if running in a native app container
+    const isApp = (typeof median !== 'undefined') || navigator.userAgent.includes('wv') || navigator.userAgent.includes('StudyMyte');
+    if (isApp) {
+      try {
+        const res = await api.getSetting('latestAppVersion');
+        if (res && res.value) {
+          const latestVersion = String(res.value).trim();
+          let currentVersion = '0.0.0'; 
+          
+          // 1. Try Median Bridge
+          if (typeof median !== 'undefined' && median.appInfo) {
+            try {
+              const info = await median.appInfo();
+              if (info && info.appVersion) currentVersion = info.appVersion;
+            } catch(e){}
+          } 
+          // 2. Try User Agent
+          else if (navigator.userAgent.match(/StudyMyte\/([\d\.]+)/i)) {
+             currentVersion = navigator.userAgent.match(/StudyMyte\/([\d\.]+)/i)[1];
+          }
+          // 3. Try Injected JS Variable
+          else if (window.STUDYMYTE_APP_VERSION) {
+            currentVersion = window.STUDYMYTE_APP_VERSION;
+          }
+
+          // Force Update if version is detected and is outdated
+          if (currentVersion !== '0.0.0' && currentVersion !== latestVersion) {
+            const modal = document.getElementById('modal-force-update');
+            if (modal) modal.style.display = 'flex';
+          }
+        }
+      } catch (e) {
+        console.log("Could not check latest app version:", e.message);
+      }
+    }
+  }, 2500); // Give JS bridges time to initialize
 
   // Restore view states from localStorage
   try {
