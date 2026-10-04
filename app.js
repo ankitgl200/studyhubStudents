@@ -155,6 +155,8 @@ const api = {
     if (res.token) {
       localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(res.user));
+      // Register Push Notifications token after successful login
+      setTimeout(setupPushNotifications, 2000);
     }
     return res;
   },
@@ -245,6 +247,13 @@ const api = {
 
   async getMe() {
     return await request('/auth/me');
+  },
+
+  async registerFCMToken(token) {
+    return await request('/auth/fcm-token', {
+      method: 'POST',
+      body: { token }
+    });
   },
 
   async getPendingUsers() {
@@ -3148,6 +3157,10 @@ function renderProfileView() {
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
           ${(currentUser.role === 'superadmin' || currentUser.role === 'admin') ? `
+            <a href="#/admin/compose" class="profile-menu-item">
+              <div class="item-left"><i data-lucide="send" style="color: var(--danger);"></i><span>Send Notification</span></div>
+              <i data-lucide="chevron-right" class="arrow-right"></i>
+            </a>
             <a href="#/admin/notifications" class="profile-menu-item">
               <div class="item-left"><i data-lucide="mail" style="color: var(--danger);"></i><span>Sent Notifications</span></div>
               <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -3170,6 +3183,10 @@ function renderProfileView() {
           </a>
           <a href="#/admin?tab=pending" class="profile-menu-item">
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Teacher Approval</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin?tab=compose" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="send" style="color: var(--danger);"></i><span>Send Notification</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
           <a href="#/admin?tab=reviews" class="profile-menu-item">
@@ -3871,6 +3888,10 @@ async function renderAdminDashboardView(currentHash) {
       if (subpageTitle) subpageTitle.textContent = 'Help & Support';
       const view = document.getElementById('admin-section-support');
       if (view) view.style.display = 'block';
+    } else if (currentHash === '/admin/compose') {
+      if (subpageTitle) subpageTitle.textContent = 'Send Notification';
+      const view = document.getElementById('admin-section-compose-notification');
+      if (view) view.style.display = 'block';
     } else if (currentHash === '/admin/notifications') {
       if (subpageTitle) subpageTitle.textContent = 'Sent Notifications';
       const view = document.getElementById('admin-section-notifications');
@@ -4369,6 +4390,96 @@ async function renderAdminDashboardView(currentHash) {
       }
     };
 
+    const fetchComposeNotificationUsers = async () => {
+      const composeSection = document.getElementById('admin-section-compose-notification');
+      if ((currentUser.role === 'superadmin' || currentUser.role === 'admin') && composeSection) {
+        
+        // 1. Setup Dropdown behavior
+        const targetSelect = document.getElementById('compose-notification-target');
+        const userSelectContainer = document.getElementById('compose-notification-user-select-container');
+        const userSelect = document.getElementById('compose-notification-user-id');
+        
+        if (targetSelect && userSelectContainer && !targetSelect.dataset.listenerAdded) {
+          targetSelect.dataset.listenerAdded = 'true';
+          targetSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'specific') {
+              userSelectContainer.style.display = 'block';
+              userSelect.setAttribute('required', 'true');
+            } else {
+              userSelectContainer.style.display = 'none';
+              userSelect.removeAttribute('required');
+            }
+          });
+        }
+
+        // 2. Fetch Users for the dropdown
+        if (userSelect && userSelect.options.length <= 1) {
+          try {
+            const users = await api.getUsers();
+            const students = users.filter(u => u.role === 'student');
+            
+            // Generate options
+            let optionsHTML = '<option value="">Select a user...</option>';
+            students.sort((a, b) => a.name.localeCompare(b.name)).forEach(u => {
+              optionsHTML += `<option value="${u.id}">${escapeHTML(u.name)} (${escapeHTML(u.phone)})</option>`;
+            });
+            userSelect.innerHTML = optionsHTML;
+          } catch (err) {
+            console.error('Error fetching users for compose dropdown:', err);
+          }
+        }
+
+        // 3. Form Submit Logic
+        const form = document.getElementById('form-compose-notification');
+        if (form && !form.dataset.listenerAdded) {
+          form.dataset.listenerAdded = 'true';
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const target = document.getElementById('compose-notification-target').value;
+            const title = document.getElementById('compose-notification-title').value;
+            const message = document.getElementById('compose-notification-message').value;
+            const btn = form.querySelector('button[type="submit"]');
+
+            const originalBtnHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader" style="width: 16px; height: 16px; border-width: 2px;"></div> Sending...';
+
+            try {
+              if (target === 'all') {
+                // Broadcast endpoint
+                await request('/notifications/broadcast', {
+                  method: 'POST',
+                  body: { title, message }
+                });
+                alert('Broadcast notification sent to all users successfully!');
+              } else {
+                // Specific user endpoint
+                const recipientId = document.getElementById('compose-notification-user-id').value;
+                if (!recipientId) throw new Error("Please select a specific user.");
+                
+                await request('/notifications', {
+                  method: 'POST',
+                  body: { recipientId, message }
+                });
+                alert('Notification sent to user successfully!');
+              }
+              
+              form.reset();
+              userSelectContainer.style.display = 'none';
+              // Refresh sent list
+              fetchNotifications();
+            } catch (err) {
+              alert('Failed to send notification: ' + err.message);
+            } finally {
+              btn.disabled = false;
+              btn.innerHTML = originalBtnHTML;
+              refreshIcons();
+            }
+          });
+        }
+      }
+    };
+
     const fetchNotifications = async () => {
       const superadminMessagesSection = document.getElementById('admin-section-notifications');
       const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
@@ -4618,6 +4729,7 @@ async function renderAdminDashboardView(currentHash) {
         fetchUsers(),
         fetchContributions(),
         fetchSupport(),
+        fetchComposeNotificationUsers(),
         fetchNotifications(),
         fetchReviews()
       ]);
@@ -4631,6 +4743,8 @@ async function renderAdminDashboardView(currentHash) {
         await fetchContributions();
       } else if (currentHash === '/admin/support') {
         await fetchSupport();
+      } else if (currentHash === '/admin/compose') {
+        await fetchComposeNotificationUsers();
       } else if (currentHash === '/admin/notifications') {
         await fetchNotifications();
       } else if (currentHash === '/admin/reviews') {
@@ -4648,6 +4762,9 @@ async function renderAdminDashboardView(currentHash) {
         } else if (params.tab === 'pending') {
           const pendingSection = document.getElementById('pending-users-list-container');
           if (pendingSection) pendingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (params.tab === 'compose') {
+          const composeSection = document.getElementById('admin-section-compose-notification');
+          if (composeSection) composeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (params.tab === 'reviews') {
           const reviewsSection = document.getElementById('admin-reviews-list-container');
           if (reviewsSection) reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -8628,6 +8745,8 @@ async function initApp() {
       currentUser = await api.getMe();
       localStorage.setItem('user', JSON.stringify(currentUser));
       startNotificationPolling();
+      // Ensure push token is up to date on app launch
+      setTimeout(setupPushNotifications, 3000);
     } catch (err) {
       console.error('Session validation failed:', err.message);
       if (err.status === 401 || err.status === 403) {
@@ -9153,6 +9272,39 @@ function initAuthScene() {
 
 // Launch app
 window.addEventListener('DOMContentLoaded', initApp);
+
+// Setup Firebase Push Notifications for Web and Median App
+async function setupPushNotifications() {
+  try {
+    // 1. If running in Median App (Android), extract the token from Median's JS Bridge
+    if (typeof median !== 'undefined' && median.firebaseMessaging) {
+       median.firebaseMessaging.getToken().then(function(token) {
+          if (token) api.registerFCMToken(token);
+       }).catch(e => console.log('Median FCM Error:', e));
+       return;
+    }
+
+    // 2. If running on Website, get standard Web Push token
+    if (window.firebaseMessaging && window.firebaseGetToken && 'serviceWorker' in navigator) {
+      const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const currentToken = await window.firebaseGetToken(window.firebaseMessaging, {
+          vapidKey: 'BG6EcL4jmtWz4i4EJLsHtKD-GcQADqZTvoulYMAPFZ9Q-EKTWuT8Jo6jnW5JRA3pcqyPRYBCTfmIzy5JFAzZ6sg',
+          serviceWorkerRegistration: swRegistration
+        });
+        
+        if (currentToken) {
+          await api.registerFCMToken(currentToken);
+          console.log("Web Push Token Registered");
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error setting up push notifications:", err);
+  }
+}
 
 async function handleLikeToggle(e, viewRefreshCallback) {
   e.stopPropagation();
