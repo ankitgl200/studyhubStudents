@@ -164,7 +164,26 @@
     window.lucide = window.lucide || { createIcons: function () { } };
   </script>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging.js";
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMmO3BnFDMacdFtGNRllHvPc0xNS9WiHo",
+      authDomain: "studymyte.firebaseapp.com",
+      projectId: "studymyte",
+      storageBucket: "studymyte.firebasestorage.app",
+      messagingSenderId: "574883093044",
+      appId: "1:574883093044:web:05cfa63fa1b46595234861"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    // Make it available globally for app.js
+    window.firebaseMessaging = messaging;
+    window.firebaseGetToken = getToken;
+  </script>
 </head>
 <style>
   /* Premium Calligraphy Loading Screen */
@@ -2017,6 +2036,51 @@
               <!-- Rendered via JS -->
             </div>
             <div id="support-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
+            </div>
+          </div>
+          </div>
+
+          <!-- Section: Compose Notification -->
+          <div id="admin-section-compose-notification" class="admin-subview" style="display: none;">
+            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
+              <i data-lucide="send" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              Compose Notification
+            </h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+              Send a push notification and announcement to a specific user or broadcast to all users.
+            </p>
+            <div class="glass-panel" style="padding: 20px;">
+              <form id="form-compose-notification">
+                <div class="form-group" style="margin-bottom: 15px;">
+                  <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-main);">Send To:</label>
+                  <select id="compose-notification-target" class="input-field" style="width: 100%;" required>
+                    <option value="all">All Users (Broadcast)</option>
+                    <option value="specific">Specific User</option>
+                  </select>
+                </div>
+                
+                <div id="compose-notification-user-select-container" class="form-group" style="margin-bottom: 15px; display: none;">
+                  <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-main);">Select User:</label>
+                  <select id="compose-notification-user-id" class="input-field" style="width: 100%;">
+                    <option value="">Select a user...</option>
+                    <!-- Populated via JS -->
+                  </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                  <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-main);">Title:</label>
+                  <input type="text" id="compose-notification-title" class="input-field" style="width: 100%;" placeholder="e.g. Important Announcement" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                  <label style="display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-main);">Message:</label>
+                  <textarea id="compose-notification-message" class="input-field" style="width: 100%; height: 100px; resize: vertical;" placeholder="Type your message here..." required></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                  <i data-lucide="send" style="width: 16px; height: 16px;"></i> Send Notification
+                </button>
+              </form>
             </div>
           </div>
 
