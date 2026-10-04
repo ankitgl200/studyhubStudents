@@ -8743,6 +8743,10 @@ async function initApp() {
   setTimeout(async () => {
     // Check if running in a native app container
     const isApp = (typeof median !== 'undefined') || navigator.userAgent.includes('wv') || navigator.userAgent.includes('StudyMyte');
+    
+    // TEMPORARY DEBUG: Uncomment this to see what your app is reporting!
+    // alert("UserAgent: " + navigator.userAgent + "\nisApp: " + isApp);
+
     if (isApp) {
       try {
         const res = await api.getSetting('latestAppVersion');
@@ -8766,8 +8770,11 @@ async function initApp() {
             currentVersion = window.STUDYMYTE_APP_VERSION;
           }
 
-          // Force Update if version is detected and is outdated
-          if (currentVersion !== '0.0.0' && currentVersion !== latestVersion) {
+          // Debug alert to help user
+          // alert("Detected Version: " + currentVersion + "\nLatest Version: " + latestVersion);
+
+          // Force Update if version is detected and is outdated (or if we want to aggressively block unknown versions)
+          if (currentVersion !== latestVersion) {
             const modal = document.getElementById('modal-force-update');
             if (modal) modal.style.display = 'flex';
           }
