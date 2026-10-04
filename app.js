@@ -9297,7 +9297,21 @@ async function setupPushNotifications() {
         
         if (currentToken) {
           await api.registerFCMToken(currentToken);
-          console.log("Web Push Token Registered");
+        }
+
+        // Listen for foreground messages
+        if (window.firebaseOnMessage) {
+          window.firebaseOnMessage(window.firebaseMessaging, (payload) => {
+            console.log('Message received in foreground: ', payload);
+            
+            // Force a native browser popup even when the tab is open
+            if (Notification.permission === 'granted') {
+              new Notification(payload.notification.title, {
+                body: payload.notification.body,
+                icon: '/icons/icon-192x192.png' // Add an icon if you have one
+              });
+            }
+          });
         }
       }
     }
