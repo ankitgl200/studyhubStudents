@@ -1953,6 +1953,23 @@
 
         <div id="admin-error-alert" class="alert alert-danger" style="display: none;"></div>
 
+        <!-- Global Admin Settings (App Version) -->
+        <div id="admin-global-settings" class="glass-panel" style="margin-top: 20px; padding: 15px 20px; display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 40px; height: 40px; background: #e0e7ff; color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="smartphone" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h4 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-main);">Force App Update</h4>
+              <p style="margin: 0; font-size: 12px; color: var(--text-muted);">Enter the latest version (e.g. 1.0.1) to force Android users to update.</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="text" id="admin-latest-app-version" class="input-field" placeholder="e.g. 1.0.0" style="width: 100px; padding: 8px 12px; font-size: 14px;">
+            <button id="btn-save-app-version" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">Save</button>
+          </div>
+        </div>
+
         <div class="admin-subviews-container" style="margin-top: 20px;">
           <!-- Section: Pending Approvals -->
           <div id="admin-section-approvals" class="admin-subview" style="display: none;">
@@ -3447,6 +3464,22 @@
       <span class="tab__label">Profile</span>
     </a>
   </nav>
+
+  <!-- Force Update Modal (App Only) -->
+  <div id="modal-force-update" class="modal-overlay" style="display: none; z-index: 100000; background: rgba(0,0,0,0.95);">
+    <div class="modal-content" style="max-width: 320px; text-align: center; padding: 30px 20px;">
+      <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <i data-lucide="download-cloud" style="width: 32px; height: 32px;"></i>
+      </div>
+      <h3 style="font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Update Required</h3>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+        A new version of StudyMyte is available! You must update the app to continue using it.
+      </p>
+      <a id="btn-force-update-download" href="/studymyte.apk" download="studymyte.apk" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 16px; padding: 12px; text-decoration: none;">
+        <i data-lucide="download" style="width: 20px; height: 20px;"></i> Download Update
+      </a>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
