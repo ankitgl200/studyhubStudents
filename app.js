@@ -4459,7 +4459,7 @@ async function renderAdminDashboardView(currentHash) {
         // 2. Fetch Users for the dropdown
         if (userSelect && userSelect.options.length <= 1) {
           try {
-            const users = await api.getUsers();
+            const users = await api.getAllUsers();
             const students = users.filter(u => u.role === 'student');
             
             // Generate options
