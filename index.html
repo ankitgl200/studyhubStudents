@@ -166,7 +166,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDMmO3BnFDMacdFtGNRllHvPc0xNS9WiHo",
@@ -183,6 +183,7 @@
     // Make it available globally for app.js
     window.firebaseMessaging = messaging;
     window.firebaseGetToken = getToken;
+    window.firebaseOnMessage = onMessage;
   </script>
 </head>
 <style>
