@@ -1953,22 +1953,6 @@
 
         <div id="admin-error-alert" class="alert alert-danger" style="display: none;"></div>
 
-        <!-- Global Admin Settings (App Version) -->
-        <div id="admin-global-settings" class="glass-panel" style="margin-top: 20px; padding: 15px 20px; display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 40px; height: 40px; background: #e0e7ff; color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-              <i data-lucide="smartphone" style="width: 20px; height: 20px;"></i>
-            </div>
-            <div>
-              <h4 style="margin: 0; font-size: 15px; font-weight: 600; color: var(--text-main);">Force App Update</h4>
-              <p style="margin: 0; font-size: 12px; color: var(--text-muted);">Enter the latest version (e.g. 1.0.1) to force Android users to update.</p>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <input type="text" id="admin-latest-app-version" class="input-field" placeholder="e.g. 1.0.0" style="width: 100px; padding: 8px 12px; font-size: 14px;">
-            <button id="btn-save-app-version" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">Save</button>
-          </div>
-        </div>
 
         <div class="admin-subviews-container" style="margin-top: 20px;">
           <!-- Section: Pending Approvals -->
@@ -2055,7 +2039,6 @@
             </div>
             <div id="support-show-more-container" style="margin-top: 20px; display: flex; justify-content: center;">
             </div>
-          </div>
           </div>
 
           <!-- Section: Compose Notification -->
@@ -3324,6 +3307,47 @@
     </div>
   </div>
 
+  <!-- Edit Profile Name Modal -->
+  <div id="modal-edit-name" class="modal-overlay" style="display: none; z-index: 1250;">
+    <div class="modal-content" style="max-width: 440px; animation: modalEnter 0.25s ease;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-edit-name-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="pencil" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          <span>Edit Name</span>
+        </h3>
+        <button type="button" id="modal-edit-name-close" class="modal-close">&times;</button>
+      </div>
+
+      <div id="modal-edit-name-error" class="alert alert-danger"
+        style="display: none; font-size: 12px; margin-bottom: 14px;"></div>
+      <div id="modal-edit-name-success" class="alert alert-success"
+        style="display: none; font-size: 12px; margin-bottom: 14px;"></div>
+
+      <form id="form-edit-name">
+        <div class="form-group">
+          <label class="form-label" for="input-modal-name">Full Name</label>
+          <div style="position: relative;">
+            <i data-lucide="user"
+              style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; height: 18px;"></i>
+            <input id="input-modal-name" type="text" class="form-input" style="padding-left: 44px;"
+              placeholder="Enter your name" minlength="2" maxlength="60" required />
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.4;">
+            Only your display name can be edited. Phone number and other account details cannot be changed.
+          </span>
+        </div>
+
+        <div class="form-actions" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="btn-modal-edit-name-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="btn-modal-edit-name-submit" class="btn btn-primary"
+            style="display: flex; align-items: center; gap: 6px;">
+            <span id="text-modal-edit-name-submit">Save Name</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Email Link / Update Modal -->
   <div id="modal-email" class="modal-overlay" style="display: none; z-index: 1250;">
     <div class="modal-content" style="max-width: 440px; animation: modalEnter 0.25s ease;">
@@ -3465,37 +3489,52 @@
     </a>
   </nav>
 
-  <!-- Force Update Modal (App Only) -->
-  <div id="modal-force-update" class="modal-overlay" style="display: none; z-index: 100000; background: rgba(0,0,0,0.95);">
-    <div class="modal-content" style="max-width: 320px; text-align: center; padding: 30px 20px;">
-      <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-        <i data-lucide="download-cloud" style="width: 32px; height: 32px;"></i>
+  <!-- DONATION MODAL -->
+  <div id="modal-donation" class="modal-overlay" style="display: none; z-index: 999999;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <div style="width: 56px; height: 56px; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <i data-lucide="heart-handshake" style="width: 28px; height: 28px;"></i>
       </div>
-      <h3 style="font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Update Required</h3>
-      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
-        A new version of StudyMyte is available! You must update the app to continue using it.
+      <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Support Our Platform</h3>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
+        Help us keep StudyMyte running for free! Your small contribution makes a huge difference.
       </p>
-      <div style="background: rgba(var(--primary-rgb), 0.05); border: 1px solid rgba(var(--primary-rgb), 0.1); border-radius: 8px; padding: 12px; text-align: left; margin-bottom: 24px; font-size: 12px; color: var(--text-main);">
-        <strong>Instructions:</strong>
-        <ol style="margin: 8px 0 0; padding-left: 16px; line-height: 1.6;">
-          <li>Click the Download button below.</li>
-          <li>Login to your account (if not already logged in).</li>
-          <li>Click on <strong>Tools</strong>.</li>
-          <li>Click <strong>Download App</strong>, select your device, and install.</li>
-        </ol>
-        <p style="margin: 10px 0 0; font-weight: 600; color: var(--success); text-align: center;">
-          <i data-lucide="shield-check" style="width: 14px; height: 14px; vertical-align: middle;"></i> Note: The app is completely safe to use.
-        </p>
+      
+      <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;" id="donation-amount-container">
+        <button class="btn btn-secondary btn-sm donation-amt-btn" data-amt="1" style="flex: 1; min-width: 45px;">₹1</button>
+        <button class="btn btn-secondary btn-sm donation-amt-btn" data-amt="5" style="flex: 1; min-width: 45px;">₹5</button>
+        <button class="btn btn-primary btn-sm donation-amt-btn active" data-amt="10" style="flex: 1; min-width: 45px;">₹10</button>
+        <button class="btn btn-secondary btn-sm donation-amt-btn" data-amt="15" style="flex: 1; min-width: 45px;">₹15</button>
+        <button class="btn btn-secondary btn-sm donation-amt-btn" data-amt="20" style="flex: 1; min-width: 45px;">₹20</button>
       </div>
-      <a id="btn-force-update-download" href="https://studymyte.tech/#/profile" target="_blank" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 16px; padding: 12px; text-decoration: none;">
-        <i data-lucide="download" style="width: 20px; height: 20px;"></i> Download Update
-      </a>
+
+      <div style="margin-bottom: 20px; display: flex; justify-content: center;">
+        <img id="donation-qr" src="" alt="UPI QR Code" style="width: 200px; height: 200px; border-radius: 12px; border: 1px solid var(--border-color); padding: 10px; background: white; object-fit: contain;" />
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <a id="donation-upi-link" href="#" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600;">
+          <i data-lucide="smartphone" style="width: 18px; height: 18px;"></i> Pay via UPI App
+        </a>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">
+        <input type="checkbox" id="donation-do-not-show" style="cursor: pointer; width: 16px; height: 16px;" />
+        <label for="donation-do-not-show" style="cursor: pointer; user-select: none;">Do not show until I reload</label>
+      </div>
+
+      <button id="btn-continue-without-donation" class="btn btn-secondary" style="width: 100%; border: none; background: transparent; color: var(--text-muted); font-size: 14px; text-decoration: underline;">
+        Continue without donation
+      </button>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
   <script src="/app.js?v=1.2.3"></script>
+
+
+
 
 </body>
 
