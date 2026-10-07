@@ -173,6 +173,18 @@ const api = {
     return res;
   },
 
+  async updateName(name) {
+    const res = await request('/auth/name', {
+      method: 'PUT',
+      body: { name }
+    });
+    if (res.user) {
+      currentUser = res.user;
+      localStorage.setItem('user', JSON.stringify(res.user));
+    }
+    return res;
+  },
+
   async updateEmail(email) {
     const res = await request('/auth/email', {
       method: 'PUT',
@@ -695,7 +707,12 @@ function updateNavbar() {
         </button>
         <div class="profile-dropdown-menu" id="profile-dropdown-menu" style="max-height: 80vh; overflow-y: auto; padding: 16px;">
           <div class="profile-info-header" style="margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-            <div class="profile-name" style="font-weight: 700; font-size: 14px; color: var(--text-main);">${escapeHTML(capitalizeName(currentUser.name))}</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <div class="profile-name" style="font-weight: 700; font-size: 14px; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(capitalizeName(currentUser.name))}</div>
+              <button type="button" class="btn-open-edit-name" style="padding: 2px 7px; font-size: 10px; font-weight: 700; border-radius: 4px; background: var(--bg-hover, rgba(0,0,0,0.05)); color: var(--primary); border: 1px solid var(--border-color); cursor: pointer; display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0;" title="Edit Name">
+                <i data-lucide="pencil" style="width: 10px; height: 10px;"></i> Edit
+              </button>
+            </div>
             <div class="profile-phone" style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 4px;">
               <i data-lucide="phone" style="width: 12px; height: 12px;"></i>
               ${escapeHTML(currentUser.phone)}
@@ -2973,7 +2990,12 @@ function renderProfileView() {
       <div style="width: 70px; height: 70px; border-radius: 50%; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; box-shadow: var(--shadow-sm); margin-bottom: 12px;">
         ${escapeHTML(currentUser.name.charAt(0).toUpperCase())}
       </div>
-      <h3 style="color: white; margin: 0; font-size: 19px; font-weight: 700;">${escapeHTML(capitalizeName(currentUser.name))}</h3>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <h3 style="color: white; margin: 0; font-size: 19px; font-weight: 700;">${escapeHTML(capitalizeName(currentUser.name))}</h3>
+        <button type="button" class="btn-open-edit-name" style="background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.45); color: white; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px);" title="Edit Name">
+          <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+        </button>
+      </div>
       <p style="color: rgba(255, 255, 255, 0.85); font-size: 13px; margin: 4px 0 2px 0;">${escapeHTML(currentUser.phone)}</p>
       ${currentUser.email ? `
         <div style="color: rgba(255, 255, 255, 0.95); font-size: 13px; margin: 2px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
@@ -3006,6 +3028,10 @@ function renderProfileView() {
         <span class="section-toggle-icon" style="display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></span>
       </div>
       <div class="profile-menu-items">
+        <a href="javascript:void(0)" class="profile-menu-item btn-open-edit-name">
+          <div class="item-left"><i data-lucide="pencil"></i><span>Edit Name</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
         ${currentUser.role === 'student' ? `
           <a href="#/my-contributions" class="profile-menu-item">
             <div class="item-left"><i data-lucide="award"></i><span>My Contributions</span></div>
@@ -3869,39 +3895,6 @@ async function renderAdminDashboardView(currentHash) {
   }
   if (errorAlert) {
     errorAlert.style.display = 'none';
-  }
-
-  // Load App Settings
-  const globalSettings = document.getElementById('admin-global-settings');
-  if (globalSettings && (currentUser.role === 'superadmin' || currentUser.role === 'admin')) {
-    globalSettings.style.display = 'flex';
-    const versionInput = document.getElementById('admin-latest-app-version');
-    const saveBtn = document.getElementById('btn-save-app-version');
-    
-    if (versionInput && !versionInput.dataset.loaded) {
-      versionInput.dataset.loaded = 'true';
-      api.getSetting('latestAppVersion').then(res => {
-        if (res && res.value) {
-          versionInput.value = res.value;
-        }
-      }).catch(err => console.log('No latestAppVersion setting found yet.'));
-
-      saveBtn.addEventListener('click', async () => {
-        const val = versionInput.value.trim();
-        if (!val) return;
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-        try {
-          await api.setSetting('latestAppVersion', val);
-          alert('Latest app version updated successfully! Users on older versions will be forced to update.');
-        } catch (err) {
-          alert('Failed to save app version.');
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.textContent = 'Save';
-        }
-      });
-    }
   }
 
   // Handle visibility of the sub-view containers based on Mobile vs PC viewport
@@ -6272,6 +6265,149 @@ function initEmailModalEventHandlers() {
       } catch (err) {
         if (errorEl) {
           errorEl.textContent = err.message || 'Failed to save email address';
+          errorEl.style.display = 'block';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        if (submitText) submitText.textContent = originalText;
+        refreshIcons();
+      }
+    });
+  }
+}
+
+function openEditNameModal() {
+  const modal = document.getElementById('modal-edit-name');
+  const inputName = document.getElementById('input-modal-name');
+  const errorEl = document.getElementById('modal-edit-name-error');
+  const successEl = document.getElementById('modal-edit-name-success');
+
+  if (!modal || !inputName) return;
+
+  if (errorEl) errorEl.style.display = 'none';
+  if (successEl) successEl.style.display = 'none';
+
+  inputName.value = currentUser ? (currentUser.name || '') : '';
+  modal.style.display = 'flex';
+  refreshIcons();
+  setTimeout(() => {
+    inputName.focus();
+    inputName.select();
+  }, 100);
+}
+
+function closeEditNameModal() {
+  const modal = document.getElementById('modal-edit-name');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function initEditNameModalEventHandlers() {
+  const closeBtn = document.getElementById('modal-edit-name-close');
+  const cancelBtn = document.getElementById('btn-modal-edit-name-cancel');
+  const modal = document.getElementById('modal-edit-name');
+  const form = document.getElementById('form-edit-name');
+
+  if (closeBtn) closeBtn.addEventListener('click', closeEditNameModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeEditNameModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeEditNameModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeEditNameModal();
+      }
+    });
+  }
+
+  // Delegated click on Edit Name buttons (Profile hero card, Account list, PC dropdown)
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.btn-open-edit-name');
+    if (editBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const profileMenu = document.getElementById('profile-dropdown-menu');
+      if (profileMenu) profileMenu.classList.remove('show');
+      openEditNameModal();
+    }
+  });
+
+  // Submit edit name form
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('input-modal-name');
+      const errorEl = document.getElementById('modal-edit-name-error');
+      const successEl = document.getElementById('modal-edit-name-success');
+      const submitBtn = document.getElementById('btn-modal-edit-name-submit');
+      const submitText = document.getElementById('text-modal-edit-name-submit');
+
+      if (!nameInput) return;
+      const rawName = nameInput.value.trim().replace(/\s+/g, ' ');
+
+      if (!rawName || rawName.length < 2 || rawName.length > 60) {
+        if (errorEl) {
+          errorEl.textContent = 'Please enter a valid name (2 to 60 characters)';
+          errorEl.style.display = 'block';
+        }
+        return;
+      }
+
+      const validNameRegex = /^[\p{L}\s.'-]+$/u;
+      if (!validNameRegex.test(rawName)) {
+        if (errorEl) {
+          errorEl.textContent = 'Name should only contain letters, spaces, dots, and hyphens';
+          errorEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (currentUser && currentUser.name === rawName) {
+        closeEditNameModal();
+        return;
+      }
+
+      if (errorEl) errorEl.style.display = 'none';
+      if (successEl) successEl.style.display = 'none';
+
+      submitBtn.disabled = true;
+      const originalText = submitText ? submitText.textContent : 'Save Name';
+      if (submitText) submitText.textContent = 'Saving...';
+
+      try {
+        const res = await api.updateName(rawName);
+        if (res.user) {
+          currentUser = res.user;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        } else if (currentUser) {
+          currentUser.name = rawName;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+
+        // Refresh UI
+        updateNavbar();
+        const profileView = document.getElementById('view-profile');
+        if (profileView && profileView.style.display !== 'none' && typeof renderProfileView === 'function') {
+          renderProfileView();
+        }
+
+        if (successEl) {
+          successEl.textContent = res.message || 'Name updated successfully!';
+          successEl.style.display = 'block';
+        }
+
+        setTimeout(() => {
+          closeEditNameModal();
+        }, 700);
+      } catch (err) {
+        if (errorEl) {
+          errorEl.textContent = err.message || 'Failed to update name';
           errorEl.style.display = 'block';
         }
       } finally {
@@ -8739,52 +8875,6 @@ async function initApp() {
     }
   }, { passive: false });
 
-  // App Force Update Check
-  setTimeout(async () => {
-    // Check if running in a native app container
-    const isApp = (typeof median !== 'undefined') || navigator.userAgent.includes('wv') || navigator.userAgent.includes('StudyMyte');
-    
-    // TEMPORARY DEBUG: Uncomment this to see what your app is reporting!
-    // alert("UserAgent: " + navigator.userAgent + "\nisApp: " + isApp);
-
-    if (isApp) {
-      try {
-        const res = await api.getSetting('latestAppVersion');
-        if (res && res.value) {
-          const latestVersion = String(res.value).trim();
-          let currentVersion = '0.0.0'; 
-          
-          // 1. Try Median Bridge
-          if (typeof median !== 'undefined' && median.appInfo) {
-            try {
-              const info = await median.appInfo();
-              if (info && info.appVersion) currentVersion = info.appVersion;
-            } catch(e){}
-          } 
-          // 2. Try User Agent
-          else if (navigator.userAgent.match(/StudyMyte\/([\d\.]+)/i)) {
-             currentVersion = navigator.userAgent.match(/StudyMyte\/([\d\.]+)/i)[1];
-          }
-          // 3. Try Injected JS Variable
-          else if (window.STUDYMYTE_APP_VERSION) {
-            currentVersion = window.STUDYMYTE_APP_VERSION;
-          }
-
-          // Debug alert to help user
-          // alert("Detected Version: " + currentVersion + "\nLatest Version: " + latestVersion);
-
-          // Force Update if version is detected and is outdated (or if we want to aggressively block unknown versions)
-          if (currentVersion !== latestVersion) {
-            const modal = document.getElementById('modal-force-update');
-            if (modal) modal.style.display = 'flex';
-          }
-        }
-      } catch (e) {
-        console.log("Could not check latest app version:", e.message);
-      }
-    }
-  }, 2500); // Give JS bridges time to initialize
-
   // Restore view states from localStorage
   try {
     const savedNotesStack = localStorage.getItem('notesFolderStack');
@@ -8873,6 +8963,7 @@ async function initApp() {
   initEditorEventHandlers();
   initReviewEventHandlers();
   initEmailModalEventHandlers();
+  initEditNameModalEventHandlers();
   initForgotPasswordEventHandlers();
   initAdminEmailModalEventHandlers();
 
@@ -8907,6 +8998,7 @@ async function initApp() {
   try {
     await loaderAnimPromise;
   } catch (e) {}
+
 
   // Smooth cinematic GSAP fade-out transition into the website
   if (loaderEl && typeof gsap !== 'undefined') {
@@ -10006,17 +10098,95 @@ function initContributionEventHandlers() {
     }, { passive: false });
   }
 
-  window.openDocumentViewer = function(docId, fileName, docType) {
-    const url = `${API_BASE}/documents/download/${docId}?token=${localStorage.getItem('token')}`;
-    if (docType === 'competitive') {
-      window.open(url, '_blank');
-      return;
+  // --- DONATION POPUP LOGIC ---
+  const donationModal = document.getElementById('modal-donation');
+  const btnContinueWithoutDonation = document.getElementById('btn-continue-without-donation');
+  const donationDoNotShowCb = document.getElementById('donation-do-not-show');
+  const donationAmtBtns = document.querySelectorAll('.donation-amt-btn');
+  const donationQr = document.getElementById('donation-qr');
+  const donationUpiLink = document.getElementById('donation-upi-link');
+  let donationContinueCallback = null;
+
+  function updateDonationUI(amount) {
+    const userName = (currentUser && currentUser.name) ? currentUser.name : 'User';
+    const note = `Donation from ${userName}`;
+    const upiString = `upi://pay?pa=ankitgtyl@fam&pn=StudyMyte&am=${amount}&tn=${encodeURIComponent(note)}&cu=INR`;
+    
+    if (donationQr) {
+      donationQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
     }
-    loadPdfIntoViewer(url, fileName);
+    if (donationUpiLink) {
+      donationUpiLink.href = upiString;
+    }
+  }
+
+  if (donationModal) {
+    donationAmtBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        donationAmtBtns.forEach(b => {
+          b.classList.remove('btn-primary', 'active');
+          b.classList.add('btn-secondary');
+        });
+        const clicked = e.currentTarget;
+        clicked.classList.remove('btn-secondary');
+        clicked.classList.add('btn-primary', 'active');
+        updateDonationUI(clicked.dataset.amt);
+      });
+    });
+
+    if (btnContinueWithoutDonation) {
+      btnContinueWithoutDonation.addEventListener('click', () => {
+        if (donationDoNotShowCb && donationDoNotShowCb.checked) {
+          sessionStorage.setItem('skipDonation', 'true');
+        }
+        donationModal.style.display = 'none';
+        if (donationContinueCallback) {
+          donationContinueCallback();
+          donationContinueCallback = null;
+        }
+      });
+    }
+  }
+
+  function interceptWithDonationPopup(callback) {
+    const role = currentUser ? currentUser.role : null;
+    if (role === 'student' || role === 'educator') {
+      if (sessionStorage.getItem('skipDonation') !== 'true' && donationModal) {
+        donationContinueCallback = callback;
+        // Default amount is 10
+        donationAmtBtns.forEach(b => {
+          b.classList.remove('btn-primary', 'active');
+          b.classList.add('btn-secondary');
+          if(b.dataset.amt === '10') {
+            b.classList.remove('btn-secondary');
+            b.classList.add('btn-primary', 'active');
+          }
+        });
+        updateDonationUI('10');
+        if (donationDoNotShowCb) donationDoNotShowCb.checked = false;
+        donationModal.style.display = 'flex';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
+      }
+    }
+    callback();
+  }
+
+  window.openDocumentViewer = function(docId, fileName, docType) {
+    interceptWithDonationPopup(() => {
+      const url = `${API_BASE}/documents/download/${docId}?token=${localStorage.getItem('token')}`;
+      if (docType === 'competitive') {
+        window.open(url, '_blank');
+        return;
+      }
+      loadPdfIntoViewer(url, fileName);
+    });
   };
 
   window.openBlobViewer = function(blobUrl, fileName) {
-    loadPdfIntoViewer(blobUrl, fileName);
+    interceptWithDonationPopup(() => {
+      loadPdfIntoViewer(blobUrl, fileName);
+    });
   };
 
   if (floatingBtn) {
@@ -10609,4 +10779,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
