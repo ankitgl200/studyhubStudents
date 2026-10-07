@@ -3103,6 +3103,10 @@ function renderProfileView() {
           <div class="item-left"><i data-lucide="help-circle"></i><span>Help & Support</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
         </a>
+        <a href="javascript:void(0)" onclick="openDonationModal()" class="profile-menu-item">
+          <div class="item-left"><i data-lucide="heart-handshake" style="color: #ec4899;"></i><span style="color: #ec4899; font-weight: 600;">Support StudyMyte (Donate)</span></div>
+          <i data-lucide="chevron-right" class="arrow-right"></i>
+        </a>
         <a href="#/privacy" class="profile-menu-item">
           <div class="item-left"><i data-lucide="shield"></i><span>Privacy Policy</span></div>
           <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -10099,12 +10103,11 @@ function initContributionEventHandlers() {
   }
 
   // --- DONATION POPUP LOGIC ---
-  const donationModal = document.getElementById('modal-donation');
-  const btnContinueWithoutDonation = document.getElementById('btn-continue-without-donation');
-  const donationDoNotShowCb = document.getElementById('donation-do-not-show');
-  const donationAmtBtns = document.querySelectorAll('.donation-amt-btn');
-  const donationQr = document.getElementById('donation-qr');
-  const donationUpiLink = document.getElementById('donation-upi-link');
+  let skipDonationUntilReload = false;
+  try {
+    sessionStorage.removeItem('skipDonation');
+  } catch (e) {}
+
   let donationContinueCallback = null;
 
   function updateDonationUI(amount) {
@@ -10112,6 +10115,8 @@ function initContributionEventHandlers() {
     const note = `Donation from ${userName}`;
     const upiString = `upi://pay?pa=ankitgtyl@fam&pn=StudyMyte&am=${amount}&tn=${encodeURIComponent(note)}&cu=INR`;
     
+    const donationQr = document.getElementById('donation-qr');
+    const donationUpiLink = document.getElementById('donation-upi-link');
     if (donationQr) {
       donationQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
     }
@@ -10119,6 +10124,78 @@ function initContributionEventHandlers() {
       donationUpiLink.href = upiString;
     }
   }
+
+  window.updateDonationUI = updateDonationUI;
+
+  function openDonationModal(callback = null) {
+    const donationModal = document.getElementById('modal-donation');
+    if (!donationModal) {
+      if (typeof callback === 'function') callback();
+      return;
+    }
+
+    donationContinueCallback = callback;
+    const donationAmtBtns = document.querySelectorAll('.donation-amt-btn');
+    const donationDoNotShowCb = document.getElementById('donation-do-not-show');
+
+    donationAmtBtns.forEach(b => {
+      b.classList.remove('btn-primary', 'active');
+      b.classList.add('btn-secondary');
+      if (b.dataset.amt === '10') {
+        b.classList.remove('btn-secondary');
+        b.classList.add('btn-primary', 'active');
+      }
+    });
+
+    updateDonationUI('10');
+    if (donationDoNotShowCb) donationDoNotShowCb.checked = false;
+
+    donationModal.style.display = 'flex';
+    if (typeof refreshIcons === 'function') refreshIcons();
+    else if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  window.openDonationModal = openDonationModal;
+
+  function closeDonationModal(executeCallback = true) {
+    const donationModal = document.getElementById('modal-donation');
+    const donationDoNotShowCb = document.getElementById('donation-do-not-show');
+
+    if (donationDoNotShowCb && donationDoNotShowCb.checked) {
+      skipDonationUntilReload = true;
+    }
+
+    if (donationModal) {
+      donationModal.style.display = 'none';
+    }
+
+    if (executeCallback && typeof donationContinueCallback === 'function') {
+      const cb = donationContinueCallback;
+      donationContinueCallback = null;
+      cb();
+    } else {
+      donationContinueCallback = null;
+    }
+  }
+
+  window.closeDonationModal = closeDonationModal;
+
+
+  function interceptWithDonationPopup(callback) {
+    if (skipDonationUntilReload) {
+      if (typeof callback === 'function') callback();
+      return;
+    }
+
+    openDonationModal(callback);
+  }
+
+  window.interceptWithDonationPopup = interceptWithDonationPopup;
+
+  const donationModal = document.getElementById('modal-donation');
+  const btnContinueWithoutDonation = document.getElementById('btn-continue-without-donation');
+  const closeDonationBtn = document.getElementById('modal-donation-close');
+  const donationAmtBtns = document.querySelectorAll('.donation-amt-btn');
 
   if (donationModal) {
     donationAmtBtns.forEach(btn => {
@@ -10136,40 +10213,27 @@ function initContributionEventHandlers() {
 
     if (btnContinueWithoutDonation) {
       btnContinueWithoutDonation.addEventListener('click', () => {
-        if (donationDoNotShowCb && donationDoNotShowCb.checked) {
-          sessionStorage.setItem('skipDonation', 'true');
-        }
-        donationModal.style.display = 'none';
-        if (donationContinueCallback) {
-          donationContinueCallback();
-          donationContinueCallback = null;
-        }
+        closeDonationModal(true);
       });
     }
-  }
 
-  function interceptWithDonationPopup(callback) {
-    const role = currentUser ? currentUser.role : null;
-    if (role === 'student' || role === 'educator') {
-      if (sessionStorage.getItem('skipDonation') !== 'true' && donationModal) {
-        donationContinueCallback = callback;
-        // Default amount is 10
-        donationAmtBtns.forEach(b => {
-          b.classList.remove('btn-primary', 'active');
-          b.classList.add('btn-secondary');
-          if(b.dataset.amt === '10') {
-            b.classList.remove('btn-secondary');
-            b.classList.add('btn-primary', 'active');
-          }
-        });
-        updateDonationUI('10');
-        if (donationDoNotShowCb) donationDoNotShowCb.checked = false;
-        donationModal.style.display = 'flex';
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-        return;
-      }
+    if (closeDonationBtn) {
+      closeDonationBtn.addEventListener('click', () => {
+        closeDonationModal(true);
+      });
     }
-    callback();
+
+    donationModal.addEventListener('click', (e) => {
+      if (e.target === donationModal) {
+        closeDonationModal(true);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && donationModal.style.display !== 'none') {
+        closeDonationModal(true);
+      }
+    });
   }
 
   window.openDocumentViewer = function(docId, fileName, docType) {
@@ -10188,6 +10252,7 @@ function initContributionEventHandlers() {
       loadPdfIntoViewer(blobUrl, fileName);
     });
   };
+
 
   if (floatingBtn) {
     floatingBtn.addEventListener('click', () => {
