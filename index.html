@@ -3491,8 +3491,9 @@
 
   <!-- DONATION MODAL -->
   <div id="modal-donation" class="modal-overlay" style="display: none; z-index: 999999;">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-      <div style="width: 56px; height: 56px; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; position: relative;">
+      <button type="button" id="modal-donation-close" class="modal-close" style="position: absolute; top: 12px; right: 14px; font-size: 24px; background: none; border: none; cursor: pointer; color: var(--text-muted); line-height: 1;" title="Close">&times;</button>
+      <div style="width: 56px; height: 56px; background: rgba(var(--primary-rgb, 37, 99, 235), 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
         <i data-lucide="heart-handshake" style="width: 28px; height: 28px;"></i>
       </div>
       <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Support Our Platform</h3>
