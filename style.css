@@ -2885,7 +2885,7 @@ body {
   --bar-lo: #fcfcfc;
   --icon-off: #64748b;
   --icon-on: #ffffff;
-  --glow-rgb: 30 86 160; /* StudyHub blue */
+  --glow-rgb: 30 86 160; /* StudyMyte blue */
   --glow: rgb(var(--glow-rgb));
   --acc: var(--primary);
 }
@@ -3050,6 +3050,17 @@ body {
   position: relative;
   overflow: hidden;
   color: var(--white);
+}
+
+.btn-open-edit-name {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-open-edit-name:hover {
+  transform: scale(1.08);
+  opacity: 0.95;
+}
+.btn-open-edit-name:active {
+  transform: scale(0.95);
 }
 
 .profile-menu-section {
@@ -4476,7 +4487,7 @@ body[data-theme="dark"] {
 .sh-reveal-stagger.in-view > *:nth-child(5) { transition-delay: 0.33s; opacity: 1; transform: translateY(0) translateZ(0); }
 .sh-reveal-stagger.in-view > *:nth-child(n+6) { transition-delay: 0.40s; opacity: 1; transform: translateY(0) translateZ(0); }
 
-/* Why Study Hub Item Micro-Interaction on Reveal */
+/* Why StudyMyte Item Micro-Interaction on Reveal */
 .why-item {
   transform: translateX(0);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
@@ -4748,3 +4759,4 @@ body[data-theme="dark"] {
 #shift-tree-container::-webkit-scrollbar-thumb:hover {
   background: rgba(99,102,241,0.3);
 }
+
