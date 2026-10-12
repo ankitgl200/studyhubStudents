@@ -25,11 +25,6 @@ function ensureJsPDFLoaded() {
   return loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
 }
 
-function ensurePuterLoaded() {
-  if (window.puter) return Promise.resolve();
-  return loadScript("https://js.puter.com/v2/");
-}
-
 
 
 
@@ -405,6 +400,25 @@ const api = {
     return await request(`/documents/${docId}/move`, {
       method: 'PUT',
       body: { targetType, targetFolderId }
+    });
+  },
+
+  async getDuplicateGroups(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return await request(`/documents/duplicate-groups${qs ? '?' + qs : ''}`);
+  },
+
+  async selectCanonicalPaper(groupId, canonicalDocumentId, reason = '') {
+    return await request(`/documents/duplicate-groups/${groupId}/select-canonical`, {
+      method: 'POST',
+      body: { canonicalDocId: canonicalDocumentId, canonicalDocumentId, reason }
+    });
+  },
+
+  async splitCandidatePaper(groupId, documentId, reason = '') {
+    return await request(`/documents/duplicate-groups/${groupId}/split-candidate/${documentId}`, {
+      method: 'POST',
+      body: { reason }
     });
   },
 
@@ -3925,6 +3939,10 @@ async function renderAdminDashboardView(currentHash) {
       if (subpageTitle) subpageTitle.textContent = 'Pending Contributions';
       const view = document.getElementById('admin-section-contributions');
       if (view) view.style.display = 'block';
+    } else if (currentHash === '/admin/duplicates') {
+      if (subpageTitle) subpageTitle.textContent = 'Pending Contributions & Duplicates';
+      const view = document.getElementById('admin-section-contributions');
+      if (view) view.style.display = 'block';
     } else if (currentHash === '/admin/support') {
       if (subpageTitle) subpageTitle.textContent = 'Help & Support';
       const view = document.getElementById('admin-section-support');
@@ -4780,7 +4798,7 @@ async function renderAdminDashboardView(currentHash) {
         await fetchApprovals();
       } else if (currentHash === '/admin/users') {
         await fetchUsers();
-      } else if (currentHash === '/admin/contributions') {
+      } else if (currentHash === '/admin/contributions' || currentHash === '/admin/duplicates') {
         await fetchContributions();
       } else if (currentHash === '/admin/support') {
         await fetchSupport();
@@ -4809,6 +4827,9 @@ async function renderAdminDashboardView(currentHash) {
         } else if (params.tab === 'reviews') {
           const reviewsSection = document.getElementById('admin-reviews-list-container');
           if (reviewsSection) reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (params.tab === 'duplicates' || params.tab === 'contributions') {
+          const contSection = document.getElementById('admin-section-contributions');
+          if (contSection) contSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 150);
     }
@@ -6442,7 +6463,14 @@ function getOtpValue() {
 
 function clearOtpBoxes() {
   const boxes = getOtpBoxes();
-  boxes.forEach(b => { b.value = ''; });
+  boxes.forEach(b => { 
+    b.value = ''; 
+    b.classList.remove('filled');
+  });
+  const wrapper = document.getElementById('otp-3d-wrapper');
+  if (wrapper) {
+    wrapper.classList.remove('otp-success-state', 'otp-error-state');
+  }
   const first = document.querySelector('.otp-box[data-idx="0"]');
   if (first) setTimeout(() => first.focus(), 100);
 }
@@ -6546,6 +6574,19 @@ function initForgotPasswordEventHandlers() {
       const val = e.target.value.replace(/\D/g, '');
       e.target.value = val ? val.charAt(0) : '';
 
+      // Toggle 3D pressed/filled styling
+      if (e.target.value) {
+        box.classList.add('filled');
+      } else {
+        box.classList.remove('filled');
+      }
+
+      // Reset any active error state when user modifies input
+      const wrapper = document.getElementById('otp-3d-wrapper');
+      if (wrapper && wrapper.classList.contains('otp-error-state')) {
+        wrapper.classList.remove('otp-error-state');
+      }
+
       if (val && idx < otpBoxes.length - 1) {
         otpBoxes[idx + 1].focus();
         otpBoxes[idx + 1].select();
@@ -6557,6 +6598,9 @@ function initForgotPasswordEventHandlers() {
         if (!e.target.value && idx > 0) {
           otpBoxes[idx - 1].focus();
           otpBoxes[idx - 1].value = '';
+          otpBoxes[idx - 1].classList.remove('filled');
+        } else {
+          box.classList.remove('filled');
         }
       } else if (e.key === 'ArrowLeft' && idx > 0) {
         otpBoxes[idx - 1].focus();
@@ -6571,9 +6615,13 @@ function initForgotPasswordEventHandlers() {
       const digits = pastedData.replace(/\D/g, '').slice(0, 6);
       if (!digits) return;
 
+      const wrapper = document.getElementById('otp-3d-wrapper');
+      if (wrapper) wrapper.classList.remove('otp-error-state');
+
       digits.split('').forEach((d, i) => {
         if (otpBoxes[i]) {
           otpBoxes[i].value = d;
+          otpBoxes[i].classList.add('filled');
         }
       });
 
@@ -6675,6 +6723,10 @@ function initForgotPasswordEventHandlers() {
         document.getElementById('forgot-masked-email').textContent = forgotPasswordState.maskedEmail;
 
         clearOtpBoxes();
+        const shieldIcon = document.getElementById('otp-shield-icon');
+        if (shieldIcon) {
+          shieldIcon.innerHTML = '<i data-lucide="shield-check" style="width: 28px; height: 28px;"></i>';
+        }
         startOtpResendTimer(res.cooldownSeconds || 60);
         refreshIcons();
       } catch (err) {
@@ -6704,7 +6756,15 @@ function initForgotPasswordEventHandlers() {
       if (errorAlert) errorAlert.style.display = 'none';
       if (successAlert) successAlert.style.display = 'none';
 
+      const wrapper = document.getElementById('otp-3d-wrapper');
+      const shieldIcon = document.getElementById('otp-shield-icon');
+
       if (!/^\d{6}$/.test(otp)) {
+        if (wrapper) {
+          wrapper.classList.remove('otp-error-state', 'otp-success-state');
+          void wrapper.offsetWidth; // Force DOM reflow to re-trigger CSS keyframe
+          wrapper.classList.add('otp-error-state');
+        }
         if (errorAlert) {
           errorAlert.textContent = 'Please enter the complete 6-digit numeric verification code.';
           errorAlert.style.display = 'block';
@@ -6727,6 +6787,24 @@ function initForgotPasswordEventHandlers() {
 
         forgotPasswordState.resetToken = res.resetToken;
 
+        // Trigger 3D Success Celebration Animation
+        if (wrapper) {
+          wrapper.classList.remove('otp-error-state');
+          void wrapper.offsetWidth; // Force reflow
+          wrapper.classList.add('otp-success-state');
+        }
+
+        if (shieldIcon) {
+          shieldIcon.innerHTML = '<i data-lucide="check-circle" style="width: 32px; height: 32px; color: #ffffff;"></i>';
+          refreshIcons();
+        }
+
+        btnContent.innerHTML = '<i data-lucide="check" style="width: 18px; height: 18px;"></i> Verified Successfully!';
+        refreshIcons();
+
+        // Allow user to experience the celebratory 3D cascade and spin animation before view change
+        await new Promise(r => setTimeout(r, 750));
+
         // Transition from Step 2 to Step 3 (Set New Password)
         document.getElementById('forgot-step-otp').style.display = 'none';
         document.getElementById('forgot-step-newpass').style.display = 'block';
@@ -6735,6 +6813,18 @@ function initForgotPasswordEventHandlers() {
         if (newPassInput) setTimeout(() => newPassInput.focus(), 100);
         refreshIcons();
       } catch (err) {
+        // Trigger 3D Error Shake & Jiggle Animation
+        if (wrapper) {
+          wrapper.classList.remove('otp-success-state', 'otp-error-state');
+          void wrapper.offsetWidth; // Force reflow
+          wrapper.classList.add('otp-error-state');
+        }
+
+        if (shieldIcon) {
+          shieldIcon.innerHTML = '<i data-lucide="shield-alert" style="width: 28px; height: 28px; color: #ffffff;"></i>';
+          refreshIcons();
+        }
+
         if (errorAlert) {
           errorAlert.textContent = err.message || 'Verification code failed. Please check the code and try again.';
           errorAlert.style.display = 'block';
@@ -9597,20 +9687,214 @@ async function renderTeacherDashboardView() {
 
 async function renderPendingContributions() {
   const pendingDocsCount = document.getElementById('pending-docs-count');
+  const clustersWrapper = document.getElementById('pending-duplicate-clusters-wrapper');
+  const clustersHeader = document.getElementById('pending-duplicate-clusters-header');
+  const clustersCountEl = document.getElementById('duplicate-clusters-count');
+  const clustersList = document.getElementById('pending-duplicate-clusters-list');
+  const singleTitle = document.getElementById('pending-single-items-title');
   const pendingDocsContainer = document.getElementById('pending-docs-list-container');
+
   if (!pendingDocsContainer) return;
 
   pendingDocsContainer.innerHTML = getListSkeleton();
+  if (clustersList) clustersList.innerHTML = '';
+  if (clustersHeader) clustersHeader.style.display = 'none';
+  if (singleTitle) singleTitle.style.display = 'none';
 
   try {
-    const pendingDocs = await api.getPendingDocuments();
+    // 1. Fetch pending documents and duplicate groups in parallel
+    const [pendingDocs, dupGroupsRes] = await Promise.all([
+      api.getPendingDocuments(),
+      api.getDuplicateGroups({ status: 'needs_review' }).catch(() => ({ groups: [] }))
+    ]);
+
+    const allGroups = (dupGroupsRes && dupGroupsRes.groups) ? dupGroupsRes.groups : (Array.isArray(dupGroupsRes) ? dupGroupsRes : []);
+    
+    // Total count of pending contributions
     if (pendingDocsCount) pendingDocsCount.textContent = pendingDocs.length;
 
     if (pendingDocs.length === 0) {
-      pendingDocsContainer.innerHTML = '<div class="empty-state" style="padding: 30px;">No pending contributions to verify.</div>';
+      if (clustersWrapper) clustersWrapper.style.display = 'none';
+      pendingDocsContainer.innerHTML = `
+        <div class="empty-state" style="padding: 36px 20px; text-align: center; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-color);">
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(34, 197, 94, 0.1); color: var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+            <i data-lucide="check-circle" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text-main);">No Pending Contributions</h4>
+          <p style="font-size: 13px; color: var(--text-muted); max-width: 420px; margin: 0 auto;">
+            All resources uploaded by students, educators, and admins are approved or resolved.
+          </p>
+        </div>
+      `;
+      refreshIcons();
+      return;
+    }
+
+    if (clustersWrapper) clustersWrapper.style.display = 'block';
+
+    // 2. Map pending documents into clusters (by duplicateGroupId, identityKey, or fileHash)
+    // Identify groups that contain at least 2 pending candidates
+    const pendingDocMap = new Map();
+    pendingDocs.forEach(d => pendingDocMap.set(String(d.id), d));
+
+    // Also auto-cluster any pending docs sharing identical fileHash or identityKey even if not yet saved to a group
+    const hashGroups = new Map();
+    pendingDocs.forEach(d => {
+      if (d.fileHash) {
+        if (!hashGroups.has(d.fileHash)) hashGroups.set(d.fileHash, []);
+        hashGroups.get(d.fileHash).push(d);
+      }
+    });
+
+    const identityGroups = new Map();
+    pendingDocs.forEach(d => {
+      const idKey = d.examIdentity?.identityKey || (d.duplicateStatus?.duplicateGroupId ? String(d.duplicateStatus.duplicateGroupId) : null);
+      if (idKey) {
+        if (!identityGroups.has(idKey)) identityGroups.set(idKey, []);
+        identityGroups.get(idKey).push(d);
+      }
+    });
+
+    // Identify candidate docs that are part of a multi-item cluster
+    const clusteredDocIds = new Set();
+    const activeClusters = [];
+
+    // Check DB duplicate groups
+    allGroups.forEach(g => {
+      const groupCandidates = (g.candidates || []).filter(c => pendingDocMap.has(String(c.id || c._id)));
+      if (groupCandidates.length >= 2) {
+        groupCandidates.forEach(c => clusteredDocIds.add(String(c.id || c._id)));
+        activeClusters.push({
+          id: g.id || g._id,
+          title: `${g.subject || 'Resource Cluster'} (${g.branch || 'All Branches'})`,
+          identityKey: g.identityKey,
+          branch: g.branch,
+          semester: g.semester,
+          year: g.year,
+          examType: g.examType,
+          candidates: groupCandidates
+        });
+      }
+    });
+
+    // Check identical hash collisions among pending items
+    hashGroups.forEach((docs, hash) => {
+      if (docs.length >= 2) {
+        const unclustered = docs.filter(d => !clusteredDocIds.has(String(d.id)));
+        if (unclustered.length >= 2) {
+          unclustered.forEach(d => clusteredDocIds.add(String(d.id)));
+          activeClusters.push({
+            id: unclustered[0].duplicateStatus?.duplicateGroupId || `hash-${hash.substring(0, 10)}`,
+            title: `${unclustered[0].title} (Exact Identical Uploads)`,
+            identityKey: `sha256:${hash.substring(0, 16)}`,
+            branch: unclustered[0].examIdentity?.branch || 'All Branches',
+            year: unclustered[0].year,
+            examType: unclustered[0].type,
+            candidates: unclustered,
+            isExactMatch: true
+          });
+        }
+      }
+    });
+
+    // 3. Render Duplicate Clusters if any exist
+    if (activeClusters.length > 0 && clustersList && clustersHeader) {
+      clustersHeader.style.display = 'flex';
+      if (clustersCountEl) clustersCountEl.textContent = activeClusters.length;
+
+      clustersList.innerHTML = activeClusters.map(cluster => {
+        return `
+          <div class="card duplicate-group-card" data-group-id="${cluster.id}" style="margin-bottom: 20px; border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 18px; background: rgba(59, 130, 246, 0.02); box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+                  <span class="badge" style="background: #fee2e2; color: #dc2626; font-weight: 700; padding: 4px 8px; border-radius: 6px; font-size: 11px; text-transform: uppercase;">
+                    <i data-lucide="alert-triangle" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> Duplicate Cluster (${cluster.candidates.length} Copies)
+                  </span>
+                  ${cluster.isExactMatch ? `<span class="badge" style="background: #fef08a; color: #854d0e; font-weight: 700; padding: 4px 8px; border-radius: 6px; font-size: 11px;">100% Exact Byte Match</span>` : ''}
+                  ${cluster.branch ? `<span class="badge" style="background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">Branch: ${escapeHTML(cluster.branch)}</span>` : ''}
+                  ${cluster.year ? `<span class="badge" style="background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">Year: ${escapeHTML(cluster.year)}</span>` : ''}
+                </div>
+                <h4 style="font-size: 17px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+                  ${escapeHTML(cluster.title)}
+                </h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+                  Pick the cleanest scan to approve as the canonical winner, or accept/delete individually below.
+                </p>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; margin-top: 12px;">
+              ${cluster.candidates.map(doc => {
+                const docId = doc.id || doc._id;
+                const qScore = typeof doc.qualityScore === 'number' ? doc.qualityScore : 50;
+                const scoreColor = qScore >= 75 ? '#16a34a' : (qScore >= 50 ? '#ca8a04' : '#dc2626');
+                const scoreBg = qScore >= 75 ? '#dcfce7' : (qScore >= 50 ? '#fef9c3' : '#fee2e2');
+
+                return `
+                  <div class="candidate-doc-card" style="border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; background: var(--bg-card); display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+                        <h6 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0; line-height: 1.3;">
+                          ${escapeHTML(doc.title)}
+                        </h6>
+                        <span style="font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${scoreBg}; color: ${scoreColor}; white-space: nowrap;">
+                          Score: ${qScore}/100
+                        </span>
+                      </div>
+
+                      <div style="font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; padding: 6px 8px; background: rgba(0,0,0,0.02); border-radius: 6px;">
+                        <div>Pages: <strong>${doc.pageCount || 1}</strong></div>
+                        <div>Digital Text: <strong>${doc.hasText ? 'Yes &check;' : 'Scan/Image'}</strong></div>
+                        <div>Category: <strong style="text-transform: capitalize;">${escapeHTML(doc.type || 'resource')}</strong></div>
+                        <div>Size: <strong>${doc.fileSizeBytes ? (doc.fileSizeBytes / (1024 * 1024)).toFixed(2) + ' MB' : 'N/A'}</strong></div>
+                      </div>
+
+                      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+                        <div>Contributor: <strong>${escapeHTML(doc.contributorName || doc.uploadedBy || 'Contributor')}</strong> (${escapeHTML(doc.contributorPhone || 'N/A')})</div>
+                        <div>Submitted: ${new Date(doc.createdAt).toLocaleString()}</div>
+                      </div>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.06);">
+                      <a href="${escapeHTML(doc.fileUrl)}" target="_blank" class="btn btn-secondary btn-sm" style="flex: 1; min-width: 75px; font-size: 12px; padding: 6px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View
+                      </a>
+                      <button class="btn btn-primary btn-sm btn-select-canonical" data-group-id="${cluster.id}" data-doc-id="${docId}" style="flex: 1.3; min-width: 120px; font-size: 12px; padding: 6px 8px; background: #16a34a; border-color: #16a34a; display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-weight: 700;" title="Approve this file as canonical winner and mark others as duplicates">
+                        <i data-lucide="check-check" style="width: 14px; height: 14px;"></i> Best Copy
+                      </button>
+                      <button class="btn btn-danger btn-sm btn-reject-doc" data-id="${docId}" style="font-size: 12px; padding: 6px 8px; display: inline-flex; align-items: center; justify-content: center;" title="Reject and delete this contribution">
+                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
     } else {
-      pendingDocsContainer.innerHTML = pendingDocs.map(d => {
+      if (clustersHeader) clustersHeader.style.display = 'none';
+      if (clustersList) clustersList.innerHTML = '';
+    }
+
+    // 4. Render Non-Clustered Individual Pending Items
+    const individualPending = pendingDocs.filter(d => !clusteredDocIds.has(String(d.id)));
+
+    if (activeClusters.length > 0 && singleTitle) {
+      singleTitle.style.display = 'block';
+    } else if (singleTitle) {
+      singleTitle.style.display = 'none';
+    }
+
+    if (individualPending.length === 0 && activeClusters.length > 0) {
+      pendingDocsContainer.innerHTML = '<div style="padding: 16px; color: var(--text-muted); font-size: 13px; text-align: center;">All current pending submissions are grouped in the duplicate clusters above.</div>';
+    } else {
+      pendingDocsContainer.innerHTML = individualPending.map(d => {
         const displayType = d.type === 'notes' ? 'Notes' : (d.type === 'paper' ? 'PYQ/Paper' : (d.type === 'lab_manual' ? 'Lab Manual' : (d.type === 'book' ? 'Book' : (d.type === 'syllabus' ? 'Syllabus' : (d.type === 'roadmap' ? 'Roadmap' : (d.type === 'competitive' ? 'Competitive Exam PYQ' : d.type))))));
+        const qScore = typeof d.qualityScore === 'number' ? d.qualityScore : null;
+
         return `
           <div class="doc-card pending-doc-card" style="margin-bottom: 12px;">
             <div class="doc-info">
@@ -9618,7 +9902,14 @@ async function renderPendingContributions() {
                 <i data-lucide="file-text"></i>
               </div>
               <div class="doc-meta">
-                <h5 style="font-size: 16px; margin-bottom: 4px; color: var(--primary-dark); font-weight: 700;">${escapeHTML(d.title)}</h5>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                  <h5 style="font-size: 16px; margin: 0; color: var(--primary-dark); font-weight: 700;">${escapeHTML(d.title)}</h5>
+                  ${qScore !== null ? `
+                    <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: ${qScore >= 75 ? '#dcfce7' : (qScore >= 50 ? '#fef9c3' : '#fee2e2')}; color: ${qScore >= 75 ? '#16a34a' : (qScore >= 50 ? '#ca8a04' : '#dc2626')};">
+                      Score: ${qScore}/100
+                    </span>
+                  ` : ''}
+                </div>
                 <p style="font-size: 13px; color: var(--text-main); margin-bottom: 4px;">
                   Category: <strong>${escapeHTML(displayType)}</strong> &bull; Subject: <strong>${escapeHTML(d.subject || 'N/A')}</strong>
                 </p>
@@ -9644,51 +9935,106 @@ async function renderPendingContributions() {
           </div>
         `;
       }).join('');
+    }
 
-      // Bind approve handlers
-      pendingDocsContainer.querySelectorAll('.btn-approve-doc').forEach(btn => {
+    // 5. Bind Select Canonical Winner handlers inside cluster cards
+    const clustersContainer = document.getElementById('pending-duplicate-clusters-list');
+    if (clustersContainer) {
+      clustersContainer.querySelectorAll('.btn-select-canonical').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const docId = btn.getAttribute('data-id');
-          const originalHTML = btn.innerHTML;
-          btn.disabled = true;
-          btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
-          refreshIcons();
-          try {
-            await api.approveDocument(docId); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) cardToRemove.remove();
-          } catch (err) {
-            alert(err.message || 'Failed to approve resource');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
-            refreshIcons();
+          const groupId = btn.getAttribute('data-group-id');
+          const docId = btn.getAttribute('data-doc-id');
+
+          if (!confirm('Approve this document as the canonical published copy? Remaining duplicate copies in this cluster will be marked as resolved duplicates.')) {
+            return;
           }
-        });
-      });
 
-      // Bind reject handlers
-      pendingDocsContainer.querySelectorAll('.btn-reject-doc').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const docId = btn.getAttribute('data-id');
-          if (!confirm('Are you sure you want to reject and delete this contribution?')) return;
-          const originalHTML = btn.innerHTML;
+          const origHtml = btn.innerHTML;
           btn.disabled = true;
           btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
           refreshIcons();
+
           try {
-            await api.rejectDocument(docId); const cardToRemove = btn.closest('.doc-card'); if(cardToRemove) cardToRemove.remove();
+            if (groupId && !groupId.startsWith('hash-')) {
+              await api.selectCanonicalPaper(groupId, docId, 'Approved as best quality copy in cluster');
+            } else {
+              // Approve winning document and reject others sharing same hash
+              await api.approveDocument(docId);
+              const card = btn.closest('.duplicate-group-card');
+              if (card) {
+                const otherDeleteBtns = card.querySelectorAll(`.btn-reject-doc:not([data-id="${docId}"])`);
+                for (const dBtn of otherDeleteBtns) {
+                  const otherId = dBtn.getAttribute('data-id');
+                  if (otherId) await api.rejectDocument(otherId).catch(() => {});
+                }
+              }
+            }
+            alert('Canonical copy approved successfully!');
+            await renderPendingContributions();
           } catch (err) {
-            alert(err.message || 'Failed to reject resource');
+            alert('Failed to approve canonical: ' + (err.message || 'Server error'));
             btn.disabled = false;
-            btn.innerHTML = originalHTML;
+            btn.innerHTML = origHtml;
             refreshIcons();
           }
         });
       });
     }
+
+    // 6. Bind Individual Approve handlers
+    document.querySelectorAll('.btn-approve-doc').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const docId = btn.getAttribute('data-id');
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
+        refreshIcons();
+        try {
+          await api.approveDocument(docId);
+          await renderPendingContributions();
+        } catch (err) {
+          alert(err.message || 'Failed to approve resource');
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          refreshIcons();
+        }
+      });
+    });
+
+    // 7. Bind Individual Reject/Delete handlers
+    document.querySelectorAll('.btn-reject-doc').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const docId = btn.getAttribute('data-id');
+        if (!confirm('Are you sure you want to reject and delete this contribution?')) return;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
+        refreshIcons();
+        try {
+          await api.rejectDocument(docId);
+          await renderPendingContributions();
+        } catch (err) {
+          alert(err.message || 'Failed to reject resource');
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          refreshIcons();
+        }
+      });
+    });
+
+    refreshIcons();
   } catch (err) {
     console.error('Error rendering pending contributions:', err);
     pendingDocsContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load contributions: ${escapeHTML(err.message)}</div>`;
   }
 }
+
+// Backward compatibility alias for any legacy calls or lingering listeners
+window.renderDuplicatePaperGroups = async function() {
+  if (typeof renderPendingContributions === 'function') {
+    await renderPendingContributions();
+  }
+};
 
 function initContributionEventHandlers() {
   const floatingBtn = document.getElementById('btn-floating-contribute');
@@ -10417,7 +10763,30 @@ function initContributionEventHandlers() {
 
       } catch (err) {
         if (errorAlert) {
-          errorAlert.textContent = err.message || 'Failed to submit contribution';
+          if (err.data && err.data.code === 'DUPLICATE_PUBLISHED') {
+            const existing = err.data.existingDocument;
+            const existingUrl = existing ? escapeHTML(existing.fileUrl) : '#';
+            const existingTitle = existing ? escapeHTML(existing.title) : 'Published Paper';
+            errorAlert.innerHTML = `
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 700;">
+                  <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+                  <span>Paper Already Published!</span>
+                </div>
+                <div>An identical or matching question paper is already approved and live in StudyMyte.</div>
+                ${existing ? `
+                  <div style="margin-top: 4px;">
+                    <a href="${existingUrl}" target="_blank" style="text-decoration: underline; font-weight: 600; color: inherit;">
+                      View Published Paper: "${existingTitle}" &rarr;
+                    </a>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+            refreshIcons();
+          } else {
+            errorAlert.textContent = err.message || 'Failed to submit contribution';
+          }
           errorAlert.style.display = 'block';
         }
       } finally {
