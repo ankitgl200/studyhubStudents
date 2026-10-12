@@ -86,7 +86,6 @@
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-  <link rel="preconnect" href="https://js.puter.com">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-MLBCW8QCG1"></script>
   <script>
@@ -333,15 +332,229 @@
     box-shadow: var(--shadow-md) !important;
   }
 
+  /* 3D Modern OTP Verification Styling & Animations */
+  .otp-3d-wrapper {
+    perspective: 1000px;
+    padding: 10px 0 6px 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .otp-3d-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.45s ease;
+  }
+
+  .otp-shield-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(99, 102, 241, 0.22));
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px auto;
+    box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-style: preserve-3d;
+    animation: shield-float 4s ease-in-out infinite;
+  }
+
+  [data-theme="dark"] .otp-shield-icon {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.3));
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  }
+
+  @keyframes shield-float {
+    0%, 100% {
+      transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+    }
+    50% {
+      transform: translateY(-6px) rotateX(6deg) rotateY(-4deg);
+    }
+  }
+
+  .otp-boxes-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    perspective: 800px;
+  }
+
+  .otp-box {
+    width: 46px;
+    height: 56px;
+    font-size: 26px;
+    font-weight: 800;
+    text-align: center;
+    border-radius: 12px;
+    padding: 0;
+    background: #ffffff;
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03), 0 5px 0 var(--border-color);
+    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(0px) translateZ(0);
+    cursor: text;
+  }
+
+  [data-theme="dark"] .otp-box {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 5px 0 #0f172a;
+    color: #f8fafc;
+  }
+
+  .otp-box:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+  }
+
   .otp-box:focus {
     border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px var(--primary-accent) !important;
+    background: #ffffff !important;
+    transform: translateY(-5px) scale(1.04) translateZ(12px) !important;
+    box-shadow: 0 12px 20px -4px rgba(37, 99, 235, 0.25), 0 6px 0 var(--primary), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
     outline: none !important;
-    background: #fff !important;
   }
 
   [data-theme="dark"] .otp-box:focus {
-    background: #1e293b !important;
+    background: #0f172a !important;
+    box-shadow: 0 12px 20px -4px rgba(59, 130, 246, 0.35), 0 6px 0 var(--primary-dark) !important;
+  }
+
+  .otp-box.filled {
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.03);
+    box-shadow: 0 6px 12px -2px rgba(37, 99, 235, 0.15), 0 4px 0 var(--primary);
+  }
+
+  [data-theme="dark"] .otp-box.filled {
+    background: rgba(59, 130, 246, 0.08);
+    box-shadow: 0 6px 12px -2px rgba(37, 99, 235, 0.25), 0 4px 0 var(--primary);
+  }
+
+  /* 3D Success Animation State */
+  .otp-3d-wrapper.otp-success-state .otp-3d-card {
+    animation: otpSuccessPop 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .otp-3d-wrapper.otp-success-state .otp-shield-icon {
+    background: linear-gradient(135deg, #22c55e, #10b981) !important;
+    color: #ffffff !important;
+    box-shadow: 0 14px 30px -4px rgba(34, 197, 94, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.15) rotateY(360deg);
+  }
+
+  .otp-3d-wrapper.otp-success-state .otp-box {
+    border-color: #22c55e !important;
+    color: #15803d !important;
+    background: #f0fdf4 !important;
+    box-shadow: 0 8px 16px -2px rgba(34, 197, 94, 0.35), 0 4px 0 #16a34a !important;
+    animation: otpBoxSuccessCascade 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  [data-theme="dark"] .otp-3d-wrapper.otp-success-state .otp-box {
+    background: #052e16 !important;
+    color: #4ade80 !important;
+    box-shadow: 0 8px 16px -2px rgba(34, 197, 94, 0.4), 0 4px 0 #15803d !important;
+  }
+
+  .otp-3d-wrapper.otp-success-state .otp-box:nth-child(1) { animation-delay: 0.05s; }
+  .otp-3d-wrapper.otp-success-state .otp-box:nth-child(2) { animation-delay: 0.1s; }
+  .otp-3d-wrapper.otp-success-state .otp-box:nth-child(3) { animation-delay: 0.15s; }
+  .otp-3d-wrapper.otp-success-state .otp-box:nth-child(4) { animation-delay: 0.2s; }
+  .otp-3d-wrapper.otp-success-state .otp-box:nth-child(5) { animation-delay: 0.25s; }
+  .otp-3d-wrapper.otp-success-state .otp-box:nth-child(6) { animation-delay: 0.3s; }
+
+  @keyframes otpSuccessPop {
+    0% {
+      transform: scale(1) translateY(0) rotateX(0);
+    }
+    35% {
+      transform: scale(0.96) translateY(-8px) rotateX(8deg);
+    }
+    65% {
+      transform: scale(1.04) translateY(-14px) rotateX(-4deg);
+    }
+    100% {
+      transform: scale(1) translateY(0) rotateX(0);
+    }
+  }
+
+  @keyframes otpBoxSuccessCascade {
+    0% {
+      transform: translateY(0) scale(1) rotateY(0);
+    }
+    50% {
+      transform: translateY(-12px) scale(1.12) rotateY(180deg);
+    }
+    100% {
+      transform: translateY(0) scale(1) rotateY(360deg);
+    }
+  }
+
+  /* 3D Unsuccessful / Error Animation State */
+  .otp-3d-wrapper.otp-error-state .otp-3d-card {
+    animation: otp3dShake 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  .otp-3d-wrapper.otp-error-state .otp-shield-icon {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px -4px rgba(239, 68, 68, 0.45) !important;
+    transform: scale(0.95) rotateZ(-8deg);
+  }
+
+  .otp-3d-wrapper.otp-error-state .otp-box {
+    border-color: #ef4444 !important;
+    color: #b91c1c !important;
+    background: #fef2f2 !important;
+    box-shadow: 0 8px 16px -2px rgba(239, 68, 68, 0.3), 0 4px 0 #dc2626 !important;
+    animation: otpBoxErrorJiggle 0.65s ease both;
+  }
+
+  [data-theme="dark"] .otp-3d-wrapper.otp-error-state .otp-box {
+    background: #450a0a !important;
+    color: #f87171 !important;
+    box-shadow: 0 8px 16px -2px rgba(239, 68, 68, 0.35), 0 4px 0 #991b1b !important;
+  }
+
+  @keyframes otp3dShake {
+    10%, 90% {
+      transform: translate3d(-3px, 0, 0) rotateY(-8deg) rotateZ(-1.5deg);
+    }
+    20%, 80% {
+      transform: translate3d(5px, 0, 0) rotateY(8deg) rotateZ(1.5deg);
+    }
+    30%, 50%, 70% {
+      transform: translate3d(-7px, 0, 0) rotateY(-10deg) rotateZ(-2deg);
+    }
+    40%, 60% {
+      transform: translate3d(7px, 0, 0) rotateY(10deg) rotateZ(2deg);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) rotateY(0) rotateZ(0);
+    }
+  }
+
+  @keyframes otpBoxErrorJiggle {
+    0%, 100% {
+      transform: scale(1) translateY(0);
+    }
+    25% {
+      transform: scale(0.94) translateY(4px);
+    }
+    50% {
+      transform: scale(1.05) translateY(-6px);
+    }
+    75% {
+      transform: scale(0.96) translateY(2px);
+    }
   }
 
   @keyframes skeleton-shimmer {
@@ -1366,85 +1579,74 @@
               </div>
             </div>
 
-            <!-- STEP 2: OTP Verification (6-Box Design) -->
+            <!-- STEP 2: OTP Verification (6-Box 3D Animated Design) -->
             <div id="forgot-step-otp" style="display: none;">
-              <div class="auth-header">
-                <div
-                  style="width: 52px; height: 52px; border-radius: 50%; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
-                  <i data-lucide="shield-check" style="width: 26px; height: 26px;"></i>
-                </div>
-                <h2>Verify OTP</h2>
-                <p id="forgot-otp-instructions" style="line-height: 1.4; font-size: 13px;">
-                  Enter the 6-digit verification code sent to <strong id="forgot-masked-email"
-                    style="color: var(--primary); display: block; margin-top: 2px;"></strong>
-                  <span
-                    style="display: inline-block; margin-top: 6px; font-size: 11px; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px;">
-                    �?��? Code expires in 10 minutes
-                  </span>
-                </p>
-              </div>
-
-              <div id="forgot-otp-error-alert" class="alert alert-danger" style="display: none; font-size: 13px;"></div>
-              <div id="forgot-otp-success-alert" class="alert alert-success" style="display: none; font-size: 13px;">
-              </div>
-
-              <form id="form-forgot-otp">
-                <div class="form-group" style="text-align: center;">
-                  <label class="form-label" style="text-align: center; margin-bottom: 12px; font-weight: 600;">6-Digit
-                    Verification Code</label>
-
-                  <div class="otp-boxes-container"
-                    style="display: flex; justify-content: center; gap: 8px; margin-bottom: 12px;">
-                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
-                      data-idx="0"
-                      style="width: 44px; height: 52px; font-size: 24px; font-weight: 700; text-align: center; border-radius: 10px; padding: 0;"
-                      autocomplete="off" />
-                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
-                      data-idx="1"
-                      style="width: 44px; height: 52px; font-size: 24px; font-weight: 700; text-align: center; border-radius: 10px; padding: 0;"
-                      autocomplete="off" />
-                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
-                      data-idx="2"
-                      style="width: 44px; height: 52px; font-size: 24px; font-weight: 700; text-align: center; border-radius: 10px; padding: 0;"
-                      autocomplete="off" />
-                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
-                      data-idx="3"
-                      style="width: 44px; height: 52px; font-size: 24px; font-weight: 700; text-align: center; border-radius: 10px; padding: 0;"
-                      autocomplete="off" />
-                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
-                      data-idx="4"
-                      style="width: 44px; height: 52px; font-size: 24px; font-weight: 700; text-align: center; border-radius: 10px; padding: 0;"
-                      autocomplete="off" />
-                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
-                      data-idx="5"
-                      style="width: 44px; height: 52px; font-size: 24px; font-weight: 700; text-align: center; border-radius: 10px; padding: 0;"
-                      autocomplete="off" />
+              <div class="otp-3d-wrapper" id="otp-3d-wrapper">
+                <div class="otp-3d-card" id="otp-3d-card">
+                  <div class="auth-header">
+                    <div class="otp-shield-icon" id="otp-shield-icon">
+                      <i data-lucide="shield-check" style="width: 28px; height: 28px;"></i>
+                    </div>
+                    <h2>Verify OTP</h2>
+                    <p id="forgot-otp-instructions" style="line-height: 1.4; font-size: 13px;">
+                      Enter the 6-digit verification code sent to <strong id="forgot-masked-email"
+                        style="color: var(--primary); display: block; margin-top: 2px;"></strong>
+                      <span
+                        style="display: inline-block; margin-top: 6px; font-size: 11px; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px;">
+                        ⏱️ Code expires in 10 minutes
+                      </span>
+                    </p>
                   </div>
 
-                  <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; padding: 0 4px;">
-                    <span id="forgot-otp-timer" style="color: var(--text-muted);">Resend code in <strong
-                        id="forgot-timer-count">60</strong>s</span>
-                    <button type="button" id="btn-resend-forgot-otp"
-                      style="background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; padding: 0; display: none;">Resend
-                      OTP</button>
+                  <div id="forgot-otp-error-alert" class="alert alert-danger" style="display: none; font-size: 13px;"></div>
+                  <div id="forgot-otp-success-alert" class="alert alert-success" style="display: none; font-size: 13px;"></div>
+
+                  <form id="form-forgot-otp">
+                    <div class="form-group" style="text-align: center;">
+                      <label class="form-label" style="text-align: center; margin-bottom: 12px; font-weight: 600;">6-Digit
+                        Verification Code</label>
+
+                      <div class="otp-boxes-container" id="otp-boxes-container">
+                        <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
+                          data-idx="0" autocomplete="off" />
+                        <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
+                          data-idx="1" autocomplete="off" />
+                        <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
+                          data-idx="2" autocomplete="off" />
+                        <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
+                          data-idx="3" autocomplete="off" />
+                        <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
+                          data-idx="4" autocomplete="off" />
+                        <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" class="form-input otp-box"
+                          data-idx="5" autocomplete="off" />
+                      </div>
+
+                      <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; padding: 0 4px;">
+                        <span id="forgot-otp-timer" style="color: var(--text-muted);">Resend code in <strong
+                            id="forgot-timer-count">60</strong>s</span>
+                        <button type="button" id="btn-resend-forgot-otp"
+                          style="background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; padding: 0; display: none;">Resend
+                          OTP</button>
+                      </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btn-verify-forgot-otp"
+                      style="width: 100%; margin-top: 14px;">
+                      <span id="btn-verify-forgot-otp-content"
+                        style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i> Verify OTP
+                      </span>
+                    </button>
+                  </form>
+
+                  <div class="form-footer" style="margin-top: 16px; text-align: center;">
+                    <button type="button" id="btn-back-to-phone"
+                      style="background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Change Phone Number
+                    </button>
                   </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary" id="btn-verify-forgot-otp"
-                  style="width: 100%; margin-top: 14px;">
-                  <span id="btn-verify-forgot-otp-content"
-                    style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i> Verify OTP
-                  </span>
-                </button>
-              </form>
-
-              <div class="form-footer" style="margin-top: 16px; text-align: center;">
-                <button type="button" id="btn-back-to-phone"
-                  style="background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                  <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Change Phone Number
-                </button>
               </div>
             </div>
 
@@ -1610,8 +1812,7 @@
                 and securely hashed passwords.</li>
               <li style="margin-bottom: 6px;">**Support Data**: Information provided when submitting support or
                 forgot-password tickets.</li>
-              <li style="margin-bottom: 6px;">**Usage Data**: Documents uploaded, resource likes, and chatbot
-                conversation history (to maintain context).</li>
+              <li style="margin-bottom: 6px;">**Usage Data**: Documents uploaded, resource bookmarks, and resource likes.</li>
             </ul>
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">2. How We Use
@@ -1622,16 +1823,13 @@
               <li style="margin-bottom: 6px;">Manage authentication, permissions, and session validation.</li>
               <li style="margin-bottom: 6px;">Maintain academic leaderboards (displaying educator name, contributions,
                 and cumulative likes).</li>
-              <li style="margin-bottom: 6px;">Process and route academic chatbot responses.</li>
               <li style="margin-bottom: 6px;">Dispatch system notifications and direct administrative messages.</li>
             </ul>
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">3. Data Storage
-              and Third-Party API Sharing</h3>
+              and Third-Party Services</h3>
             <p style="margin-bottom: 16px;">Your data is stored securely in our MongoDB collections and Cloudinary
-              storage (for direct PDF uploads). Chatbot prompts are shared temporarily with third-party LLM inference
-              services (Hugging Face Inference API and Puter AI) to generate responses. We do not sell or monetize your
-              personal details.</p>
+              storage (for direct PDF uploads). We do not sell or monetize your personal details.</p>
 
             <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--primary);">4. Data Security
             </h3>
@@ -2011,17 +2209,40 @@
             </div>
           </div>
 
-          <!-- Section: Pending Contributions -->
+          <!-- Section: Pending Contributions & Duplicates Review -->
           <div id="admin-section-contributions" class="admin-subview" style="display: none;">
-            <h3 class="section-title" style="margin-bottom: 16px; font-size: 20px;">
-              <i data-lucide="upload-cloud" style="color: var(--warning); width: 22px; height: 22px;"></i>
-              Pending Contributions (<span id="pending-docs-count">0</span>)
-            </h3>
-            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-              Review resources contributed by students. You can view, accept, or delete them.
-            </p>
-            <div id="pending-docs-list-container">
-              <!-- Rendered via JS -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+              <div>
+                <h3 class="section-title" style="margin-bottom: 6px; font-size: 20px;">
+                  <i data-lucide="upload-cloud" style="color: var(--warning); width: 22px; height: 22px;"></i>
+                  Pending Contributions (<span id="pending-docs-count">0</span>)
+                </h3>
+                <p style="color: var(--text-muted); margin-bottom: 0; font-size: 14px;">
+                  Review pending documents and resources uploaded by students, educators, and admins. Includes smart duplicate detection and clustered review.
+                </p>
+              </div>
+            </div>
+
+            <!-- Clustered Duplicates Container within Pending Contributions -->
+            <div id="pending-duplicate-clusters-wrapper" style="margin-bottom: 24px;">
+              <div id="pending-duplicate-clusters-header" style="display: none; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(59, 130, 246, 0.08); padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="layers" style="color: var(--primary); width: 18px; height: 18px;"></i>
+                  <span style="font-weight: 700; font-size: 14px; color: var(--primary);">Duplicate Clusters Found (<span id="duplicate-clusters-count">0</span>)</span>
+                </div>
+                <span style="font-size: 12px; color: var(--text-muted);">Compare quality, choose canonical winner, or accept/delete individually</span>
+              </div>
+              <div id="pending-duplicate-clusters-list"></div>
+            </div>
+
+            <!-- Single Pending Items Container -->
+            <div id="pending-individual-list-wrapper">
+              <h4 id="pending-single-items-title" style="font-size: 15px; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: none;">
+                Individual Pending Contributions
+              </h4>
+              <div id="pending-docs-list-container">
+                <!-- Rendered via JS -->
+              </div>
             </div>
           </div>
 
@@ -2258,8 +2479,6 @@
                   analyze exam patterns and practice effectively.</li>
                 <li><strong>Academic Resources & Textbooks:</strong> Curated links and documents, including lab
                   manuals, study roadmaps, and reference textbooks.</li>
-                <li><strong>SONIC AI Study Assistant:</strong> An interactive study companion powered by generative AI
-                  to explain complex concepts, solve study-related queries, and provide instant academic support.</li>
               </ul>
             </div>
 
