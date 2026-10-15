@@ -6171,3 +6171,47 @@ body, input, select, textarea, button {
   border-color: #10b981;
 }
 
+/* ── DIRECT GMAIL & EMAIL SUPPORT COMPONENT STYLES ── */
+.btn-gmail-support {
+  background: #ea4335 !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 3px 10px rgba(234, 67, 53, 0.28) !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease !important;
+}
+
+.btn-gmail-support:hover {
+  background: #d93025 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(234, 67, 53, 0.38) !important;
+}
+
+.btn-gmail-support:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(234, 67, 53, 0.2) !important;
+}
+
+.support-email-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.support-email-card:hover {
+  border-color: rgba(234, 67, 53, 0.35) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .support-email-card {
+  background: linear-gradient(135deg, rgba(234, 67, 53, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.btn-copy-support-email {
+  transition: all 0.2s ease;
+}
+
+.btn-copy-support-email:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
