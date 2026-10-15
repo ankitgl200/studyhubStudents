@@ -6102,3 +6102,72 @@ body, input, select, textarea, button {
   background: rgba(16, 185, 129, 0.04);
 }
 
+/* User Selection & Cherry-Picking Picker Items */
+.export-user-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg-card);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  gap: 10px;
+  user-select: none;
+}
+
+.export-user-picker-item:hover {
+  background: rgba(16, 185, 129, 0.04);
+  border-color: #10b981;
+}
+
+.export-user-picker-item.included {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.export-user-picker-item.excluded {
+  opacity: 0.55;
+  background: rgba(0, 0, 0, 0.02);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .export-user-picker-item.included {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.16);
+}
+
+[data-theme="dark"] .export-user-picker-item.excluded {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.export-limit-btn {
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.export-limit-btn:hover {
+  border-color: #10b981;
+  color: #059669;
+}
+
+.export-limit-btn.active {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+[data-theme="dark"] .export-limit-btn.active {
+  background: #10b981;
+  color: #042f2e;
+  border-color: #10b981;
+}
+
