@@ -899,6 +899,7 @@ function updateNavbar() {
         <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
         <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
         <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=support@studymyte.tech&su=StudyMyte%20Support%20Inquiry" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-email"><i data-lucide="mail" style="width: 18px; height: 18px; color: #ea4335;"></i> Email Support</a>
 
         <a href="#/reset-password" class="mobile-nav-link" id="mob-nav-reset-password"><i data-lucide="key-round" style="width: 18px; height: 18px;"></i> Reset Password</a>
         <a href="https://github.com/ankitgl200/studymyteStudents" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-contribute"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--primary);"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg> Contribute</a>
@@ -973,6 +974,7 @@ function updateNavbar() {
         <a href="#/papers" class="mobile-nav-link" id="mob-nav-papers"><i data-lucide="file-text" style="width: 18px; height: 18px;"></i> Papers</a>
         <a href="#/resources" class="mobile-nav-link" id="mob-nav-resources"><i data-lucide="compass" style="width: 18px; height: 18px;"></i> Resources</a>
         <a href="#/support" class="mobile-nav-link" id="mob-nav-support"><i data-lucide="help-circle" style="width: 18px; height: 18px;"></i> Help & Support</a>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=support@studymyte.tech&su=StudyMyte%20Support%20Inquiry" target="_blank" rel="noopener noreferrer" class="mobile-nav-link" id="mob-nav-email-guest"><i data-lucide="mail" style="width: 18px; height: 18px; color: #ea4335;"></i> Email Support</a>
 
       </div>
       <button class="btn btn-primary btn-download-app-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-weight: 600; margin-top: auto; margin-bottom: 12px;">
@@ -9567,6 +9569,51 @@ function initEventHandlers() {
     if (modalSupportHistoryClose) modalSupportHistoryClose.addEventListener('click', handleClose);
     if (btnSupportHistoryClose) btnSupportHistoryClose.addEventListener('click', handleClose);
   }
+
+  // Dynamic Gmail Support Pre-Fill Handler
+  const btnGmailSupport = document.getElementById('btn-open-gmail-support');
+  if (btnGmailSupport) {
+    btnGmailSupport.addEventListener('click', (e) => {
+      const subjInput = document.getElementById('support-subject');
+      const msgInput = document.getElementById('support-message');
+      const subj = (subjInput && subjInput.value.trim()) || 'StudyMyte Support Inquiry';
+      let body = (msgInput && msgInput.value.trim()) || '';
+      if (currentUser) {
+        const userInfo = `\n\n---\nSent by: ${currentUser.name || 'User'}\nPhone: ${currentUser.phone || ''}\nRole: ${currentUser.role || ''}`;
+        body = body ? body + userInfo : userInfo.trim();
+      }
+      const targetUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=support@studymyte.tech&su=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+      btnGmailSupport.setAttribute('href', targetUrl);
+    });
+  }
+
+  // Global Copy Support Email Button Handler
+  document.addEventListener('click', (e) => {
+    const copyBtn = e.target.closest('.btn-copy-support-email');
+    if (!copyBtn) return;
+    const emailToCopy = copyBtn.getAttribute('data-email') || 'support@studymyte.tech';
+    const labelSpan = copyBtn.querySelector('.copy-label') || copyBtn;
+    const prevText = labelSpan.textContent;
+
+    const showSuccess = () => {
+      labelSpan.textContent = 'Copied!';
+      copyBtn.style.borderColor = 'var(--success)';
+      copyBtn.style.color = 'var(--success)';
+      setTimeout(() => {
+        labelSpan.textContent = prevText;
+        copyBtn.style.borderColor = '';
+        copyBtn.style.color = '';
+      }, 2000);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(emailToCopy).then(showSuccess).catch(() => {
+        window.prompt('Copy support email address:', emailToCopy);
+      });
+    } else {
+      window.prompt('Copy support email address:', emailToCopy);
+    }
+  });
 }
 
 // Helper to escape HTML characters
