@@ -3754,12 +3754,60 @@
         </div>
       </div>
 
-      <!-- Section 3: Column / Field Customization -->
+      <!-- Section 3: User Quantity Limit & Individual User Selection (Cherry-Picking) -->
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+          <div>
+            <label class="form-label" style="font-weight: 700; font-size: 13px; margin: 0;">
+              3. User Selection & Quantity Limit
+            </label>
+            <span style="font-size: 11px; color: var(--text-muted); display: block;">
+              Select quantity limit or uncheck specific users you want to exclude
+            </span>
+          </div>
+          <span id="export-user-picked-badge" style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(16, 185, 129, 0.15); color: #059669;">
+            0 of 0 users included
+          </span>
+        </div>
+
+        <!-- Quantity / Top Limit Bar -->
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; padding: 8px 12px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-right: 4px;">Quick Limit:</span>
+          <button type="button" class="export-limit-btn active" data-limit="all">All</button>
+          <button type="button" class="export-limit-btn" data-limit="10">Top 10</button>
+          <button type="button" class="export-limit-btn" data-limit="25">Top 25</button>
+          <button type="button" class="export-limit-btn" data-limit="50">Top 50</button>
+          <button type="button" class="export-limit-btn" data-limit="100">Top 100</button>
+          <div style="display: flex; align-items: center; gap: 4px; margin-left: auto;">
+            <span style="font-size: 11px; color: var(--text-muted);">Custom:</span>
+            <input type="number" id="export-custom-limit-input" min="1" placeholder="e.g. 50" style="width: 72px; padding: 3px 8px; font-size: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main);" />
+          </div>
+        </div>
+
+        <!-- In-list Filter & Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1; min-width: 200px;">
+            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted);"></i>
+            <input type="text" id="export-user-list-search" placeholder="Find user in list to check / uncheck..." style="width: 100%; padding: 6px 10px 6px 30px; font-size: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main);" />
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" id="btn-export-users-select-all" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px;">Select All</button>
+            <button type="button" id="btn-export-users-deselect-all" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px; color: #ef4444;">Deselect All</button>
+          </div>
+        </div>
+
+        <!-- Scrollable User Checkbox List -->
+        <div id="export-users-picker-container" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card);">
+          <!-- Rendered dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Section 4: Column / Field Customization -->
       <div style="margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
           <div>
             <label class="form-label" style="font-weight: 700; font-size: 13px; margin: 0;">
-              2. Select Columns to Export
+              4. Select Columns to Export
             </label>
             <span style="font-size: 11px; color: var(--text-muted); display: block;">Check fields individually or choose a preset</span>
           </div>
