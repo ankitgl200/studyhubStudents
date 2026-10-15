@@ -7189,6 +7189,9 @@ const USER_EXPORT_FIELDS_CONFIG = [
 let exportSelectedRole = 'all';
 let exportSelectedStatus = 'all';
 let exportSelectedFields = new Set(['name', 'phone', 'email', 'role', 'approved', 'createdAt']);
+let exportSelectedUserIds = new Set();
+let exportCurrentLimit = 'all';
+let exportUserListSearchQuery = '';
 let exportIsPreviewOpen = false;
 let exportUsersCache = [];
 
@@ -7311,19 +7314,175 @@ function getFilteredExportUsers() {
   return list;
 }
 
+function renderExportUsersPicker() {
+  const container = document.getElementById('export-users-picker-container');
+  const badgeEl = document.getElementById('export-user-picked-badge');
+  if (!container) return;
+
+  const baseUsers = getFilteredExportUsers();
+  let displayUsers = baseUsers;
+
+  if (exportUserListSearchQuery && exportUserListSearchQuery.trim()) {
+    const q = exportUserListSearchQuery.toLowerCase().trim();
+    displayUsers = baseUsers.filter(u => {
+      const name = (u.name || '').toLowerCase();
+      const phone = (u.phone || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || email.includes(q);
+    });
+  }
+
+  if (displayUsers.length === 0) {
+    container.innerHTML = `<div style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 12px;">No users found matching current filters.</div>`;
+    if (badgeEl) badgeEl.textContent = `0 of ${baseUsers.length} users included`;
+    return;
+  }
+
+  container.innerHTML = displayUsers.map(u => {
+    const uid = String(u.id || u._id);
+    const isIncluded = exportSelectedUserIds.has(uid);
+    const roleBadgeColor = u.role === 'superadmin' ? '#ef4444' : (u.role === 'educator' ? '#10b981' : (u.role === 'admin' ? '#6366f1' : '#3b82f6'));
+    const roleLabel = u.role === 'superadmin' ? 'Super Admin' : (u.role === 'educator' ? 'Teacher' : (u.role === 'admin' ? 'Admin' : 'Student'));
+
+    return `
+      <div class="export-user-picker-item ${isIncluded ? 'included' : 'excluded'}" data-user-id="${uid}">
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+          <input type="checkbox" value="${uid}" ${isIncluded ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer; flex-shrink: 0;" />
+          <div style="min-width: 0; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <strong style="font-size: 13px; color: var(--text-main);">${escapeHTML(capitalizeName(u.name))}</strong>
+              <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: ${roleBadgeColor}18; color: ${roleBadgeColor}; text-transform: uppercase;">
+                ${roleLabel}
+              </span>
+              <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; background: ${u.approved ? '#dcfce7' : '#fee2e2'}; color: ${u.approved ? '#166534' : '#991b1b'};">
+                ${u.approved ? 'Approved' : 'Pending'}
+              </span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px;">
+              <span>Phone: ${escapeHTML(u.phone)}</span>
+              ${u.email ? `<span>&bull; ${escapeHTML(u.email)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div>
+          <button type="button" class="btn btn-sm btn-export-user-toggle" data-user-id="${uid}" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); background: ${isIncluded ? 'transparent' : 'rgba(16, 185, 129, 0.1)'}; color: ${isIncluded ? 'var(--text-muted)' : '#059669'}; cursor: pointer;">
+            ${isIncluded ? 'Exclude' : '+ Include'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (badgeEl) {
+    const includedCount = baseUsers.filter(u => exportSelectedUserIds.has(String(u.id || u._id))).length;
+    badgeEl.textContent = `${includedCount} of ${baseUsers.length} users included`;
+  }
+
+  // Row click & toggle listener
+  container.querySelectorAll('.export-user-picker-item').forEach(row => {
+    const uid = row.getAttribute('data-user-id');
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const toggleBtn = row.querySelector('.btn-export-user-toggle');
+
+    const toggleUser = (forceState = null) => {
+      const currentlyChecked = exportSelectedUserIds.has(uid);
+      const nextState = (forceState !== null) ? forceState : !currentlyChecked;
+
+      if (nextState) {
+        exportSelectedUserIds.add(uid);
+        row.classList.add('included');
+        row.classList.remove('excluded');
+        if (checkbox) checkbox.checked = true;
+        if (toggleBtn) {
+          toggleBtn.textContent = 'Exclude';
+          toggleBtn.style.color = 'var(--text-muted)';
+          toggleBtn.style.background = 'transparent';
+        }
+      } else {
+        exportSelectedUserIds.delete(uid);
+        row.classList.remove('included');
+        row.classList.add('excluded');
+        if (checkbox) checkbox.checked = false;
+        if (toggleBtn) {
+          toggleBtn.textContent = '+ Include';
+          toggleBtn.style.color = '#059669';
+          toggleBtn.style.background = 'rgba(16, 185, 129, 0.1)';
+        }
+      }
+
+      if (badgeEl) {
+        const includedCount = baseUsers.filter(u => exportSelectedUserIds.has(String(u.id || u._id))).length;
+        badgeEl.textContent = `${includedCount} of ${baseUsers.length} users included`;
+      }
+      updateExportModalState();
+    };
+
+    if (checkbox) {
+      checkbox.addEventListener('change', (e) => {
+        toggleUser(e.target.checked);
+      });
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleUser();
+      });
+    }
+
+    row.addEventListener('click', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+      toggleUser();
+    });
+  });
+}
+
+function applyExportLimit(limitVal) {
+  exportCurrentLimit = limitVal;
+
+  document.querySelectorAll('.export-limit-btn').forEach(btn => {
+    if (btn.getAttribute('data-limit') === String(limitVal)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  const baseUsers = getFilteredExportUsers();
+  exportSelectedUserIds.clear();
+
+  if (limitVal === 'all') {
+    baseUsers.forEach(u => exportSelectedUserIds.add(String(u.id || u._id)));
+  } else {
+    const num = parseInt(limitVal, 10);
+    if (!isNaN(num) && num > 0) {
+      baseUsers.slice(0, num).forEach(u => exportSelectedUserIds.add(String(u.id || u._id)));
+    } else {
+      baseUsers.forEach(u => exportSelectedUserIds.add(String(u.id || u._id)));
+    }
+  }
+
+  renderExportUsersPicker();
+  updateExportModalState();
+}
+
 function updateExportModalState() {
-  const filteredUsers = getFilteredExportUsers();
-  const matchingCount = filteredUsers.length;
+  const baseUsers = getFilteredExportUsers();
+  const selectedUsersCount = baseUsers.filter(u => exportSelectedUserIds.has(String(u.id || u._id))).length;
   const selectedColsCount = exportSelectedFields.size;
 
-  // Update role indicators and summary counts
   const roleIndicator = document.getElementById('export-role-count-indicator');
   if (roleIndicator) {
-    roleIndicator.textContent = `${matchingCount} user${matchingCount === 1 ? '' : 's'} matching filter`;
+    roleIndicator.textContent = `${baseUsers.length} total in category`;
+  }
+
+  const badgeEl = document.getElementById('export-user-picked-badge');
+  if (badgeEl) {
+    badgeEl.textContent = `${selectedUsersCount} of ${baseUsers.length} users included`;
   }
 
   const summaryCount = document.getElementById('export-summary-count');
-  if (summaryCount) summaryCount.textContent = matchingCount;
+  if (summaryCount) summaryCount.textContent = selectedUsersCount;
 
   const summaryFields = document.getElementById('export-summary-fields');
   if (summaryFields) summaryFields.textContent = selectedColsCount;
@@ -7332,8 +7491,24 @@ function updateExportModalState() {
   const errorEl = document.getElementById('export-field-error');
   const downloadBtn = document.getElementById('btn-modal-export-users-download');
 
-  if (selectedColsCount === 0) {
-    if (errorEl) errorEl.style.display = 'block';
+  const hasColumns = selectedColsCount > 0;
+  const hasUsers = selectedUsersCount > 0;
+
+  if (!hasColumns) {
+    if (errorEl) {
+      errorEl.textContent = 'Please select at least one field to export.';
+      errorEl.style.display = 'block';
+    }
+    if (downloadBtn) {
+      downloadBtn.disabled = true;
+      downloadBtn.style.opacity = '0.5';
+      downloadBtn.style.cursor = 'not-allowed';
+    }
+  } else if (!hasUsers) {
+    if (errorEl) {
+      errorEl.textContent = 'Please select at least one user to export.';
+      errorEl.style.display = 'block';
+    }
     if (downloadBtn) {
       downloadBtn.disabled = true;
       downloadBtn.style.opacity = '0.5';
@@ -7350,13 +7525,15 @@ function updateExportModalState() {
 
   // Update Preview Table if open
   if (exportIsPreviewOpen) {
-    updateExportPreviewTable(filteredUsers);
+    const includedUsers = baseUsers.filter(u => exportSelectedUserIds.has(String(u.id || u._id)));
+    updateExportPreviewTable(includedUsers);
   }
 }
 
 function updateExportPreviewTable(filteredUsers = null) {
   if (!filteredUsers) {
-    filteredUsers = getFilteredExportUsers();
+    const baseUsers = getFilteredExportUsers();
+    filteredUsers = baseUsers.filter(u => exportSelectedUserIds.has(String(u.id || u._id)));
   }
 
   const thead = document.getElementById('export-preview-thead');
@@ -7377,7 +7554,7 @@ function updateExportPreviewTable(filteredUsers = null) {
   // Sample rows (up to 4 rows)
   const sampleUsers = filteredUsers.slice(0, 4);
   if (sampleUsers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${activeFields.length}" style="padding: 14px; text-align: center; color: var(--text-muted);">No users match current filters for preview.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${activeFields.length}" style="padding: 14px; text-align: center; color: var(--text-muted);">No users selected for export.</td></tr>`;
     return;
   }
 
@@ -7422,6 +7599,8 @@ async function openExportUsersModal(initialRole = 'all') {
   // Set selected role
   exportSelectedRole = initialRole || 'all';
   exportSelectedStatus = 'all';
+  exportCurrentLimit = 'all';
+  exportUserListSearchQuery = '';
 
   // Update role buttons
   document.querySelectorAll('.export-role-btn').forEach(btn => {
@@ -7431,6 +7610,20 @@ async function openExportUsersModal(initialRole = 'all') {
       btn.classList.remove('active');
     }
   });
+
+  // Reset limit buttons
+  document.querySelectorAll('.export-limit-btn').forEach(btn => {
+    if (btn.getAttribute('data-limit') === 'all') {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  const customLimitInput = document.getElementById('export-custom-limit-input');
+  if (customLimitInput) customLimitInput.value = '';
+
+  const userSearchInput = document.getElementById('export-user-list-search');
+  if (userSearchInput) userSearchInput.value = '';
 
   // Reset status dropdown
   const statusSelect = document.getElementById('export-filter-status');
@@ -7457,7 +7650,7 @@ async function openExportUsersModal(initialRole = 'all') {
     }
   }
 
-  // Update badges
+  // Update category badges
   if (Array.isArray(exportUsersCache) && exportUsersCache.length > 0) {
     const all = exportUsersCache;
     const badgeAll = document.getElementById('export-badge-all');
@@ -7473,6 +7666,11 @@ async function openExportUsersModal(initialRole = 'all') {
     if (badgeSuperadmin) badgeSuperadmin.textContent = all.filter(u => u.role === 'superadmin').length;
   }
 
+  // Select all matching users initially
+  const baseUsers = getFilteredExportUsers();
+  exportSelectedUserIds = new Set(baseUsers.map(u => String(u.id || u._id)));
+
+  renderExportUsersPicker();
   renderExportFieldsGrid();
   updateExportModalState();
 
@@ -7496,6 +7694,10 @@ function initUserExportEventHandlers() {
   const previewToggleText = document.getElementById('export-preview-toggle-text');
   const statusSelect = document.getElementById('export-filter-status');
   const searchCheck = document.getElementById('export-apply-active-search');
+  const userSearchInput = document.getElementById('export-user-list-search');
+  const selectAllUsersBtn = document.getElementById('btn-export-users-select-all');
+  const deselectAllUsersBtn = document.getElementById('btn-export-users-deselect-all');
+  const customLimitInput = document.getElementById('export-custom-limit-input');
 
   if (openBtn) {
     openBtn.addEventListener('click', () => openExportUsersModal('all'));
@@ -7521,14 +7723,76 @@ function initUserExportEventHandlers() {
       document.querySelectorAll('.export-role-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       exportSelectedRole = btn.getAttribute('data-role') || 'all';
+
+      // Re-populate selected user IDs for the new role
+      const baseUsers = getFilteredExportUsers();
+      if (exportCurrentLimit === 'all') {
+        exportSelectedUserIds = new Set(baseUsers.map(u => String(u.id || u._id)));
+      } else {
+        const num = parseInt(exportCurrentLimit, 10);
+        exportSelectedUserIds = new Set(baseUsers.slice(0, num || baseUsers.length).map(u => String(u.id || u._id)));
+      }
+
+      renderExportUsersPicker();
       updateExportModalState();
     });
   });
+
+  // Limit buttons
+  document.querySelectorAll('.export-limit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const limitVal = btn.getAttribute('data-limit');
+      if (customLimitInput) customLimitInput.value = '';
+      applyExportLimit(limitVal);
+    });
+  });
+
+  // Custom limit input
+  if (customLimitInput) {
+    customLimitInput.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val) && val > 0) {
+        document.querySelectorAll('.export-limit-btn').forEach(b => b.classList.remove('active'));
+        applyExportLimit(val);
+      } else if (!e.target.value) {
+        applyExportLimit('all');
+      }
+    });
+  }
+
+  // In-list user search filter
+  if (userSearchInput) {
+    userSearchInput.addEventListener('input', (e) => {
+      exportUserListSearchQuery = e.target.value;
+      renderExportUsersPicker();
+    });
+  }
+
+  // Select all / Deselect all users in current category
+  if (selectAllUsersBtn) {
+    selectAllUsersBtn.addEventListener('click', () => {
+      const baseUsers = getFilteredExportUsers();
+      baseUsers.forEach(u => exportSelectedUserIds.add(String(u.id || u._id)));
+      renderExportUsersPicker();
+      updateExportModalState();
+    });
+  }
+
+  if (deselectAllUsersBtn) {
+    deselectAllUsersBtn.addEventListener('click', () => {
+      exportSelectedUserIds.clear();
+      renderExportUsersPicker();
+      updateExportModalState();
+    });
+  }
 
   // Status filter change
   if (statusSelect) {
     statusSelect.addEventListener('change', (e) => {
       exportSelectedStatus = e.target.value;
+      const baseUsers = getFilteredExportUsers();
+      exportSelectedUserIds = new Set(baseUsers.map(u => String(u.id || u._id)));
+      renderExportUsersPicker();
       updateExportModalState();
     });
   }
@@ -7536,6 +7800,9 @@ function initUserExportEventHandlers() {
   // Active search toggle
   if (searchCheck) {
     searchCheck.addEventListener('change', () => {
+      const baseUsers = getFilteredExportUsers();
+      exportSelectedUserIds = new Set(baseUsers.map(u => String(u.id || u._id)));
+      renderExportUsersPicker();
       updateExportModalState();
     });
   }
@@ -7572,6 +7839,11 @@ function initUserExportEventHandlers() {
         return;
       }
 
+      if (exportSelectedUserIds.size === 0) {
+        alert('Please select at least one user to export.');
+        return;
+      }
+
       const originalHtml = downloadBtn.innerHTML;
       downloadBtn.disabled = true;
       downloadBtn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 16px; height: 16px;"></i> Generating CSV...';
@@ -7588,6 +7860,7 @@ function initUserExportEventHandlers() {
           role: exportSelectedRole,
           status: exportSelectedStatus,
           fields: selectedFieldsArray,
+          userIds: Array.from(exportSelectedUserIds),
           search: searchQuery,
           format: 'csv'
         };
@@ -7595,8 +7868,7 @@ function initUserExportEventHandlers() {
         const { blob, filename } = await api.exportUsers(payload);
         downloadBlob(blob, filename);
 
-        const countSpan = document.getElementById('export-summary-count');
-        const count = countSpan ? countSpan.textContent : '';
+        const count = exportSelectedUserIds.size;
         alert(`Export successful! Downloaded ${count} users as ${filename}`);
       } catch (err) {
         alert(err.message || 'Failed to download user export CSV');
