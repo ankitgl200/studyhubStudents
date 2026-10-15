@@ -282,6 +282,37 @@ const api = {
     return await request('/auth/users');
   },
 
+  async exportUsers(params = {}) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/auth/users/export`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(params)
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to export users data');
+    }
+
+    if (params.format === 'json' || params.preview) {
+      return await response.json();
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get('Content-Disposition') || '';
+    let filename = `studymyte_users_${params.role || 'all'}_${new Date().toISOString().slice(0, 10)}.csv`;
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    if (match && match[1]) {
+      filename = match[1];
+    }
+
+    return { blob, filename };
+  },
+
   async approveUser(userId) {
     return await request(`/auth/approve/${userId}`, { method: 'POST' });
   },
@@ -3982,6 +4013,11 @@ async function renderAdminDashboardView(currentHash) {
     if (directoryHint) directoryHint.textContent = 'Admin view: You can manage and delete Student accounts only.';
   }
 
+  const superadminExportAction = document.getElementById('superadmin-export-users-action');
+  if (superadminExportAction) {
+    superadminExportAction.style.display = (currentUser.role === 'superadmin') ? 'block' : 'none';
+  }
+
   try {
     const fetchApprovals = async () => {
       pendingContainer.innerHTML = getListSkeleton();
@@ -4051,6 +4087,7 @@ async function renderAdminDashboardView(currentHash) {
     const fetchUsers = async () => {
       allContainer.innerHTML = getListSkeleton();
       const all = await api.getAllUsers();
+      exportUsersCache = all;
 
       // Sort users descending by their date of joining (newest first)
       all.sort((a, b) => {
@@ -4076,15 +4113,36 @@ async function renderAdminDashboardView(currentHash) {
       const studentsList = filteredUsers.filter(u => u.role === 'student');
 
       const renderTabs = () => {
+        const currentCategoryLabel = activeDirectoryTab === 'admin' ? 'Admins' : (activeDirectoryTab === 'teacher' ? 'Teachers' : 'Students');
         tabsContainer.innerHTML = `
-          <button class="calc-tab ${activeDirectoryTab === 'admin' ? 'active' : ''}" id="tab-dir-admin">Admin (${adminsList.length})</button>
-          <button class="calc-tab ${activeDirectoryTab === 'teacher' ? 'active' : ''}" id="tab-dir-teacher">Teachers (${teachersList.length})</button>
-          <button class="calc-tab ${activeDirectoryTab === 'student' ? 'active' : ''}" id="tab-dir-student">Students (${studentsList.length})</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="calc-tab ${activeDirectoryTab === 'admin' ? 'active' : ''}" id="tab-dir-admin">Admin (${adminsList.length})</button>
+              <button class="calc-tab ${activeDirectoryTab === 'teacher' ? 'active' : ''}" id="tab-dir-teacher">Teachers (${teachersList.length})</button>
+              <button class="calc-tab ${activeDirectoryTab === 'student' ? 'active' : ''}" id="tab-dir-student">Students (${studentsList.length})</button>
+            </div>
+            ${currentUser.role === 'superadmin' ? `
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button type="button" id="btn-quick-export-tab" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-color: #10b981; color: #059669; background: rgba(16, 185, 129, 0.08); font-weight: 600;" title="Quickly export this filtered category to CSV">
+                  <i data-lucide="download" style="width: 13px; height: 13px;"></i>
+                  <span>Export <strong>${currentCategoryLabel}</strong> CSV</span>
+                </button>
+              </div>
+            ` : ''}
+          </div>
         `;
 
         document.getElementById('tab-dir-admin').addEventListener('click', () => { activeDirectoryTab = 'admin'; directoryVisibleCount = 5; updateDirectoryView(); });
         document.getElementById('tab-dir-teacher').addEventListener('click', () => { activeDirectoryTab = 'teacher'; directoryVisibleCount = 5; updateDirectoryView(); });
         document.getElementById('tab-dir-student').addEventListener('click', () => { activeDirectoryTab = 'student'; directoryVisibleCount = 5; updateDirectoryView(); });
+
+        const quickExportBtn = document.getElementById('btn-quick-export-tab');
+        if (quickExportBtn) {
+          quickExportBtn.addEventListener('click', () => {
+            const roleForTab = activeDirectoryTab === 'admin' ? 'admins' : (activeDirectoryTab === 'teacher' ? 'educator' : 'student');
+            openExportUsersModal(roleForTab);
+          });
+        }
       };
 
       const updateDirectoryView = () => {
@@ -4851,6 +4909,7 @@ function closeAllModals() {
   if (document.getElementById('modal-shift-item')) document.getElementById('modal-shift-item').style.display = 'none';
   if (document.getElementById('modal-send-message')) document.getElementById('modal-send-message').style.display = 'none';
   if (document.getElementById('modal-view-notification')) document.getElementById('modal-view-notification').style.display = 'none';
+  if (document.getElementById('modal-export-users')) document.getElementById('modal-export-users').style.display = 'none';
 
   // Stop active camera stream if any
   if (cameraStream) {
@@ -7099,6 +7158,458 @@ function initAdminEmailModalEventHandlers() {
   }
 }
 
+// ==========================================================================
+// SUPER ADMIN USER CSV EXPORT CONTROLLER
+// ==========================================================================
+
+const USER_EXPORT_FIELDS_CONFIG = [
+  // Basic Details
+  { id: 'name', label: 'Full Name', group: 'Basic Details', default: true },
+  { id: 'phone', label: 'Phone Number', group: 'Basic Details', default: true },
+  { id: 'email', label: 'Email Address', group: 'Basic Details', default: true },
+  { id: 'role', label: 'Role', group: 'Basic Details', default: true },
+  { id: 'approved', label: 'Approval Status', group: 'Basic Details', default: true },
+  { id: 'id', label: 'User ID', group: 'Basic Details', default: false },
+
+  // Activity & Timestamps
+  { id: 'createdAt', label: 'Registration Date', group: 'Activity & Stats', default: true },
+  { id: 'lastLogin', label: 'Last Login Date', group: 'Activity & Stats', default: false },
+  { id: 'lastActive', label: 'Last Active Date', group: 'Activity & Stats', default: false },
+  { id: 'points', label: 'Teacher Points', group: 'Activity & Stats', default: false },
+  { id: 'uploadsCount', label: 'Uploads Count', group: 'Activity & Stats', default: false },
+
+  // Device & Network
+  { id: 'browser', label: 'Browser', group: 'Device & Network', default: false },
+  { id: 'os', label: 'Operating System', group: 'Device & Network', default: false },
+  { id: 'deviceType', label: 'Device Type', group: 'Device & Network', default: false },
+  { id: 'deviceModel', label: 'Device Model', group: 'Device & Network', default: false },
+  { id: 'ip', label: 'IP Address', group: 'Device & Network', default: false }
+];
+
+let exportSelectedRole = 'all';
+let exportSelectedStatus = 'all';
+let exportSelectedFields = new Set(['name', 'phone', 'email', 'role', 'approved', 'createdAt']);
+let exportIsPreviewOpen = false;
+let exportUsersCache = [];
+
+function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }, 200);
+}
+
+function renderExportFieldsGrid() {
+  const container = document.getElementById('export-fields-container');
+  if (!container) return;
+
+  container.innerHTML = USER_EXPORT_FIELDS_CONFIG.map(field => {
+    const isChecked = exportSelectedFields.has(field.id);
+    return `
+      <label class="export-field-item ${isChecked ? 'checked' : ''}" data-field-id="${field.id}">
+        <input type="checkbox" value="${field.id}" ${isChecked ? 'checked' : ''} />
+        <span>${escapeHTML(field.label)}</span>
+      </label>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.export-field-item input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const fieldId = e.target.value;
+      const parentLabel = e.target.closest('.export-field-item');
+      if (e.target.checked) {
+        exportSelectedFields.add(fieldId);
+        if (parentLabel) parentLabel.classList.add('checked');
+      } else {
+        exportSelectedFields.delete(fieldId);
+        if (parentLabel) parentLabel.classList.remove('checked');
+      }
+      updateExportModalState();
+    });
+  });
+}
+
+function applyExportPreset(presetType) {
+  exportSelectedFields.clear();
+
+  if (presetType === 'names') {
+    // Only Names: user requested: "like if i want only names then i'll select ony name"
+    exportSelectedFields.add('name');
+  } else if (presetType === 'name_email') {
+    // Name & Email: user requested: "if i want only name email and this only"
+    exportSelectedFields.add('name');
+    exportSelectedFields.add('email');
+  } else if (presetType === 'contact') {
+    // Name, Phone & Email: user requested: "and if i need email phone name and other thing alsi"
+    exportSelectedFields.add('name');
+    exportSelectedFields.add('phone');
+    exportSelectedFields.add('email');
+  } else if (presetType === 'essential') {
+    // Standard profile
+    ['name', 'phone', 'email', 'role', 'approved', 'createdAt'].forEach(f => exportSelectedFields.add(f));
+  } else if (presetType === 'all') {
+    // Whole Data: user requested: "and if i want all data then whole data"
+    USER_EXPORT_FIELDS_CONFIG.forEach(f => exportSelectedFields.add(f.id));
+  } else if (presetType === 'none') {
+    // Deselect all
+  }
+
+  // Update DOM checkboxes
+  const container = document.getElementById('export-fields-container');
+  if (container) {
+    container.querySelectorAll('.export-field-item').forEach(item => {
+      const fieldId = item.getAttribute('data-field-id');
+      const input = item.querySelector('input');
+      const isChecked = exportSelectedFields.has(fieldId);
+      if (input) input.checked = isChecked;
+      if (isChecked) item.classList.add('checked');
+      else item.classList.remove('checked');
+    });
+  }
+
+  updateExportModalState();
+}
+
+function getFilteredExportUsers() {
+  let list = Array.isArray(exportUsersCache) ? [...exportUsersCache] : [];
+
+  // Filter by role
+  if (exportSelectedRole !== 'all') {
+    if (exportSelectedRole === 'admins') {
+      list = list.filter(u => u.role === 'admin' || u.role === 'superadmin');
+    } else {
+      list = list.filter(u => u.role === exportSelectedRole);
+    }
+  }
+
+  // Filter by status
+  if (exportSelectedStatus === 'approved') {
+    list = list.filter(u => u.approved === true);
+  } else if (exportSelectedStatus === 'pending') {
+    list = list.filter(u => u.approved === false);
+  }
+
+  // Apply active search if checked
+  const applySearch = document.getElementById('export-apply-active-search')?.checked;
+  if (applySearch && typeof adminUserSearchQuery === 'string' && adminUserSearchQuery.trim()) {
+    const q = adminUserSearchQuery.toLowerCase().trim();
+    list = list.filter(u => {
+      const name = (u.name || '').toLowerCase();
+      const phone = (u.phone || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || email.includes(q);
+    });
+  }
+
+  return list;
+}
+
+function updateExportModalState() {
+  const filteredUsers = getFilteredExportUsers();
+  const matchingCount = filteredUsers.length;
+  const selectedColsCount = exportSelectedFields.size;
+
+  // Update role indicators and summary counts
+  const roleIndicator = document.getElementById('export-role-count-indicator');
+  if (roleIndicator) {
+    roleIndicator.textContent = `${matchingCount} user${matchingCount === 1 ? '' : 's'} matching filter`;
+  }
+
+  const summaryCount = document.getElementById('export-summary-count');
+  if (summaryCount) summaryCount.textContent = matchingCount;
+
+  const summaryFields = document.getElementById('export-summary-fields');
+  if (summaryFields) summaryFields.textContent = selectedColsCount;
+
+  // Validation
+  const errorEl = document.getElementById('export-field-error');
+  const downloadBtn = document.getElementById('btn-modal-export-users-download');
+
+  if (selectedColsCount === 0) {
+    if (errorEl) errorEl.style.display = 'block';
+    if (downloadBtn) {
+      downloadBtn.disabled = true;
+      downloadBtn.style.opacity = '0.5';
+      downloadBtn.style.cursor = 'not-allowed';
+    }
+  } else {
+    if (errorEl) errorEl.style.display = 'none';
+    if (downloadBtn) {
+      downloadBtn.disabled = false;
+      downloadBtn.style.opacity = '1';
+      downloadBtn.style.cursor = 'pointer';
+    }
+  }
+
+  // Update Preview Table if open
+  if (exportIsPreviewOpen) {
+    updateExportPreviewTable(filteredUsers);
+  }
+}
+
+function updateExportPreviewTable(filteredUsers = null) {
+  if (!filteredUsers) {
+    filteredUsers = getFilteredExportUsers();
+  }
+
+  const thead = document.getElementById('export-preview-thead');
+  const tbody = document.getElementById('export-preview-tbody');
+  if (!thead || !tbody) return;
+
+  const activeFields = USER_EXPORT_FIELDS_CONFIG.filter(f => exportSelectedFields.has(f.id));
+
+  if (activeFields.length === 0) {
+    thead.innerHTML = '';
+    tbody.innerHTML = '<tr><td style="padding: 12px; color: #ef4444; text-align: center;">No columns selected. Check at least one column above.</td></tr>';
+    return;
+  }
+
+  // Table header
+  thead.innerHTML = `<tr>${activeFields.map(f => `<th>${escapeHTML(f.label)}</th>`).join('')}</tr>`;
+
+  // Sample rows (up to 4 rows)
+  const sampleUsers = filteredUsers.slice(0, 4);
+  if (sampleUsers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${activeFields.length}" style="padding: 14px; text-align: center; color: var(--text-muted);">No users match current filters for preview.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sampleUsers.map(u => {
+    return `
+      <tr>
+        ${activeFields.map(f => {
+          let val = '';
+          if (f.id === 'id') val = u.id || u._id || '';
+          else if (f.id === 'name') val = capitalizeName(u.name || '');
+          else if (f.id === 'phone') val = u.phone || '';
+          else if (f.id === 'email') val = u.email || '<span style="color:var(--text-muted);font-style:italic;">None</span>';
+          else if (f.id === 'role') val = u.role === 'superadmin' ? 'Super Admin' : (u.role === 'educator' ? 'Teacher' : (u.role === 'admin' ? 'Admin' : 'Student'));
+          else if (f.id === 'approved') val = u.approved ? 'Approved' : 'Pending';
+          else if (f.id === 'createdAt') val = u.createdAt ? new Date(u.createdAt).toISOString().replace('T', ' ').slice(0, 19) : '';
+          else if (f.id === 'lastLogin') val = u.lastLogin ? new Date(u.lastLogin).toISOString().replace('T', ' ').slice(0, 19) : 'Never';
+          else if (f.id === 'lastActive') val = u.lastActive ? new Date(u.lastActive).toISOString().replace('T', ' ').slice(0, 19) : 'Never';
+          else if (f.id === 'points') val = (u.role === 'educator' && typeof u.points === 'number') ? u.points : (u.role === 'educator' ? 0 : 'N/A');
+          else if (f.id === 'uploadsCount') val = (u.role === 'educator' && typeof u.uploadsCount === 'number') ? u.uploadsCount : (u.role === 'educator' ? 0 : 'N/A');
+          else if (f.id === 'browser') val = u.deviceInfo?.browser || 'Unknown';
+          else if (f.id === 'os') val = u.deviceInfo?.os || 'Unknown';
+          else if (f.id === 'deviceType') val = u.deviceInfo?.deviceType || 'Unknown';
+          else if (f.id === 'deviceModel') val = u.deviceInfo?.deviceModel || 'Unknown';
+          else if (f.id === 'ip') val = u.deviceInfo?.ip || 'Unknown';
+
+          return `<td>${typeof val === 'string' && val.startsWith('<span') ? val : escapeHTML(String(val))}</td>`;
+        }).join('')}
+      </tr>
+    `;
+  }).join('');
+}
+
+async function openExportUsersModal(initialRole = 'all') {
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    alert('Access Denied: User CSV Export is strictly reserved for Super Admins.');
+    return;
+  }
+
+  const modal = document.getElementById('modal-export-users');
+  if (!modal) return;
+
+  // Set selected role
+  exportSelectedRole = initialRole || 'all';
+  exportSelectedStatus = 'all';
+
+  // Update role buttons
+  document.querySelectorAll('.export-role-btn').forEach(btn => {
+    if (btn.getAttribute('data-role') === exportSelectedRole) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Reset status dropdown
+  const statusSelect = document.getElementById('export-filter-status');
+  if (statusSelect) statusSelect.value = 'all';
+
+  // Update active search label and state
+  const searchCheck = document.getElementById('export-apply-active-search');
+  const searchLabel = document.getElementById('export-active-search-label');
+  if (searchLabel) {
+    searchLabel.textContent = (typeof adminUserSearchQuery === 'string' && adminUserSearchQuery.trim()) 
+      ? `"${adminUserSearchQuery}"` 
+      : 'none';
+  }
+  if (searchCheck) {
+    searchCheck.checked = Boolean(typeof adminUserSearchQuery === 'string' && adminUserSearchQuery.trim());
+  }
+
+  // Pre-load or use cached users
+  if (!exportUsersCache || exportUsersCache.length === 0) {
+    try {
+      exportUsersCache = await api.getAllUsers();
+    } catch (err) {
+      console.warn('Could not pre-load users for export preview', err);
+    }
+  }
+
+  // Update badges
+  if (Array.isArray(exportUsersCache) && exportUsersCache.length > 0) {
+    const all = exportUsersCache;
+    const badgeAll = document.getElementById('export-badge-all');
+    const badgeStudent = document.getElementById('export-badge-student');
+    const badgeEducator = document.getElementById('export-badge-educator');
+    const badgeAdmins = document.getElementById('export-badge-admins');
+    const badgeSuperadmin = document.getElementById('export-badge-superadmin');
+
+    if (badgeAll) badgeAll.textContent = all.length;
+    if (badgeStudent) badgeStudent.textContent = all.filter(u => u.role === 'student').length;
+    if (badgeEducator) badgeEducator.textContent = all.filter(u => u.role === 'educator').length;
+    if (badgeAdmins) badgeAdmins.textContent = all.filter(u => u.role === 'admin' || u.role === 'superadmin').length;
+    if (badgeSuperadmin) badgeSuperadmin.textContent = all.filter(u => u.role === 'superadmin').length;
+  }
+
+  renderExportFieldsGrid();
+  updateExportModalState();
+
+  modal.style.display = 'flex';
+  refreshIcons();
+}
+
+function closeExportUsersModal() {
+  const modal = document.getElementById('modal-export-users');
+  if (modal) modal.style.display = 'none';
+}
+
+function initUserExportEventHandlers() {
+  const modal = document.getElementById('modal-export-users');
+  const openBtn = document.getElementById('btn-open-export-users-modal');
+  const closeBtn = document.getElementById('modal-export-users-close');
+  const cancelBtn = document.getElementById('btn-modal-export-users-cancel');
+  const downloadBtn = document.getElementById('btn-modal-export-users-download');
+  const togglePreviewBtn = document.getElementById('btn-toggle-export-preview');
+  const previewWrapper = document.getElementById('export-preview-table-wrapper');
+  const previewToggleText = document.getElementById('export-preview-toggle-text');
+  const statusSelect = document.getElementById('export-filter-status');
+  const searchCheck = document.getElementById('export-apply-active-search');
+
+  if (openBtn) {
+    openBtn.addEventListener('click', () => openExportUsersModal('all'));
+  }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeExportUsersModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeExportUsersModal);
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeExportUsersModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        closeExportUsersModal();
+      }
+    });
+  }
+
+  // Role selector buttons
+  document.querySelectorAll('.export-role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.export-role-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      exportSelectedRole = btn.getAttribute('data-role') || 'all';
+      updateExportModalState();
+    });
+  });
+
+  // Status filter change
+  if (statusSelect) {
+    statusSelect.addEventListener('change', (e) => {
+      exportSelectedStatus = e.target.value;
+      updateExportModalState();
+    });
+  }
+
+  // Active search toggle
+  if (searchCheck) {
+    searchCheck.addEventListener('change', () => {
+      updateExportModalState();
+    });
+  }
+
+  // Preset buttons
+  document.querySelectorAll('.export-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = btn.getAttribute('data-preset');
+      applyExportPreset(preset);
+    });
+  });
+
+  // Toggle Live Preview
+  if (togglePreviewBtn && previewWrapper) {
+    togglePreviewBtn.addEventListener('click', () => {
+      exportIsPreviewOpen = !exportIsPreviewOpen;
+      if (exportIsPreviewOpen) {
+        previewWrapper.style.display = 'block';
+        if (previewToggleText) previewToggleText.textContent = 'Hide Live Table Preview';
+        updateExportPreviewTable();
+      } else {
+        previewWrapper.style.display = 'none';
+        if (previewToggleText) previewToggleText.textContent = 'Show Live Table Preview';
+      }
+      refreshIcons();
+    });
+  }
+
+  // Download CSV button
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', async () => {
+      if (exportSelectedFields.size === 0) {
+        alert('Please select at least one field to export.');
+        return;
+      }
+
+      const originalHtml = downloadBtn.innerHTML;
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 16px; height: 16px;"></i> Generating CSV...';
+      refreshIcons();
+
+      try {
+        const applySearch = document.getElementById('export-apply-active-search')?.checked;
+        const searchQuery = (applySearch && typeof adminUserSearchQuery === 'string') ? adminUserSearchQuery : '';
+        const selectedFieldsArray = USER_EXPORT_FIELDS_CONFIG
+          .filter(f => exportSelectedFields.has(f.id))
+          .map(f => f.id);
+
+        const payload = {
+          role: exportSelectedRole,
+          status: exportSelectedStatus,
+          fields: selectedFieldsArray,
+          search: searchQuery,
+          format: 'csv'
+        };
+
+        const { blob, filename } = await api.exportUsers(payload);
+        downloadBlob(blob, filename);
+
+        const countSpan = document.getElementById('export-summary-count');
+        const count = countSpan ? countSpan.textContent : '';
+        alert(`Export successful! Downloaded ${count} users as ${filename}`);
+      } catch (err) {
+        alert(err.message || 'Failed to download user export CSV');
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.innerHTML = originalHtml;
+        refreshIcons();
+      }
+    });
+  }
+}
+
+
 async function renderReviewsView() {
   const form = document.getElementById('form-review');
   const existingContainer = document.getElementById('existing-review-container');
@@ -9060,6 +9571,7 @@ async function initApp() {
   initEditNameModalEventHandlers();
   initForgotPasswordEventHandlers();
   initAdminEmailModalEventHandlers();
+  initUserExportEventHandlers();
 
   // Update mobile bottom nav position on window resizing
   window.addEventListener('resize', updateMobileBottomNavPosition);
