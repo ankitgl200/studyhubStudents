@@ -1,14 +1,14 @@
-# BTKIT StudyHub
+# BTKIT StudyMyte
 
 > Empowering students with centralized academic resources and intelligent study tools.
 
 ---
 
-## 📖 About StudyHub
+## 📖 About StudyMyte
 
-**StudyHub** is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for BTKIT students, StudyHub serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. 
+**studyMyte** is a modern, student-centric digital library and sharing platform designed to make academic life simpler, more collaborative, and highly efficient. Created specifically for BTKIT students, studyMyte serves as a centralized hub where anyone can access, search, and download a wide variety of academic materials. 
 
-Beyond being a repository, StudyHub integrates intelligent features to guide students through their academic journey:
+Beyond being a repository, studyMyte integrates intelligent features to guide students through their academic journey:
 * **Subject-Wise Notes**: Comprehensive and high-quality lecture notes structured for easy understanding.
 * **Previous Year Questions (PYQs)**: Organized archives of past exams to help students analyze exam patterns and practice effectively.
 * **Academic Resources & Textbooks**: Curated links and documents, including lab manuals, study roadmaps, and reference textbooks.
@@ -30,19 +30,19 @@ These issues are critical because they lead to unequal access to study material,
 
 ## 💡 Our Solution
 
-StudyHub solves these pain points by offering a unified, clean, and accessible portal:
+studyMyte solves these pain points by offering a unified, clean, and accessible portal:
 * **One-Click Access**: Streamlined storage allows students to access notes and files instantly without jumping between platforms.
 * **Systematic Archives**: Categorized and semester-wise sorted papers make finding PYQs completely effortless.
 * **Organized & Responsive Interface**: A user-friendly, responsive Single Page Application (SPA) designed to work beautifully on both desktop and mobile devices.
 * **Community-Driven Support**: Built by seniors who understand the curriculum, ensuring the resources are always relevant and accurate.
 
-By centralizing knowledge, StudyHub levels the playing field, allowing every student to focus on learning rather than searching.
+By centralizing knowledge, studyMyte levels the playing field, allowing every student to focus on learning rather than searching.
 
 ---
 
 ## 👥 Ownership & Roles
 
-StudyHub is built and maintained by a dedicated team committed to improving the academic experience:
+studyMyte is built and maintained by a dedicated team committed to improving the academic experience:
 
 * **Ankit Ghugtyal** — Co-Founder & Developer
 * **Soham Joshi** — Co-Founder
@@ -54,7 +54,7 @@ StudyHub is built and maintained by a dedicated team committed to improving the 
 
 ## 🤝 How to Contribute
 
-We believe StudyHub belongs to the student community. If you want to help grow the platform, improve the resources, or fix a bug, here is how you can contribute:
+We believe studyMyte belongs to the student community. If you want to help grow the platform, improve the resources, or fix a bug, here is how you can contribute:
 
 1. **Fork the Repository**: Create a personal copy of the repository on your GitHub account.
 2. **Add or Improve Resources**:
@@ -68,4 +68,4 @@ Whether you are a developer looking to optimize the platform or a student with g
 
 ## 🌟 Closing Note
 
-*“Knowledge multiplies when shared.”* We invite every student to make the most of StudyHub, and encourage contributors to help us expand it. Let's work together to make learning accessible for everyone!
+*“Knowledge multiplies when shared.”* We invite every student to make the most of studyMyte, and encourage contributors to help us expand it. Let's work together to make learning accessible for everyone!
