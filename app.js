@@ -629,6 +629,7 @@ function getCurrentPapersFolder() { return papersFolderStack.length > 0 ? papers
 function getCurrentLabManualsFolder() { return labManualsFolderStack.length > 0 ? labManualsFolderStack[labManualsFolderStack.length - 1] : null; }
 let activeDirectoryTab = 'admin'; // 'admin' | 'teacher' | 'student'
 let adminUserSearchQuery = '';
+let adminUsersCache = null;
 let directoryVisibleCount = 5;
 let helpRequestsVisibleCount = 5;
 let notificationsVisibleCount = 5;
@@ -1510,9 +1511,9 @@ async function router() {
 
 // 1. HOME VIEW (Announcements)
 async function renderHomeView() {
-  const contributorsBtn = document.getElementById('home-btn-contributors');
-  if (contributorsBtn) {
-    contributorsBtn.style.display = 'inline-flex';
+  const clubsBtn = document.getElementById('home-btn-clubs') || document.getElementById('home-btn-contributors');
+  if (clubsBtn) {
+    clubsBtn.style.display = 'inline-flex';
   }
 
   const container = document.getElementById('announcements-list-container');
@@ -4005,7 +4006,9 @@ async function renderAdminDashboardView(currentHash) {
   const adminSearchInput = document.getElementById('admin-user-search-input');
   const adminSearchClearBtn = document.getElementById('btn-admin-user-search-clear');
   if (adminSearchInput && adminSearchClearBtn) {
-    adminSearchInput.value = adminUserSearchQuery;
+    if (document.activeElement !== adminSearchInput) {
+      adminSearchInput.value = adminUserSearchQuery;
+    }
     adminSearchClearBtn.style.display = adminUserSearchQuery ? 'flex' : 'none';
   }
 
@@ -4086,25 +4089,37 @@ async function renderAdminDashboardView(currentHash) {
       }
     };
 
-    const fetchUsers = async () => {
-      allContainer.innerHTML = getListSkeleton();
-      const all = await api.getAllUsers();
-      exportUsersCache = all;
+    const fetchUsers = async (forceFetch = false) => {
+      if (forceFetch || !adminUsersCache) {
+        allContainer.innerHTML = getListSkeleton();
+        try {
+          const all = await api.getAllUsers();
+          all.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+            return dateB - dateA;
+          });
+          adminUsersCache = all;
+          exportUsersCache = all;
+        } catch (err) {
+          allContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Failed to load users: ${escapeHTML(err.message)}</div>`;
+          return;
+        }
+      }
 
-      // Sort users descending by their date of joining (newest first)
-      all.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
-        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
-        return dateB - dateA;
-      });
+      applyDirectoryFilters();
+    };
 
-      let filteredUsers = all;
-      if (adminUserSearchQuery.trim()) {
+    const applyDirectoryFilters = () => {
+      if (!adminUsersCache) return;
+      let filteredUsers = adminUsersCache;
+      if (adminUserSearchQuery && adminUserSearchQuery.trim()) {
         const q = adminUserSearchQuery.toLowerCase().trim();
-        filteredUsers = all.filter(u => {
+        filteredUsers = adminUsersCache.filter(u => {
           const name = (u.name || '').toLowerCase();
           const phone = (u.phone || '').toLowerCase();
-          return name.includes(q) || phone.includes(q);
+          const email = (u.email || '').toLowerCase();
+          return name.includes(q) || phone.includes(q) || email.includes(q);
         });
       }
 
@@ -4113,6 +4128,20 @@ async function renderAdminDashboardView(currentHash) {
       const adminsList = filteredUsers.filter(u => u.role === 'admin' || u.role === 'superadmin');
       const teachersList = filteredUsers.filter(u => u.role === 'educator');
       const studentsList = filteredUsers.filter(u => u.role === 'student');
+
+      // Auto-switch tab if current active tab has 0 matches but another category has matches
+      if (adminUserSearchQuery && adminUserSearchQuery.trim()) {
+        if (activeDirectoryTab === 'admin' && adminsList.length === 0) {
+          if (studentsList.length > 0) activeDirectoryTab = 'student';
+          else if (teachersList.length > 0) activeDirectoryTab = 'teacher';
+        } else if (activeDirectoryTab === 'teacher' && teachersList.length === 0) {
+          if (studentsList.length > 0) activeDirectoryTab = 'student';
+          else if (adminsList.length > 0) activeDirectoryTab = 'admin';
+        } else if (activeDirectoryTab === 'student' && studentsList.length === 0) {
+          if (teachersList.length > 0) activeDirectoryTab = 'teacher';
+          else if (adminsList.length > 0) activeDirectoryTab = 'admin';
+        }
+      }
 
       const renderTabs = () => {
         const currentCategoryLabel = activeDirectoryTab === 'admin' ? 'Admins' : (activeDirectoryTab === 'teacher' ? 'Teachers' : 'Students');
@@ -4237,7 +4266,7 @@ async function renderAdminDashboardView(currentHash) {
             try {
               const res = await api.promoteUser(btn.getAttribute('data-id'));
               alert(res.message || 'Successfully promoted user to Super Admin!');
-              await renderAdminDashboardView(currentHash);
+              await fetchUsers(true);
             } catch (err) {
               alert(err.message || 'Promotion failed');
               btn.disabled = false;
@@ -4256,7 +4285,7 @@ async function renderAdminDashboardView(currentHash) {
             refreshIcons();
             try {
               await api.deleteUser(btn.getAttribute('data-id'));
-              await renderAdminDashboardView(currentHash);
+              await fetchUsers(true);
             } catch (err) {
               alert(err.message || 'Deletion failed');
               btn.disabled = false;
@@ -4354,6 +4383,8 @@ async function renderAdminDashboardView(currentHash) {
 
       updateDirectoryView();
     };
+
+    window._refreshAdminUserDirectory = fetchUsers;
 
     const fetchContributions = async () => {
       await renderPendingContributions();
@@ -4599,14 +4630,14 @@ async function renderAdminDashboardView(currentHash) {
       }
     };
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = async (showSkeleton = true) => {
       const superadminMessagesSection = document.getElementById('admin-section-notifications');
       const superadminMessagesContainer = document.getElementById('superadmin-messages-list-container');
       const superadminMessagesCount = document.getElementById('superadmin-messages-count');
 
       if ((currentUser.role === 'superadmin' || currentUser.role === 'admin') && superadminMessagesSection && superadminMessagesContainer && superadminMessagesCount) {
         superadminMessagesSection.style.display = 'block';
-        superadminMessagesContainer.innerHTML = getListSkeleton();
+        if (showSkeleton) superadminMessagesContainer.innerHTML = getListSkeleton();
 
         try {
           const notifications = await api.getAllNotifications();
@@ -4674,7 +4705,7 @@ async function renderAdminDashboardView(currentHash) {
 
                 try {
                   await api.updateNotification(id, newMsgBody.trim());
-                  await renderAdminDashboardView(currentHash);
+                  await fetchNotifications(false);
                 } catch (err) {
                   alert(err.message || 'Failed to update message');
                   btn.disabled = false;
@@ -4692,11 +4723,39 @@ async function renderAdminDashboardView(currentHash) {
                 
                 const originalHTML = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = 'Deleting...';
+                btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 12px; height: 12px;"></i> Deleting...';
+                refreshIcons();
 
                 try {
                   await api.deleteNotification(id);
-                  await renderAdminDashboardView(currentHash);
+                  const ticketCard = btn.closest('.ticket-card');
+                  if (ticketCard) {
+                    ticketCard.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease';
+                    ticketCard.style.opacity = '0';
+                    ticketCard.style.transform = 'translateY(-8px)';
+                    ticketCard.style.maxHeight = ticketCard.offsetHeight + 'px';
+                    setTimeout(() => {
+                      ticketCard.style.maxHeight = '0';
+                      ticketCard.style.margin = '0';
+                      ticketCard.style.padding = '0';
+                      ticketCard.style.border = 'none';
+                      setTimeout(() => {
+                        ticketCard.remove();
+                        const remainingCards = superadminMessagesContainer.querySelectorAll('.ticket-card');
+                        if (superadminMessagesCount) {
+                          const currentCount = parseInt(superadminMessagesCount.textContent || '1', 10);
+                          superadminMessagesCount.textContent = Math.max(0, currentCount - 1);
+                        }
+                        if (remainingCards.length === 0) {
+                          superadminMessagesContainer.innerHTML = '<div class="empty-state">No notification messages sent yet.</div>';
+                          const messagesShowMoreContainer = document.getElementById('messages-show-more-container');
+                          if (messagesShowMoreContainer) messagesShowMoreContainer.innerHTML = '';
+                        }
+                      }, 200);
+                    }, 50);
+                  } else {
+                    await fetchNotifications(false);
+                  }
                 } catch (err) {
                   alert(err.message || 'Failed to delete message');
                   btn.disabled = false;
@@ -4718,7 +4777,7 @@ async function renderAdminDashboardView(currentHash) {
                 `;
                 document.getElementById('btn-messages-show-more').addEventListener('click', () => {
                   notificationsVisibleCount += 10;
-                  renderAdminDashboardView(currentHash);
+                  fetchNotifications(false);
                 });
               } else {
                 messagesShowMoreContainer.innerHTML = '';
@@ -7142,7 +7201,9 @@ function initAdminEmailModalEventHandlers() {
         // Refresh admin dashboard to show updated email
         setTimeout(async () => {
           closeAdminEditEmailModal();
-          if (typeof renderAdminDashboardView === 'function') {
+          if (typeof window._refreshAdminUserDirectory === 'function') {
+            await window._refreshAdminUserDirectory(true);
+          } else if (typeof renderAdminDashboardView === 'function') {
             await renderAdminDashboardView();
           }
         }, 800);
@@ -8091,32 +8152,57 @@ function initEventHandlers() {
   const adminSearchClearBtn = document.getElementById('btn-admin-user-search-clear');
 
   if (adminSearchInput && adminSearchBtn && adminSearchClearBtn) {
-    const triggerSearch = () => {
-      adminUserSearchQuery = adminSearchInput.value || '';
-      directoryVisibleCount = 5; // Reset page size on new search
-      renderAdminDashboardView();
+    let searchDebounceTimeout = null;
+
+    const executeUserSearch = (resetCount = true) => {
+      adminUserSearchQuery = (adminSearchInput.value || '').trim();
+      if (resetCount) directoryVisibleCount = 5;
+      adminSearchClearBtn.style.display = adminUserSearchQuery ? 'flex' : 'none';
+
+      if (typeof window._refreshAdminUserDirectory === 'function') {
+        window._refreshAdminUserDirectory(false);
+      } else if (typeof renderAdminDashboardView === 'function') {
+        renderAdminDashboardView();
+      }
     };
 
-    let searchDebounceTimeout;
     adminSearchInput.addEventListener('input', () => {
+      // Toggle clear button immediately without waiting for debounce
+      adminSearchClearBtn.style.display = adminSearchInput.value.trim() ? 'flex' : 'none';
       clearTimeout(searchDebounceTimeout);
       searchDebounceTimeout = setTimeout(() => {
-        triggerSearch();
-      }, 250);
+        executeUserSearch(true);
+      }, 350);
     });
 
-    adminSearchBtn.addEventListener('click', triggerSearch);
+    adminSearchBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearTimeout(searchDebounceTimeout);
+      executeUserSearch(true);
+    });
+
     adminSearchInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        triggerSearch();
+        e.preventDefault();
+        clearTimeout(searchDebounceTimeout);
+        executeUserSearch(true);
       }
     });
 
-    adminSearchClearBtn.addEventListener('click', () => {
+    adminSearchClearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearTimeout(searchDebounceTimeout);
       adminSearchInput.value = '';
       adminUserSearchQuery = '';
-      directoryVisibleCount = 5; // Reset page size
-      renderAdminDashboardView();
+      directoryVisibleCount = 5;
+      adminSearchClearBtn.style.display = 'none';
+      adminSearchInput.focus();
+
+      if (typeof window._refreshAdminUserDirectory === 'function') {
+        window._refreshAdminUserDirectory(false);
+      } else if (typeof renderAdminDashboardView === 'function') {
+        renderAdminDashboardView();
+      }
     });
   }
 
