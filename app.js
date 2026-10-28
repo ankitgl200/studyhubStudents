@@ -8117,6 +8117,7 @@ function initEventHandlers() {
         if (modal) {
           if (errAlert) errAlert.style.display = 'none';
           modal.style.display = 'flex';
+          if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
         }
         return;
       }
@@ -8310,6 +8311,7 @@ function initEventHandlers() {
       if (modal) {
         if (errAlert) errAlert.style.display = 'none';
         modal.style.display = 'flex';
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
       }
       return;
     }
@@ -8323,6 +8325,33 @@ function initEventHandlers() {
       openMoveDocumentModal(id, title);
     }
   });
+
+  const btnDownloadDesktop = document.getElementById('btn-download-desktop');
+  const downloadAppErrorAlert = document.getElementById('download-app-error');
+  if (btnDownloadDesktop) {
+    btnDownloadDesktop.addEventListener('click', async () => {
+      if (window.deferredInstallPrompt) {
+        window.deferredInstallPrompt.prompt();
+        const choiceResult = await window.deferredInstallPrompt.userChoice;
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          console.log('[PWA] User accepted desktop install');
+        }
+        window.deferredInstallPrompt = null;
+        const modal = document.getElementById('modal-download-app');
+        if (modal) modal.style.display = 'none';
+      } else if (window.matchMedia('(display-mode: standalone)').matches) {
+        if (downloadAppErrorAlert) {
+          downloadAppErrorAlert.textContent = 'StudyMyte is already installed on this device!';
+          downloadAppErrorAlert.style.display = 'block';
+        }
+      } else {
+        if (downloadAppErrorAlert) {
+          downloadAppErrorAlert.innerHTML = '<strong>To install:</strong> Look for the <strong>🖥️ Install App</strong> icon in your browser address bar (top right) or open your browser menu (⋮) and select <strong>"Install StudyMyte"</strong>.';
+          downloadAppErrorAlert.style.display = 'block';
+        }
+      }
+    });
+  }
 
   const btnDownloadAndroid = document.getElementById('btn-download-android');
   if (btnDownloadAndroid) {
