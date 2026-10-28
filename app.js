@@ -10508,7 +10508,11 @@ async function setupPushNotifications() {
 
     // 2. If running on Website, get standard Web Push token
     if (window.firebaseMessaging && window.firebaseGetToken && 'serviceWorker' in navigator) {
-      const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      const fb = window.firebaseConfig;
+      const swUrl = fb && fb.apiKey
+        ? `/sw.js?apiKey=${encodeURIComponent(fb.apiKey)}&projectId=${encodeURIComponent(fb.projectId)}&messagingSenderId=${encodeURIComponent(fb.messagingSenderId || '')}&appId=${encodeURIComponent(fb.appId || '')}`
+        : '/sw.js';
+      const swRegistration = await navigator.serviceWorker.register(swUrl);
       
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
