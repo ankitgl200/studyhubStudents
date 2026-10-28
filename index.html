@@ -215,6 +215,7 @@
     const messaging = getMessaging(app);
 
     // Make it available globally for app.js
+    window.firebaseConfig = firebaseConfig;
     window.firebaseMessaging = messaging;
     window.firebaseGetToken = getToken;
     window.firebaseOnMessage = onMessage;
