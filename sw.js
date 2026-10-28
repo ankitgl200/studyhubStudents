@@ -14,34 +14,42 @@ const STATIC_ASSETS = [
 
 // Firebase Background Messaging setup inside Service Worker
 try {
-  importScripts('https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js');
-  importScripts('https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js');
+  // Read dynamic configuration passed during service worker registration URL
+  const swParams = new URL(self.location.href).searchParams;
+  const apiKey = swParams.get('apiKey');
+  const projectId = swParams.get('projectId');
+  const messagingSenderId = swParams.get('messagingSenderId');
+  const appId = swParams.get('appId');
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDMmO3BnFDMacdFtGNRllHvPc0xNS9WiHo",
-    authDomain: "studymyte.firebaseapp.com",
-    projectId: "studymyte",
-    storageBucket: "studymyte.firebasestorage.app",
-    messagingSenderId: "574883093044",
-    appId: "1:574883093044:web:05cfa63fa1b46595234861",
-    measurementId: "G-50D1BHD290"
-  };
+  if (apiKey && projectId) {
+    importScripts('https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js');
 
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
-
-  messaging.onBackgroundMessage((payload) => {
-    console.log('[sw.js] Received background message: ', payload);
-    const notificationTitle = (payload.notification && payload.notification.title) || 'StudyMyte Update';
-    const notificationOptions = {
-      body: (payload.notification && payload.notification.body) || '',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      data: payload.data || {}
+    const firebaseConfig = {
+      apiKey: apiKey,
+      authDomain: `${projectId}.firebaseapp.com`,
+      projectId: projectId,
+      storageBucket: `${projectId}.firebasestorage.app`,
+      messagingSenderId: messagingSenderId || '',
+      appId: appId || ''
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
-  });
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    messaging.onBackgroundMessage((payload) => {
+      console.log('[sw.js] Received background message: ', payload);
+      const notificationTitle = (payload.notification && payload.notification.title) || 'StudyMyte Update';
+      const notificationOptions = {
+        body: (payload.notification && payload.notification.body) || '',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        data: payload.data || {}
+      };
+
+      self.registration.showNotification(notificationTitle, notificationOptions);
+    });
+  }
 } catch (err) {
   console.warn('[sw.js] Firebase background messaging init skipped/failed:', err);
 }
