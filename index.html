@@ -102,7 +102,12 @@
 
     gtag('config', 'G-MLBCW8QCG1');
   </script>
-  <link id="theme-stylesheet" rel="stylesheet" href="/style.css?v=1.2.0">
+  <link id="theme-stylesheet" rel="stylesheet" href="/style.css?v=1.3.4">
+  <link rel="stylesheet" href="/mytee.css?v=1.3.4">
+  <style>
+    /* Critical fallback to prevent flash of unstyled content */
+    #mytee-drawer.mytee-hidden { display: none !important; }
+  </style>
   <script>
     (function () {
       // 1. Theme Mode (Dark / Light)
@@ -4152,9 +4157,94 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- MYTEE: StudyMyte's Intelligent AI Assistant -->
+  <!-- ========================================== -->
+  <button id="mytee-launcher" class="mytee-launcher" aria-label="Open MYTEE AI Assistant" title="Ask MYTEE — Intelligent Assistant">
+    <div class="mytee-avatar-orbit">
+      <span class="mytee-pulse-ring"></span>
+      <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+    </div>
+    <span>MYTEE</span>
+    <span class="mytee-badge-ai">AI</span>
+  </button>
+
+  <div id="mytee-drawer" class="mytee-drawer mytee-hidden" role="dialog" aria-label="MYTEE Chat Window">
+    <!-- Header -->
+    <div class="mytee-header">
+      <div class="mytee-header-brand">
+        <div class="mytee-header-avatar">
+          <i data-lucide="bot" style="width: 22px; height: 22px;"></i>
+          <span class="mytee-online-dot" title="Online & Ready"></span>
+        </div>
+        <div>
+          <div class="mytee-title-row">
+            <span class="mytee-title-text">MYTEE</span>
+            <span id="mytee-mode-badge" class="mytee-role-pill">Assistant</span>
+          </div>
+          <div class="mytee-subtitle-text">StudyMyte Intelligent Guide • Gemini</div>
+        </div>
+      </div>
+      <div class="mytee-header-actions">
+        <button id="mytee-btn-clear" class="mytee-header-btn" title="Clear Chat History">
+          <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+        </button>
+        <button id="mytee-btn-close" class="mytee-header-btn" title="Close MYTEE">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body / Messages -->
+    <div id="mytee-messages" class="mytee-body">
+      <!-- Welcome message -->
+      <div class="mytee-msg-wrap model">
+        <div class="mytee-msg-bubble">
+          <p>👋 Hello! I am <strong>MYTEE</strong>, the official AI assistant of StudyMyte.</p>
+          <p>I can help you find lecture notes, previous-year question papers (PYQs), lab manuals, navigate platform features, or troubleshoot website issues.</p>
+          <div class="mytee-chips-grid" id="mytee-welcome-chips">
+            <button type="button" class="mytee-chip-btn" data-query="Give me PYQs for 2nd year OOPS">
+              <span>📄</span> Find 2nd year OOPS PYQs
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="Find notes for Engineering Mathematics">
+              <span>📚</span> Engineering Mathematics Notes
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="How do I upload notes or papers?">
+              <span>📤</span> How to contribute & upload notes
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="Who created StudyMyte?">
+              <span>👥</span> Who created StudyMyte?
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="How can I contact technical support?">
+              <span>🛠️</span> Help & Support / Report an Issue
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer / Input Form -->
+    <div class="mytee-footer">
+      <form id="mytee-form" class="mytee-input-form" onsubmit="return false;">
+        <input
+          type="text"
+          id="mytee-input"
+          class="mytee-input-field"
+          placeholder="Ask MYTEE about notes, PYQs, support..."
+          autocomplete="off"
+          maxlength="1200"
+        />
+        <button type="submit" id="mytee-send-btn" class="mytee-btn-send" title="Send Message">
+          <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+        </button>
+      </form>
+      <div class="mytee-disclaimer">Verified educational intelligence for StudyMyte</div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
-  <script src="/app.js?v=1.2.3"></script>
+  <script src="/app.js?v=1.3.4"></script>
 
 
 
