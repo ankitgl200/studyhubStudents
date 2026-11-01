@@ -1,14 +1,11 @@
-const CACHE_NAME = 'studymyte-pwa-v1';
+const CACHE_NAME = 'studymyte-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
   '/icon.png',
   '/logowht.png',
   '/logodrk.png',
-  '/style.css?v=1.2.0',
   '/modern.css'
 ];
 
