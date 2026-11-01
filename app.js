@@ -8371,7 +8371,7 @@ function initEventHandlers() {
   const downloadErrAlert = document.getElementById('download-app-error');
   if (btnDownloadIos && downloadErrAlert) {
     btnDownloadIos.addEventListener('click', () => {
-      downloadErrAlert.textContent = 'App for iOS is Under development.';
+      downloadErrAlert.innerHTML = '<strong>📱 iOS App Status:</strong> StudyMyte for iOS is currently under active development. You can add StudyMyte to your iPhone Home Screen via Safari (tap <strong>Share ➔ Add to Home Screen</strong>)!';
       downloadErrAlert.style.display = 'block';
     });
   }
@@ -12163,3 +12163,803 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+
+/* ==========================================================================
+   MYTEE — StudyMyte's Official Intelligent AI Ecosystem Frontend Module
+   ========================================================================== */
+
+(function initMyteeAssistant() {
+  const myteeState = {
+    isOpen: false,
+    isSending: false,
+    sessionId: localStorage.getItem('mytee_session_id') || ('sess_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36)),
+    userRole: 'guest'
+  };
+
+  localStorage.setItem('mytee_session_id', myteeState.sessionId);
+
+  // Extract clean internal SPA route from any StudyMyte link or path, returning null if external
+  function extractInternalRoute(url) {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    if (trimmed.startsWith('action:')) return null;
+    if (trimmed.startsWith('#/')) return trimmed.substring(1); // '#/notes' -> '/notes'
+    if (trimmed.startsWith('#')) return '/' + trimmed.replace(/^#\/?/, '');
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+      if (trimmed === '/studymyte.apk') return null; // APK download file
+      return trimmed;
+    }
+    const match = trimmed.match(/^https?:\/\/(?:www\.)?studymyte\.tech(?::\d+)?(?:\/#)?(\s*\/[^?\s]*)?/i);
+    if (match) {
+      const route = match[1] || '/';
+      return route.startsWith('/') ? route : '/' + route;
+    }
+    const localMatch = trimmed.match(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/#)?(\s*\/[^?\s]*)?/i);
+    if (localMatch) {
+      const route = localMatch[1] || '/';
+      return route.startsWith('/') ? route : '/' + route;
+    }
+    return null;
+  }
+
+  // Normalize StudyMyte URLs to ensure hash-based routing (#/) for single-page app navigation
+  function normalizeStudymyteUrl(url) {
+    if (!url || typeof url !== 'string') return url;
+    return url.replace(/https?:\/\/(?:www\.)?studymyte\.tech\/(?!#)(?!(?:api\/|assets\/|[^\/]+\.(?:png|jpg|jpeg|svg|ico|css|js|json|pdf)))(.*)/i, (m, rest) => {
+      const cleanRest = rest ? rest.replace(/^\//, '') : '';
+      return 'https://studymyte.tech/#/' + cleanRest;
+    });
+  }
+
+  // Markdown-to-HTML parser for rich academic responses
+  function formatMyteeMarkdown(text) {
+    if (!text) return '';
+    let html = text
+      // Escape basic HTML
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      // Headers
+      .replace(/^### (.*$)/gim, '<h4 style="margin: 8px 0 4px; font-size: 14px; font-weight: 700; color: #60a5fa;">$1</h4>')
+      .replace(/^## (.*$)/gim, '<h3 style="margin: 10px 0 6px; font-size: 15px; font-weight: 800; color: #60a5fa;">$1</h3>')
+      // Bold
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Italic
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Bullet points
+      .replace(/^\s*[•\-\*]\s+(.*$)/gim, '<li>$1</li>')
+      // Numbered lists
+      .replace(/^\s*(\d+)\.\s+(.*$)/gim, '<li><strong>$1.</strong> $2</li>')
+      // Markdown links [text](url) - internal links open in same webpage without reload or target="_blank"
+      .replace(/\[([^\]]+)\]\s*\(([^\s\)]+)\)/g, (match, label, url) => {
+        const internalRoute = extractInternalRoute(url);
+        if (internalRoute) {
+          return `<button type="button" class="mytee-nav-pill-btn" data-nav-path="${internalRoute}" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin: 0 2px; font-size: 12px; vertical-align: baseline;"><i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block;"></i> <span>${label}</span></button>`;
+        }
+        let brandClass = '';
+        let iconName = 'external-link';
+        if (/instagram/i.test(url) || /instagram/i.test(label)) {
+          brandClass = 'instagram';
+          iconName = 'instagram';
+        } else if (/telegram|t\.me/i.test(url) || /telegram/i.test(label)) {
+          brandClass = 'telegram';
+          iconName = 'send';
+        } else if (/github/i.test(url) || /github/i.test(label)) {
+          brandClass = 'github';
+          iconName = 'github';
+        } else if (/mailto:/i.test(url)) {
+          brandClass = 'mail';
+          iconName = 'mail';
+        }
+        const safeUrl = normalizeStudymyteUrl(url);
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="mytee-link-btn ${brandClass}" title="Opens in a new window"><i data-lucide="${iconName}" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> <span>${label}</span> <span style="font-size: 10px; opacity: 0.85;">↗</span></a>`;
+      })
+      // Bare URLs: convert internal URLs to navigation button and external to redirect button
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (match, prefix, rawUrl) => {
+        const url = rawUrl.replace(/[\.\,\)\;]+$/, '');
+        const internalRoute = extractInternalRoute(url);
+        if (internalRoute) {
+          let label = internalRoute === '/' ? 'StudyMyte Home' : internalRoute.replace(/^\//, '').replace(/-/g, ' ');
+          label = label.charAt(0).toUpperCase() + label.slice(1);
+          return `${prefix}<button type="button" class="mytee-nav-pill-btn" data-nav-path="${internalRoute}" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin: 0 2px; font-size: 12px; vertical-align: baseline;"><i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block;"></i> <span>${label}</span></button>`;
+        }
+        let label = url.replace(/^https?:\/\/(www\.)?/, '');
+        if (label.length > 28) label = label.substring(0, 26) + '...';
+        let brandClass = '';
+        let iconName = 'external-link';
+        if (/instagram\.com/i.test(url)) {
+          brandClass = 'instagram';
+          label = 'Instagram';
+          iconName = 'instagram';
+        } else if (/t\.me/i.test(url)) {
+          brandClass = 'telegram';
+          label = 'Telegram';
+          iconName = 'send';
+        } else if (/github\.com/i.test(url)) {
+          brandClass = 'github';
+          label = 'GitHub';
+          iconName = 'github';
+        }
+        const safeUrl = normalizeStudymyteUrl(url);
+        return `${prefix}<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="mytee-link-btn ${brandClass}" title="Opens in a new window"><i data-lucide="${iconName}" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> <span>${label}</span> <span style="font-size: 10px; opacity: 0.85;">↗</span></a>`;
+      });
+
+    // Wrap continuous <li> elements in <ul>
+    html = html.replace(/(<li>.*<\/li>)/gms, '<ul style="margin: 6px 0; padding-left: 18px;">$1</ul>');
+
+    // Paragraph line breaks
+    html = html.split('\n\n').map(p => {
+      const trimmed = p.trim();
+      if (!trimmed) return '';
+      if (trimmed.startsWith('<h') || trimmed.startsWith('<ul')) return trimmed;
+      return `<p>${trimmed.replace(/\n/g, '<br/>')}</p>`;
+    }).join('');
+
+    return html;
+  }
+
+  function getAuthTokenHeader() {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
+  function updateAdminModeUI() {
+    const badge = document.getElementById('mytee-mode-badge');
+    const chipsContainer = document.getElementById('mytee-welcome-chips');
+    const user = (typeof currentUser !== 'undefined') ? currentUser : null;
+
+    if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+      if (badge) {
+        badge.textContent = 'Admin Intel';
+        badge.style.background = 'rgba(234, 179, 8, 0.2)';
+        badge.style.color = '#facc15';
+        badge.style.borderColor = 'rgba(234, 179, 8, 0.4)';
+      }
+
+      // Add admin quick prompts if not already added
+      if (chipsContainer && !chipsContainer.querySelector('[data-admin-chip="true"]')) {
+        const adminChip1 = document.createElement('button');
+        adminChip1.type = 'button';
+        adminChip1.className = 'mytee-chip-btn';
+        adminChip1.setAttribute('data-admin-chip', 'true');
+        adminChip1.setAttribute('data-query', 'How many users joined this week?');
+        adminChip1.innerHTML = '<span>📊</span> [Admin] How many users joined this week?';
+        adminChip1.style.borderColor = 'rgba(234, 179, 8, 0.35)';
+
+        const adminChip2 = document.createElement('button');
+        adminChip2.type = 'button';
+        adminChip2.className = 'mytee-chip-btn';
+        adminChip2.setAttribute('data-admin-chip', 'true');
+        adminChip2.setAttribute('data-query', 'Resource statistics overview');
+        adminChip2.innerHTML = '<span>📈</span> [Admin] Resource statistics overview';
+        adminChip2.style.borderColor = 'rgba(234, 179, 8, 0.35)';
+
+        const adminChip3 = document.createElement('button');
+        adminChip3.type = 'button';
+        adminChip3.className = 'mytee-chip-btn';
+        adminChip3.setAttribute('data-admin-chip', 'true');
+        adminChip3.setAttribute('data-query', 'Site status report');
+        adminChip3.innerHTML = '<span>🛡️</span> [Admin] Executive Site Status Report';
+        adminChip3.style.borderColor = 'rgba(234, 179, 8, 0.35)';
+
+        const adminChip4 = document.createElement('button');
+        adminChip4.type = 'button';
+        adminChip4.className = 'mytee-chip-btn';
+        adminChip4.setAttribute('data-admin-chip', 'true');
+        adminChip4.setAttribute('data-query', 'Show all support tickets');
+        adminChip4.innerHTML = '<span>🎫</span> [Admin] Support Tickets & Solutions';
+        adminChip4.style.borderColor = 'rgba(234, 179, 8, 0.35)';
+
+        const adminChip5 = document.createElement('button');
+        adminChip5.type = 'button';
+        adminChip5.className = 'mytee-chip-btn';
+        adminChip5.setAttribute('data-admin-chip', 'true');
+        adminChip5.setAttribute('data-query', 'Review pending uploads');
+        adminChip5.innerHTML = '<span>📑</span> [Admin] Review Pending Uploads';
+        adminChip5.style.borderColor = 'rgba(234, 179, 8, 0.35)';
+
+        chipsContainer.prepend(adminChip5);
+        chipsContainer.prepend(adminChip4);
+        chipsContainer.prepend(adminChip3);
+        chipsContainer.prepend(adminChip2);
+        chipsContainer.prepend(adminChip1);
+      }
+    } else {
+      if (badge) {
+        badge.textContent = 'Assistant';
+        badge.style.background = 'rgba(59, 130, 246, 0.2)';
+        badge.style.color = '#60a5fa';
+        badge.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+      }
+    }
+  }
+
+  function toggleMyteeDrawer(forceOpen) {
+    const drawer = document.getElementById('mytee-drawer');
+    if (!drawer) return;
+
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    const willOpen = typeof forceOpen === 'boolean' ? forceOpen : !myteeState.isOpen;
+
+    if (willOpen && !token) {
+      alert('🔒 Please log in to your StudyMyte account to access MYTEE AI.');
+      if (typeof navigate === 'function') {
+        navigate('/login');
+      } else {
+        window.location.hash = '#/login';
+      }
+      return;
+    }
+
+    if (typeof forceOpen === 'boolean') {
+      myteeState.isOpen = forceOpen;
+    } else {
+      myteeState.isOpen = !myteeState.isOpen;
+    }
+
+    if (myteeState.isOpen) {
+      drawer.classList.remove('mytee-hidden');
+      updateAdminModeUI();
+      const input = document.getElementById('mytee-input');
+      if (input) setTimeout(() => input.focus(), 150);
+      scrollMyteeToBottom();
+    } else {
+      drawer.classList.add('mytee-hidden');
+    }
+  }
+
+  function scrollMyteeToBottom() {
+    const msgBox = document.getElementById('mytee-messages');
+    if (msgBox) {
+      msgBox.scrollTop = msgBox.scrollHeight;
+    }
+  }
+
+  function renderTypingIndicator() {
+    removeTypingIndicator();
+    const msgBox = document.getElementById('mytee-messages');
+    if (!msgBox) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mytee-msg-wrap model';
+    wrap.id = 'mytee-typing-wrap';
+    wrap.innerHTML = `
+      <div class="mytee-typing-dots" title="MYTEE is thinking...">
+        <span></span><span></span><span></span>
+      </div>
+    `;
+    msgBox.appendChild(wrap);
+    scrollMyteeToBottom();
+  }
+
+  function removeTypingIndicator() {
+    const typing = document.getElementById('mytee-typing-wrap');
+    if (typing) typing.remove();
+  }
+
+  function appendUserMessage(text) {
+    const msgBox = document.getElementById('mytee-messages');
+    if (!msgBox) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mytee-msg-wrap user';
+    wrap.innerHTML = `
+      <div class="mytee-msg-bubble">
+        <p>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+      </div>
+    `;
+    msgBox.appendChild(wrap);
+    scrollMyteeToBottom();
+  }
+
+  function appendModelMessage(data) {
+    const msgBox = document.getElementById('mytee-messages');
+    if (!msgBox) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mytee-msg-wrap model';
+
+    let cardsHtml = '';
+    if (Array.isArray(data.resources) && data.resources.length > 0) {
+      cardsHtml = data.resources.map(res => {
+        const typeClass = res.type === 'paper' ? 'pyq' : '';
+        const tagLabel = res.type === 'paper' ? 'PYQ' : (res.type === 'notes' ? 'NOTES' : res.type.toUpperCase());
+        const docViewUrl = res.viewUrl || `/api/documents/download/${res.id}`;
+        const docDlUrl = `/api/documents/download/${res.id}`;
+
+        return `
+          <div class="mytee-resource-card">
+            <div class="mytee-resource-header">
+              <span class="mytee-resource-title">${res.title}</span>
+              <span class="mytee-type-tag ${typeClass}">${tagLabel}</span>
+            </div>
+            <div class="mytee-resource-meta">
+              <span>📚 ${res.subject}</span>
+              <span>📅 ${res.year}</span>
+              <span>❤️ ${res.likesCount || 0} likes</span>
+            </div>
+            <div class="mytee-resource-actions">
+              <button type="button" class="mytee-btn-action primary mytee-btn-view-doc" data-doc-id="${res.id}" data-file-name="${(res.fileName || res.title || 'Document.pdf').replace(/"/g, '&quot;')}" data-doc-type="${res.type || 'notes'}">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View Document
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Auto-extract platform links and build prominent redirect buttons
+    const combinedActions = [...(Array.isArray(data.actions) ? data.actions : [])];
+    const existingActionUrls = new Set(combinedActions.map(a => a.path));
+
+    const replyText = data.reply || '';
+    const knownPlatforms = [
+      {
+        match: /https?:\/\/(www\.)?instagram\.com\/[^\s\)\"\']+/i,
+        url: 'https://www.instagram.com/studymyte_official/',
+        label: 'Open Instagram',
+        type: 'instagram'
+      },
+      {
+        match: /https?:\/\/t\.me\/[^\s\)\"\']+/i,
+        url: 'https://t.me/+Y8-xHuu_XBo0ZDBl',
+        label: 'Open Telegram Channel',
+        type: 'telegram'
+      },
+      {
+        match: /https?:\/\/github\.com\/[^\s\)\"\']+/i,
+        url: 'https://github.com/ankitgl200/studyhubStudents',
+        label: 'Open GitHub Repo',
+        type: 'github'
+      },
+      {
+        match: /mailto:support@studymyte\.tech/i,
+        url: 'mailto:support@studymyte.tech',
+        label: 'Email Support',
+        type: 'mail'
+      },
+      {
+        match: /https?:\/\/(?:www\.)?studymyte\.tech(\/#|\/)?support/i,
+        url: 'https://studymyte.tech/#/support',
+        label: 'Open Support Portal',
+        type: 'support'
+      }
+    ];
+
+    for (const plat of knownPlatforms) {
+      if (plat.match.test(replyText) && !existingActionUrls.has(plat.url)) {
+        combinedActions.push({
+          label: plat.label,
+          path: plat.url,
+          external: true,
+          platformType: plat.type
+        });
+        existingActionUrls.add(plat.url);
+      }
+    }
+
+    let actionsHtml = '';
+    if (combinedActions.length > 0) {
+      actionsHtml = `
+        <div class="mytee-actions-container" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+          ${combinedActions.map(act => {
+            const internalRoute = extractInternalRoute(act.path);
+            const isExternal = !internalRoute && (act.external || (act.path && (act.path.startsWith('http://') || act.path.startsWith('https://') || act.path.startsWith('mailto:'))));
+            if (isExternal) {
+              act.path = normalizeStudymyteUrl(act.path);
+              let brandClass = act.platformType || '';
+              let iconName = 'external-link';
+              if (!brandClass) {
+                if (/instagram/i.test(act.path) || /instagram/i.test(act.label)) { brandClass = 'instagram'; iconName = 'instagram'; }
+                else if (/telegram|t\.me/i.test(act.path) || /telegram/i.test(act.label)) { brandClass = 'telegram'; iconName = 'send'; }
+                else if (/github/i.test(act.path) || /github/i.test(act.label)) { brandClass = 'github'; iconName = 'github'; }
+                else if (/mailto:/i.test(act.path)) { brandClass = 'mail'; iconName = 'mail'; }
+                else if (/support/i.test(act.path)) { brandClass = 'support'; iconName = 'life-buoy'; }
+              } else {
+                if (brandClass === 'instagram') iconName = 'instagram';
+                else if (brandClass === 'telegram') iconName = 'send';
+                else if (brandClass === 'github') iconName = 'github';
+                else if (brandClass === 'mail') iconName = 'mail';
+                else if (brandClass === 'support') iconName = 'life-buoy';
+              }
+
+              return `
+                <a href="${act.path}" target="_blank" rel="noopener noreferrer" class="mytee-redirect-card-btn ${brandClass}" title="Opens in a new window">
+                  <i data-lucide="${iconName}" style="width: 14px; height: 14px;"></i>
+                  <span>${act.label}</span>
+                  <span style="font-size: 11px; opacity: 0.85; margin-left: 2px;">↗</span>
+                </a>
+              `;
+            } else {
+              const navPath = internalRoute || act.path;
+              return `
+                <button type="button" class="mytee-nav-pill-btn" data-nav-path="${navPath}">
+                  <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i> ${act.label}
+                </button>
+              `;
+            }
+          }).join('')}
+        </div>
+      `;
+    }
+
+    let ticketHtml = '';
+    if (data.ticket && data.ticket.ticketCode) {
+      ticketHtml = `
+        <div class="mytee-ticket-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span class="mytee-ticket-id">🎫 Ticket ID: ${data.ticket.ticketCode}</span>
+            <span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: 700;">CONFIRMED</span>
+          </div>
+          <div style="font-size: 12.5px; color: var(--text-main); margin-bottom: 4px;"><strong>Subject:</strong> ${data.ticket.subject}</div>
+          <div style="font-size: 11.5px; color: var(--text-muted);">Our administrative team has received your report and will review it promptly.</div>
+        </div>
+      `;
+    }
+
+    const messageHtml = formatMyteeMarkdown(data.reply || '');
+
+    wrap.innerHTML = `
+      <div class="mytee-msg-bubble">
+        ${messageHtml}
+        ${cardsHtml}
+        ${ticketHtml}
+        ${actionsHtml}
+        <div class="mytee-msg-footer">
+          <span>Just now</span>
+          <button type="button" class="mytee-feedback-action mytee-btn-copy" title="Copy response">
+            <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy
+          </button>
+          <button type="button" class="mytee-feedback-action mytee-btn-like" title="Helpful answer">
+            <i data-lucide="thumbs-up" style="width: 12px; height: 12px;"></i>
+          </button>
+          <button type="button" class="mytee-feedback-action mytee-btn-dislike" title="Not helpful">
+            <i data-lucide="thumbs-down" style="width: 12px; height: 12px;"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    msgBox.appendChild(wrap);
+    scrollMyteeToBottom();
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  async function handleSendMyteeMessage(text) {
+    if (!text || typeof text !== 'string') return;
+    const clean = text.trim();
+    if (!clean || myteeState.isSending) return;
+
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) {
+      appendModelMessage({
+        reply: '🔒 **Please Log In to Access MYTEE**\n\nMYTEE AI is available exclusively to registered members. Please log in or create an account to start asking questions or exploring study resources.',
+        actions: [
+          { label: 'Log In', path: '/login' },
+          { label: 'Register', path: '/register' }
+        ]
+      });
+      if (typeof navigate === 'function') {
+        navigate('/login');
+      } else {
+        window.location.hash = '#/login';
+      }
+      return;
+    }
+
+    myteeState.isSending = true;
+    appendUserMessage(clean);
+
+    const input = document.getElementById('mytee-input');
+    const sendBtn = document.getElementById('mytee-send-btn');
+    if (input) input.value = '';
+    if (sendBtn) sendBtn.disabled = true;
+
+    renderTypingIndicator();
+
+    try {
+      const response = await fetch('/api/mytee/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthTokenHeader()
+        },
+        body: JSON.stringify({
+          message: clean,
+          sessionId: myteeState.sessionId
+        })
+      });
+
+      removeTypingIndicator();
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        if (response.status === 401 && errJson.requiresLogin) {
+          appendModelMessage({
+            reply: errJson.reply || '🔒 **Please Log In to Access MYTEE**\n\nMYTEE AI is available exclusively to registered members.',
+            actions: errJson.actions || [
+              { label: 'Log In', path: '/login' },
+              { label: 'Register', path: '/register' }
+            ]
+          });
+          return;
+        }
+        if (response.status === 429) {
+          appendModelMessage({
+            reply: `⚠️ ${errJson.message || 'You are sending requests too quickly. Please wait a moment.'}`
+          });
+          return;
+        }
+        throw new Error(errJson.message || 'Server error communicating with MYTEE');
+      }
+
+      const resData = await response.json();
+      if (resData.sessionId) {
+        myteeState.sessionId = resData.sessionId;
+        localStorage.setItem('mytee_session_id', resData.sessionId);
+      }
+
+      if (resData.clientAction) {
+        if (resData.clientAction.type === 'navigate') {
+          const targetPath = resData.clientAction.path || '/';
+          if (typeof navigate === 'function') {
+            navigate(targetPath);
+          } else {
+            window.location.hash = targetPath.startsWith('#') ? targetPath : '#' + (targetPath.startsWith('/') ? targetPath : '/' + targetPath);
+          }
+          if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') {
+            toggleMyteeDrawer(false);
+          }
+        } else if (resData.clientAction.type === 'set_theme' && typeof setThemeMode === 'function') {
+          setThemeMode(resData.clientAction.value, true);
+        } else if (resData.clientAction.type === 'set_font' && typeof applyFontStyle === 'function') {
+          applyFontStyle(resData.clientAction.value, true);
+        } else if (resData.clientAction.type === 'download_app_android') {
+          const dlLink = document.createElement('a');
+          dlLink.href = '/studymyte.apk';
+          dlLink.download = 'studymyte.apk';
+          document.body.appendChild(dlLink);
+          dlLink.click();
+          document.body.removeChild(dlLink);
+        }
+      }
+
+      appendModelMessage(resData);
+
+    } catch (err) {
+      removeTypingIndicator();
+      console.error('[MYTEE Client] Error:', err);
+      appendModelMessage({
+        reply: 'I encountered an error connecting to StudyMyte intelligence services. Please check your internet connection or try again.',
+        actions: [{ label: 'Go to Support', path: '/support' }]
+      });
+    } finally {
+      myteeState.isSending = false;
+      if (sendBtn) sendBtn.disabled = false;
+      if (input) input.focus();
+    }
+  }
+
+  async function handleClearHistory() {
+    const msgBox = document.getElementById('mytee-messages');
+    if (!msgBox) return;
+
+    // Reset session ID
+    myteeState.sessionId = 'sess_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+    localStorage.setItem('mytee_session_id', myteeState.sessionId);
+
+    // Call server to clear history if authenticated
+    try {
+      await fetch('/api/mytee/history', {
+        method: 'DELETE',
+        headers: getAuthTokenHeader()
+      });
+    } catch (e) {
+      // Ignore
+    }
+
+    // Reset messages container to initial welcome state
+    msgBox.innerHTML = `
+      <div class="mytee-msg-wrap model">
+        <div class="mytee-msg-bubble">
+          <p>👋 Chat cleared! I am <strong>MYTEE</strong>, your StudyMyte AI assistant.</p>
+          <p>How can I assist you with your academics or StudyMyte today?</p>
+          <div class="mytee-chips-grid" id="mytee-welcome-chips">
+            <button type="button" class="mytee-chip-btn" data-query="Give me PYQs for 2nd year OOPS">
+              <span>📄</span> Find 2nd year OOPS PYQs
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="Find notes for Engineering Mathematics">
+              <span>📚</span> Engineering Mathematics Notes
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="How do I upload notes or papers?">
+              <span>📤</span> How to contribute & upload notes
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="Who created StudyMyte?">
+              <span>👥</span> Who created StudyMyte?
+            </button>
+            <button type="button" class="mytee-chip-btn" data-query="How can I contact technical support?">
+              <span>🛠️</span> Help & Support / Report an Issue
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    updateAdminModeUI();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  // Bind DOM Event Listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    const launcher = document.getElementById('mytee-launcher');
+    const closeBtn = document.getElementById('mytee-btn-close');
+    const clearBtn = document.getElementById('mytee-btn-clear');
+    const form = document.getElementById('mytee-form');
+    const input = document.getElementById('mytee-input');
+    const messagesBox = document.getElementById('mytee-messages');
+
+    if (launcher) {
+      launcher.addEventListener('click', () => toggleMyteeDrawer());
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => toggleMyteeDrawer(false));
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', handleClearHistory);
+    }
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (input) handleSendMyteeMessage(input.value);
+      });
+    }
+
+    // Delegate clicks for suggestion chips, action pills, copy, feedback
+    if (messagesBox) {
+      messagesBox.addEventListener('click', (e) => {
+        // View document in inbuilt viewer
+        const viewDocBtn = e.target.closest('.mytee-btn-view-doc');
+        if (viewDocBtn) {
+          const docId = viewDocBtn.getAttribute('data-doc-id');
+          const fileName = viewDocBtn.getAttribute('data-file-name') || 'Document.pdf';
+          const docType = viewDocBtn.getAttribute('data-doc-type') || 'notes';
+          if (docId && typeof window.openDocumentViewer === 'function') {
+            window.openDocumentViewer(docId, fileName, docType);
+            if (window.innerWidth <= 768) {
+              toggleMyteeDrawer(false);
+            }
+          }
+          return;
+        }
+
+        // Suggestion chip clicked
+        const chip = e.target.closest('.mytee-chip-btn');
+        if (chip) {
+          const query = chip.getAttribute('data-query');
+          if (query) handleSendMyteeMessage(query);
+          return;
+        }
+
+        // Navigation pill clicked
+        const navBtn = e.target.closest('.mytee-nav-pill-btn');
+        if (navBtn) {
+          const path = navBtn.getAttribute('data-nav-path');
+          if (path && (path.startsWith('action:open_page:') || path.startsWith('action:navigate:'))) {
+            const cleanPath = path.replace(/^action:(?:open_page:|navigate:)/, '').trim();
+            if (typeof navigate === 'function') navigate(cleanPath);
+            if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') toggleMyteeDrawer(false);
+            return;
+          }
+          if (path && path.startsWith('action:')) {
+            if (path === 'action:send_reset_otp') {
+              handleSendMyteeMessage('Yes, send verification code');
+            } else if (path === 'action:mode_normal') {
+              handleSendMyteeMessage('normal mode');
+            } else if (path === 'action:mode_roast') {
+              handleSendMyteeMessage('roast me again');
+            } else if (path.startsWith('action:set_theme:')) {
+              const themeVal = path.replace('action:set_theme:', '');
+              if (typeof setThemeMode === 'function') setThemeMode(themeVal, true);
+              handleSendMyteeMessage(`Switch to ${themeVal} mode`);
+            } else if (path.startsWith('action:set_font:')) {
+              const fontVal = path.replace('action:set_font:', '');
+              if (typeof applyFontStyle === 'function') applyFontStyle(fontVal, true);
+              handleSendMyteeMessage(`Set font to ${fontVal}`);
+            } else if (path === 'action:list_fonts') {
+              handleSendMyteeMessage('Show available typography fonts');
+            } else if (path === 'action:download_android_apk') {
+              const dlLink = document.createElement('a');
+              dlLink.href = '/studymyte.apk';
+              dlLink.download = 'studymyte.apk';
+              document.body.appendChild(dlLink);
+              dlLink.click();
+              document.body.removeChild(dlLink);
+            } else if (path === 'action:ios_app_info') {
+              alert('📱 iOS App Status: StudyMyte for iOS is currently under active development. You can add StudyMyte to your iPhone Home Screen via Safari (tap Share ➔ Add to Home Screen)!');
+            } else {
+              handleSendMyteeMessage(path.replace('action:', ''));
+            }
+            return;
+          }
+          if (path && typeof navigate === 'function') {
+            navigate(path);
+            if (window.innerWidth <= 768) {
+              toggleMyteeDrawer(false); // Close drawer on mobile so page is visible
+            }
+          }
+          return;
+        }
+
+        // Copy button clicked
+        const copyBtn = e.target.closest('.mytee-btn-copy');
+        if (copyBtn) {
+          const bubble = copyBtn.closest('.mytee-msg-bubble');
+          if (bubble) {
+            const clone = bubble.cloneNode(true);
+            const footer = clone.querySelector('.mytee-msg-footer');
+            if (footer) footer.remove();
+            const textToCopy = clone.innerText.trim();
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              copyBtn.innerHTML = '<i data-lucide="check" style="width: 12px; height: 12px;"></i> Copied!';
+              if (window.lucide) window.lucide.createIcons();
+              setTimeout(() => {
+                copyBtn.innerHTML = '<i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy';
+                if (window.lucide) window.lucide.createIcons();
+              }, 2000);
+            }).catch(() => {});
+          }
+          return;
+        }
+
+        // Like / Dislike feedback
+        const likeBtn = e.target.closest('.mytee-btn-like');
+        const dislikeBtn = e.target.closest('.mytee-btn-dislike');
+        if (likeBtn || dislikeBtn) {
+          const rating = likeBtn ? 'helpful' : 'unhelpful';
+          const btn = likeBtn || dislikeBtn;
+          btn.style.color = likeBtn ? '#10b981' : '#ef4444';
+
+          fetch('/api/mytee/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getAuthTokenHeader() },
+            body: JSON.stringify({
+              sessionId: myteeState.sessionId,
+              rating
+            })
+          }).catch(() => {});
+        }
+      });
+    }
+
+    // Keyboard navigation: Escape key closes MYTEE
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && myteeState.isOpen) {
+        toggleMyteeDrawer(false);
+      }
+    });
+
+    // Initialize Lucide icons
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  });
+
+  // Expose global controller
+  window.mytee = {
+    open: () => toggleMyteeDrawer(true),
+    close: () => toggleMyteeDrawer(false),
+    toggle: () => toggleMyteeDrawer(),
+    send: (q) => handleSendMyteeMessage(q)
+  };
+})();
