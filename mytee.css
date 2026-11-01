@@ -348,6 +348,25 @@
   transform: translateX(3px) !important;
 }
 
+.mytee-chip-highlight {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15)) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  color: #fef08a !important;
+  font-weight: 600 !important;
+}
+
+.mytee-chip-highlight:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25)) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.3) !important;
+}
+
+[data-theme="light"] .mytee-chip-highlight {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.1)) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #b45309 !important;
+}
+
 [data-theme="light"] .mytee-chip-btn {
   background: rgba(37, 99, 235, 0.06) !important;
   border-color: rgba(37, 99, 235, 0.2) !important;

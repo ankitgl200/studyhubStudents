@@ -12771,6 +12771,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>👋 Chat cleared! I am <strong>MYTEE</strong>, your StudyMyte AI assistant.</p>
           <p>How can I assist you with your academics or StudyMyte today?</p>
           <div class="mytee-chips-grid" id="mytee-welcome-chips">
+            <button type="button" class="mytee-chip-btn mytee-chip-highlight" data-query="Analyze exam questions for Operating Systems (60-70% repeat questions)">
+              <span>🎯</span> <strong>Smart Exam Analyzer</strong> (60-70% Repeat PYQs)
+            </button>
             <button type="button" class="mytee-chip-btn" data-query="Give me PYQs for 2nd year OOPS">
               <span>📄</span> Find 2nd year OOPS PYQs
             </button>
