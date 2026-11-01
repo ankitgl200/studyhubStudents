@@ -984,3 +984,102 @@
 #modal-doc-viewer {
   z-index: 1000005 !important;
 }
+
+/* Modern Exam Analyzer & Academic Presentation Styles */
+.mytee-table-scroll {
+  width: 100% !important;
+  overflow-x: auto !important;
+  margin: 12px 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+}
+
+.mytee-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 12px !important;
+  text-align: left !important;
+  min-width: 320px !important;
+}
+
+.mytee-table th {
+  background: rgba(30, 58, 138, 0.35) !important;
+  color: #93c5fd !important;
+  padding: 8px 12px !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3) !important;
+  white-space: nowrap !important;
+}
+
+.mytee-table td {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #f1f5f9 !important;
+  vertical-align: middle !important;
+}
+
+.mytee-table tr:last-child td {
+  border-bottom: none !important;
+}
+
+.mytee-table tr:hover td {
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.mytee-callout {
+  margin: 10px 0 !important;
+  padding: 10px 14px !important;
+  background: rgba(30, 58, 138, 0.2) !important;
+  border-left: 3px solid #3b82f6 !important;
+  border-radius: 4px 12px 12px 4px !important;
+  font-size: 13px !important;
+  color: #e2e8f0 !important;
+  line-height: 1.5 !important;
+}
+
+.mytee-code-pill {
+  display: inline-block !important;
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  padding: 2px 7px !important;
+  border-radius: 6px !important;
+  font-size: 11.5px !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  margin: 1px 2px !important;
+}
+
+[data-theme="light"] .mytee-table-scroll {
+  background: #ffffff !important;
+  border-color: rgba(37, 99, 235, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .mytee-table th {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-bottom-color: rgba(37, 99, 235, 0.2) !important;
+}
+
+[data-theme="light"] .mytee-table td {
+  color: #1e293b !important;
+  border-bottom-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .mytee-table tr:hover td {
+  background: rgba(37, 99, 235, 0.04) !important;
+}
+
+[data-theme="light"] .mytee-callout {
+  background: #eff6ff !important;
+  border-left-color: #2563eb !important;
+  color: #1e3a8a !important;
+}
+
+[data-theme="light"] .mytee-code-pill {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #1d4ed8 !important;
+  border-color: rgba(37, 99, 235, 0.25) !important;
+}

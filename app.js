@@ -12221,14 +12221,16 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       // Headers
+      .replace(/^#### (.*$)/gim, '<h5 class="mytee-card-title" style="margin: 8px 0 4px; font-size: 13.5px; font-weight: 700; color: #38bdf8;">$1</h5>')
       .replace(/^### (.*$)/gim, '<h4 style="margin: 8px 0 4px; font-size: 14px; font-weight: 700; color: #60a5fa;">$1</h4>')
       .replace(/^## (.*$)/gim, '<h3 style="margin: 10px 0 6px; font-size: 15px; font-weight: 800; color: #60a5fa;">$1</h3>')
+      .replace(/^\s*---\s*$/gm, '<hr class="mytee-divider" style="border: none; height: 1px; background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent); margin: 12px 0;"/>')
       // Bold
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       // Italic
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       // Inline code
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/`([^`]+)`/g, '<code class="mytee-code-pill">$1</code>')
       // Bullet points
       .replace(/^\s*[•\-\*]\s+(.*$)/gim, '<li>$1</li>')
       // Numbered lists
@@ -12288,13 +12290,44 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
     // Wrap continuous <li> elements in <ul>
+    // Blockquotes
+    html = html.replace(/(?:^&gt;[ \t]?(.*$)\r?\n?)+/gm, (match) => {
+      const quoteText = match.split(/\r?\n/).map(l => l.replace(/^&gt;[ \t]?/, '').trim()).filter(Boolean).join('<br/>');
+      return `<blockquote class="mytee-callout">${quoteText}</blockquote>`;
+    });
+
+    // Markdown tables
+    const tableRegex = /((?:^\|[^\n]+\|\r?\n)+)/gm;
+    html = html.replace(tableRegex, (match) => {
+      const lines = match.trim().split(/\r?\n/).filter(l => l.trim().startsWith('|'));
+      if (lines.length < 2) return match;
+      const headerLine = lines[0];
+      const isSep = (line) => /^\|(\s*:?-+:?\s*\|)+$/.test(line.trim());
+      let startIdx = 1;
+      if (lines.length > 1 && isSep(lines[1])) {
+        startIdx = 2;
+      }
+      const headers = headerLine.split('|').slice(1, -1).map(h => h.trim());
+      const rows = lines.slice(startIdx).map(l => l.split('|').slice(1, -1).map(c => c.trim()));
+      let tblHtml = '<div class="mytee-table-scroll"><table class="mytee-table"><thead><tr>';
+      headers.forEach(h => { tblHtml += `<th>${h}</th>`; });
+      tblHtml += '</tr></thead><tbody>';
+      rows.forEach(r => {
+        tblHtml += '<tr>';
+        r.forEach(c => { tblHtml += `<td>${c}</td>`; });
+        tblHtml += '</tr>';
+      });
+      tblHtml += '</tbody></table></div>';
+      return tblHtml;
+    });
+
     html = html.replace(/(<li>.*<\/li>)/gms, '<ul style="margin: 6px 0; padding-left: 18px;">$1</ul>');
 
     // Paragraph line breaks
     html = html.split('\n\n').map(p => {
       const trimmed = p.trim();
       if (!trimmed) return '';
-      if (trimmed.startsWith('<h') || trimmed.startsWith('<ul')) return trimmed;
+      if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<div class="mytee-table-scroll"') || trimmed.startsWith('<hr')) return trimmed;
       return `<p>${trimmed.replace(/\n/g, '<br/>')}</p>`;
     }).join('');
 
