@@ -849,6 +849,44 @@
   color: #94a3b8 !important;
 }
 
+/* ChatGPT-Style Live Typewriter Streaming Cursor */
+.mytee-streaming-cursor {
+  display: inline-block !important;
+  width: 6px !important;
+  height: 15px !important;
+  background: #38bdf8 !important;
+  margin-left: 3px !important;
+  border-radius: 2px !important;
+  vertical-align: middle !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.9) !important;
+  animation: myteeCursorBlink 0.75s infinite ease-in-out !important;
+}
+
+[data-theme="light"] .mytee-streaming-cursor {
+  background: #0284c7 !important;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.7) !important;
+}
+
+@keyframes myteeCursorBlink {
+  0%, 100% { opacity: 1; transform: scaleY(1); }
+  50% { opacity: 0.1; transform: scaleY(0.85); }
+}
+
+.mytee-revealed-content {
+  animation: myteeFadeUpCards 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes myteeFadeUpCards {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .mytee-feedback-action {
   background: none !important;
   border: none !important;

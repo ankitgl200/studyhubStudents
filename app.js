@@ -3255,6 +3255,10 @@ function renderProfileView() {
               <i data-lucide="chevron-right" class="arrow-right"></i>
             </a>
           ` : ''}
+          <a href="#/admin/security" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="shield-alert" style="color: #ef4444;"></i><span style="color: #ef4444; font-weight: 600;">Unusual Activity Reports</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
           <a href="#/admin/reviews" class="profile-menu-item">
             <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -3268,6 +3272,10 @@ function renderProfileView() {
           </a>
           <a href="#/admin?tab=users" class="profile-menu-item">
             <div class="item-left"><i data-lucide="users" style="color: var(--danger);"></i><span>Manage Users</span></div>
+            <i data-lucide="chevron-right" class="arrow-right"></i>
+          </a>
+          <a href="#/admin?tab=security" class="profile-menu-item">
+            <div class="item-left"><i data-lucide="shield-alert" style="color: #ef4444;"></i><span style="color: #ef4444; font-weight: 600;">Unusual Activity Reports</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
           <a href="#/admin?tab=pending" class="profile-menu-item">
@@ -3989,6 +3997,10 @@ async function renderAdminDashboardView(currentHash) {
       if (subpageTitle) subpageTitle.textContent = 'Sent Notifications';
       const view = document.getElementById('admin-section-notifications');
       if (view) view.style.display = 'block';
+    } else if (currentHash === '/admin/security' || currentHash === '/admin?tab=security') {
+      if (subpageTitle) subpageTitle.textContent = 'Unusual Activity Reports';
+      const view = document.getElementById('admin-section-security');
+      if (view) view.style.display = 'block';
     } else if (currentHash === '/admin/reviews') {
       if (subpageTitle) subpageTitle.textContent = 'User Reviews';
       const view = document.getElementById('admin-section-reviews');
@@ -4003,6 +4015,7 @@ async function renderAdminDashboardView(currentHash) {
     });
   }
 
+  loadAdminSecurityReports();
   const adminSearchInput = document.getElementById('admin-user-search-input');
   const adminSearchClearBtn = document.getElementById('btn-admin-user-search-clear');
   if (adminSearchInput && adminSearchClearBtn) {
@@ -4052,13 +4065,28 @@ async function renderAdminDashboardView(currentHash) {
 
         document.querySelectorAll('.btn-approve-user').forEach(btn => {
           btn.addEventListener('click', async () => {
+            const card = btn.closest('.user-card');
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
             refreshIcons();
             try {
               await api.approveUser(btn.getAttribute('data-id'));
-              await renderAdminDashboardView(currentHash);
+              if (card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.96)';
+                setTimeout(() => {
+                  card.remove();
+                  if (pendingCount) {
+                    const cnt = Math.max(0, (parseInt(pendingCount.textContent, 10) || 1) - 1);
+                    pendingCount.textContent = cnt;
+                  }
+                  if (pendingContainer && pendingContainer.querySelectorAll('.user-card').length === 0) {
+                    pendingContainer.innerHTML = `<div class="empty-state" style="padding: 30px;">No registration requests pending approval.</div>`;
+                  }
+                }, 300);
+              }
             } catch (err) {
               alert(err.message || 'Approval failed');
               btn.disabled = false;
@@ -4071,13 +4099,28 @@ async function renderAdminDashboardView(currentHash) {
         document.querySelectorAll('.btn-reject-user').forEach(btn => {
           btn.addEventListener('click', async () => {
             if (!confirm('Reject and delete this registration request?')) return;
+            const card = btn.closest('.user-card');
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
             refreshIcons();
             try {
               await api.rejectUser(btn.getAttribute('data-id'));
-              await renderAdminDashboardView(currentHash);
+              if (card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.96)';
+                setTimeout(() => {
+                  card.remove();
+                  if (pendingCount) {
+                    const cnt = Math.max(0, (parseInt(pendingCount.textContent, 10) || 1) - 1);
+                    pendingCount.textContent = cnt;
+                  }
+                  if (pendingContainer && pendingContainer.querySelectorAll('.user-card').length === 0) {
+                    pendingContainer.innerHTML = `<div class="empty-state" style="padding: 30px;">No registration requests pending approval.</div>`;
+                  }
+                }, 300);
+              }
             } catch (err) {
               alert(err.message || 'Rejection failed');
               btn.disabled = false;
@@ -4436,15 +4479,18 @@ async function renderAdminDashboardView(currentHash) {
                   </div>
                   <div class="ticket-subject" style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px;">Subject: ${escapeHTML(t.subject)}</div>
                   <div class="ticket-message" style="font-size: 14px; color: var(--text-main); background-color: rgba(243, 248, 255, 0.3); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid rgba(30, 86, 160, 0.05); line-height: 1.5; white-space: pre-wrap;">${escapeHTML(t.message)}</div>
-                  ${t.requestedEmail ? `
-                    <div style="margin-top: 10px; padding: 10px 14px; background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; font-size: 13px; color: #92400e; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                  ${(t.isEmailLinked || t.requestedEmail) ? `
+                    <div class="ticket-email-box" id="ticket-email-box-${t.id}" style="margin-top: 10px; padding: 10px 14px; background-color: ${t.isEmailLinked ? '#f0fdf4' : '#fef3c7'}; border: 1px solid ${t.isEmailLinked ? '#bbf7d0' : '#fde68a'}; border-radius: 6px; font-size: 13px; color: ${t.isEmailLinked ? '#166534' : '#92400e'}; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                       <div style="display: flex; align-items: center; gap: 6px;">
-                        <i data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
-                        <span>Requested Email: <strong>${escapeHTML(t.requestedEmail)}</strong></span>
+                        <i data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0; color: ${t.isEmailLinked ? '#16a34a' : '#d97706'};"></i>
+                        <span>${t.isEmailLinked ? 'Linked Email' : 'Requested Email'}: <strong>${escapeHTML(t.userEmail || t.requestedEmail)}</strong></span>
+                        ${t.isEmailLinked ? `<span style="background: #dcfce7; color: #15803d; font-size: 11px; padding: 2px 7px; border-radius: 12px; font-weight: 700; border: 1px solid #86efac; margin-left: 6px;">✅ Linked</span>` : ''}
                       </div>
-                      <button type="button" class="btn btn-sm btn-link-requested-email" data-phone="${escapeHTML(t.phone)}" data-name="${escapeHTML(t.name)}" data-email="${escapeHTML(t.requestedEmail)}" style="font-size: 12px; padding: 4px 10px; background: #d97706; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
-                        <i data-lucide="link" style="width: 12px; height: 12px;"></i> Link to Account
-                      </button>
+                      ${(!t.isEmailLinked && t.requestedEmail) ? `
+                        <button type="button" class="btn btn-sm btn-link-requested-email" data-ticket-id="${t.id}" data-phone="${escapeHTML(t.phone)}" data-name="${escapeHTML(t.name)}" data-email="${escapeHTML(t.requestedEmail)}" style="font-size: 12px; padding: 4px 10px; background: #d97706; color: #fff; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                          <i data-lucide="link" style="width: 12px; height: 12px;"></i> Link to Account
+                        </button>
+                      ` : ''}
                     </div>
                   ` : ''}
                   <div class="ticket-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 14px;">
@@ -4463,17 +4509,30 @@ async function renderAdminDashboardView(currentHash) {
               `;
             }).join('');
 
-            // Bind resolve handler
+            // Bind resolve handler (instant in-place update)
             helpRequestsContainer.querySelectorAll('.btn-resolve-ticket').forEach(btn => {
               btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
+                const card = btn.closest('.ticket-card');
                 const originalHTML = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Updating...';
                 refreshIcons();
                 try {
-                  await api.resolveHelpRequest(id);
-                  await renderAdminDashboardView(currentHash);
+                  const res = await api.resolveHelpRequest(id);
+                  btn.disabled = false;
+                  if (card) {
+                    const badge = card.querySelector('.ticket-status-badge');
+                    const isNowResolved = res.status === 'resolved';
+                    if (badge) {
+                      badge.className = 'ticket-status-badge ' + (isNowResolved ? 'badge-resolved' : 'badge-pending');
+                      badge.innerHTML = `<i data-lucide="${isNowResolved ? 'check-circle' : 'clock'}" style="width: 14px; height: 14px;"></i> ${isNowResolved ? 'RESOLVED' : 'PENDING'}`;
+                    }
+                    btn.innerHTML = isNowResolved
+                      ? '<i data-lucide="clock" style="width: 14px; height: 14px;"></i> Mark Pending'
+                      : '<i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Mark Resolved';
+                    refreshIcons();
+                  }
                 } catch (err) {
                   alert(err.message || 'Failed to update request');
                   btn.disabled = false;
@@ -4483,18 +4542,30 @@ async function renderAdminDashboardView(currentHash) {
               });
             });
 
-            // Bind delete handler
+            // Bind delete handler (instant in-place removal)
             helpRequestsContainer.querySelectorAll('.btn-delete-ticket').forEach(btn => {
               btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 if (!confirm('Are you sure you want to permanently delete this help request?')) return;
+                const card = btn.closest('.ticket-card');
                 const originalHTML = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Deleting...';
                 refreshIcons();
                 try {
                   await api.deleteHelpRequest(id);
-                  await renderAdminDashboardView(currentHash);
+                  if (card) {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.96)';
+                    setTimeout(() => {
+                      card.remove();
+                      const remaining = helpRequestsContainer.querySelectorAll('.ticket-card');
+                      if (remaining.length === 0) {
+                        helpRequestsContainer.innerHTML = '<div class="empty-state">No help and support requests found.</div>';
+                      }
+                    }, 300);
+                  }
                 } catch (err) {
                   alert(err.message || 'Failed to delete request');
                   btn.disabled = false;
@@ -4507,10 +4578,11 @@ async function renderAdminDashboardView(currentHash) {
             // Bind Link Requested Email handler
             helpRequestsContainer.querySelectorAll('.btn-link-requested-email').forEach(btn => {
               btn.addEventListener('click', () => {
+                const ticketId = btn.getAttribute('data-ticket-id');
                 const phone = btn.getAttribute('data-phone');
                 const name = btn.getAttribute('data-name');
                 const email = btn.getAttribute('data-email');
-                openAdminEditEmailModal({ phone, name, email });
+                openAdminEditEmailModal({ ticketId, phone, name, email });
               });
             });
 
@@ -4852,18 +4924,30 @@ async function renderAdminDashboardView(currentHash) {
               `;
             }).join('');
 
-            // Bind delete review handler
+            // Bind delete review handler (instant in-place removal)
             reviewsContainer.querySelectorAll('.btn-delete-review').forEach(btn => {
               btn.addEventListener('click', async () => {
                 if (!confirm('Permanently delete this user review?')) return;
                 const id = btn.getAttribute('data-id');
+                const card = btn.closest('.ticket-card');
                 const originalHTML = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i> Deleting...';
                 refreshIcons();
                 try {
                   await api.deleteReview(id);
-                  await renderAdminDashboardView(currentHash);
+                  if (card) {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.96)';
+                    setTimeout(() => {
+                      card.remove();
+                      const remaining = reviewsContainer.querySelectorAll('.ticket-card');
+                      if (remaining.length === 0) {
+                        reviewsContainer.innerHTML = '<div class="empty-state">No student reviews found.</div>';
+                      }
+                    }, 300);
+                  }
                 } catch (err) {
                   alert(err.message || 'Deletion failed');
                   btn.disabled = false;
@@ -7100,7 +7184,7 @@ function initForgotPasswordEventHandlers() {
 }
 
 // --- ADMIN EDIT USER EMAIL MODAL CONTROLLER ---
-function openAdminEditEmailModal({ userId, phone, name, email }) {
+function openAdminEditEmailModal({ ticketId, userId, phone, name, email }) {
   const modal = document.getElementById('modal-admin-edit-email');
   const errorAlert = document.getElementById('admin-edit-email-error');
   const successAlert = document.getElementById('admin-edit-email-success');
@@ -7111,6 +7195,8 @@ function openAdminEditEmailModal({ userId, phone, name, email }) {
   const emailInput = document.getElementById('admin-edit-email-input');
 
   if (!modal) return;
+
+  modal.dataset.ticketId = ticketId || '';
 
   if (errorAlert) errorAlert.style.display = 'none';
   if (successAlert) successAlert.style.display = 'none';
@@ -7130,7 +7216,10 @@ function openAdminEditEmailModal({ userId, phone, name, email }) {
 
 function closeAdminEditEmailModal() {
   const modal = document.getElementById('modal-admin-edit-email');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.style.display = 'none';
+    modal.dataset.ticketId = '';
+  }
 }
 
 function initAdminEmailModalEventHandlers() {
@@ -7198,15 +7287,50 @@ function initAdminEmailModalEventHandlers() {
           successAlert.style.display = 'block';
         }
 
-        // Refresh admin dashboard to show updated email
-        setTimeout(async () => {
-          closeAdminEditEmailModal();
-          if (typeof window._refreshAdminUserDirectory === 'function') {
-            await window._refreshAdminUserDirectory(true);
-          } else if (typeof renderAdminDashboardView === 'function') {
-            await renderAdminDashboardView();
+        // Instant in-place DOM update for any matching support ticket cards
+        const linkedTicketId = modal.dataset.ticketId;
+        const targetBoxes = [];
+        if (linkedTicketId) {
+          const b = document.getElementById('ticket-email-box-' + linkedTicketId);
+          if (b) targetBoxes.push(b);
+        }
+        // Also check any ticket cards matching this phone
+        if (phone) {
+          document.querySelectorAll('.btn-link-requested-email').forEach(b => {
+            if (b.getAttribute('data-phone') === phone) {
+              const box = b.closest('.ticket-email-box');
+              if (box && !targetBoxes.includes(box)) targetBoxes.push(box);
+            }
+          });
+        }
+        targetBoxes.forEach(box => {
+          box.style.backgroundColor = '#f0fdf4';
+          box.style.borderColor = '#bbf7d0';
+          box.style.color = '#166534';
+          box.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0; color: #16a34a;"></i>
+              <span>Linked Email: <strong>${escapeHTML(email)}</strong></span>
+              <span style="background: #dcfce7; color: #15803d; font-size: 11px; padding: 2px 7px; border-radius: 12px; font-weight: 700; border: 1px solid #86efac; margin-left: 6px;">✅ Linked</span>
+            </div>
+          `;
+        });
+
+        // In-place update user directory table cell if present
+        if (userId) {
+          const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
+          if (userRow) {
+            const emailCell = userRow.querySelector('.user-email-cell');
+            if (emailCell) emailCell.textContent = email;
           }
-        }, 800);
+        }
+
+        refreshIcons();
+
+        // Close modal smoothly after brief success indication without full page reload
+        setTimeout(() => {
+          closeAdminEditEmailModal();
+        }, 600);
       } catch (err) {
         if (errorAlert) {
           errorAlert.textContent = err.message || 'Failed to update email.';
@@ -9790,6 +9914,30 @@ function playNotificationSound() {
   }
 }
 
+// --- NOTIFICATION DEDUPLICATION & ACKNOWLEDGMENT CACHE ---
+const NOTIF_DISMISSED_KEY = 'studymyte_acknowledged_notif_ids';
+
+function getAcknowledgedNotificationIds() {
+  try {
+    const raw = sessionStorage.getItem(NOTIF_DISMISSED_KEY) || localStorage.getItem(NOTIF_DISMISSED_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function markNotificationAcknowledgedLocally(id) {
+  if (!id) return;
+  try {
+    const set = getAcknowledgedNotificationIds();
+    set.add(String(id));
+    const arr = Array.from(set).slice(-200);
+    const serialized = JSON.stringify(arr);
+    sessionStorage.setItem(NOTIF_DISMISSED_KEY, serialized);
+    localStorage.setItem(NOTIF_DISMISSED_KEY, serialized);
+  } catch (e) { }
+}
+
 async function checkNotifications() {
   // If not logged in, or already displaying a notification modal, do nothing
   if (!localStorage.getItem('token') || isNotificationModalActive) return;
@@ -9797,9 +9945,12 @@ async function checkNotifications() {
   try {
     const unread = await api.getUnreadNotifications();
     if (unread && unread.length > 0) {
-      // Pick the first unread notification to show
-      const notif = unread[0];
-      showNotificationModal(notif);
+      const ackedSet = getAcknowledgedNotificationIds();
+      // Filter out any notifications that were already acknowledged/dismissed on this client
+      const trulyUnread = unread.filter(n => !ackedSet.has(String(n.id)));
+      if (trulyUnread.length > 0) {
+        showNotificationModal(trulyUnread[0]);
+      }
     }
   } catch (err) {
     console.error('Error polling notifications:', err);
@@ -9807,6 +9958,12 @@ async function checkNotifications() {
 }
 
 function showNotificationModal(notif) {
+  if (!notif || !notif.id) return;
+
+  // Final guard: never display if already marked dismissed
+  const ackedSet = getAcknowledgedNotificationIds();
+  if (ackedSet.has(String(notif.id))) return;
+
   isNotificationModalActive = true;
 
   // Play the chime
@@ -9818,21 +9975,28 @@ function showNotificationModal(notif) {
   if (modal && contentEl) {
     contentEl.textContent = notif.message;
     modal.style.display = 'flex';
-    refreshIcons(); // trigger icon rendering inside modal
+    refreshIcons();
 
     // Bind dismiss handlers
     const closeBtn = document.getElementById('modal-view-notification-close');
     const ackBtn = document.getElementById('btn-notification-acknowledge');
 
     const handleClose = async () => {
+      // 1. Immediately record in local acknowledgment cache to prevent double-popup
+      markNotificationAcknowledgedLocally(notif.id);
+
+      // 2. Hide modal instantly
       modal.style.display = 'none';
-      isNotificationModalActive = false;
+
+      // 3. Mark read on server in background
       try {
         await api.markNotificationRead(notif.id);
-        // check again for any more queued unread notifications
-        setTimeout(checkNotifications, 1000);
       } catch (err) {
-        console.error('Error marking notification as read:', err);
+        console.warn('Network delayed marking notification read on server:', err);
+      } finally {
+        isNotificationModalActive = false;
+        // Schedule safe follow-up check for subsequent unread messages
+        setTimeout(checkNotifications, 2000);
       }
     };
 
@@ -10931,17 +11095,29 @@ async function renderPendingContributions() {
       });
     }
 
-    // 6. Bind Individual Approve handlers
+    // 6. Bind Individual Approve handlers (instant in-place removal)
     document.querySelectorAll('.btn-approve-doc').forEach(btn => {
       btn.addEventListener('click', async () => {
         const docId = btn.getAttribute('data-id');
+        const card = btn.closest('.pending-doc-card');
         const originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
         refreshIcons();
         try {
           await api.approveDocument(docId);
-          await renderPendingContributions();
+          if (card) {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.96)';
+            setTimeout(() => {
+              card.remove();
+              const remaining = pendingDocsContainer.querySelectorAll('.pending-doc-card');
+              if (remaining.length === 0) {
+                pendingDocsContainer.innerHTML = '<div class="empty-state" style="padding: 20px; color: var(--text-muted); text-align: center;">No more individual pending contributions.</div>';
+              }
+            }, 300);
+          }
         } catch (err) {
           alert(err.message || 'Failed to approve resource');
           btn.disabled = false;
@@ -10951,18 +11127,30 @@ async function renderPendingContributions() {
       });
     });
 
-    // 7. Bind Individual Reject/Delete handlers
+    // 7. Bind Individual Reject/Delete handlers (instant in-place removal)
     document.querySelectorAll('.btn-reject-doc').forEach(btn => {
       btn.addEventListener('click', async () => {
         const docId = btn.getAttribute('data-id');
         if (!confirm('Are you sure you want to reject and delete this contribution?')) return;
+        const card = btn.closest('.pending-doc-card');
         const originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation" style="width: 14px; height: 14px;"></i>';
         refreshIcons();
         try {
           await api.rejectDocument(docId);
-          await renderPendingContributions();
+          if (card) {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.96)';
+            setTimeout(() => {
+              card.remove();
+              const remaining = pendingDocsContainer.querySelectorAll('.pending-doc-card');
+              if (remaining.length === 0) {
+                pendingDocsContainer.innerHTML = '<div class="empty-state" style="padding: 20px; color: var(--text-muted); text-align: center;">No more individual pending contributions.</div>';
+              }
+            }, 300);
+          }
         } catch (err) {
           alert(err.message || 'Failed to reject resource');
           btn.disabled = false;
@@ -11544,9 +11732,8 @@ function initContributionEventHandlers() {
   };
 
   window.openBlobViewer = function (blobUrl, fileName) {
-    interceptWithDonationPopup(() => {
-      loadPdfIntoViewer(blobUrl, fileName);
-    });
+    // Client-side generated blobs (such as User Manual and Lab Cover/Index pages) bypass donation popup
+    loadPdfIntoViewer(blobUrl, fileName);
   };
 
 
@@ -12259,8 +12446,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const safeUrl = normalizeStudymyteUrl(url);
         return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="mytee-link-btn ${brandClass}" title="Opens in a new window"><i data-lucide="${iconName}" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> <span>${label}</span> <span style="font-size: 10px; opacity: 0.85;">↗</span></a>`;
       })
+      // Parenthesized URLs: clean up (https://...) completely so no dangling parentheses remain
+      .replace(/\(\s*(https?:\/\/[^\s<)]+)\s*\)/g, (match, rawUrl) => {
+        const url = rawUrl.replace(/[\.\,\)\;]+$/, '');
+        const internalRoute = extractInternalRoute(url);
+        if (internalRoute) {
+          let label = internalRoute === '/' ? 'StudyMyte Home' : internalRoute.replace(/^\//, '').replace(/-/g, ' ');
+          label = label.charAt(0).toUpperCase() + label.slice(1);
+          return ` <button type="button" class="mytee-nav-pill-btn" data-nav-path="${internalRoute}" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin: 0 2px; font-size: 12px; vertical-align: baseline;"><i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block;"></i> <span>${label}</span></button> `;
+        }
+        let label = url.replace(/^https?:\/\/(www\.)?/, '');
+        if (label.length > 28) label = label.substring(0, 26) + '...';
+        return ` <a href="${normalizeStudymyteUrl(url)}" target="_blank" rel="noopener noreferrer" class="mytee-link-btn" title="Opens in a new window"><i data-lucide="external-link" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> <span>${label}</span> <span style="font-size: 10px; opacity: 0.85;">↗</span></a> `;
+      })
       // Bare URLs: convert internal URLs to navigation button and external to redirect button
-      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (match, prefix, rawUrl) => {
+      .replace(/(^|[\s])(https?:\/\/[^\s<)]+)/g, (match, prefix, rawUrl) => {
         const url = rawUrl.replace(/[\.\,\)\;]+$/, '');
         const internalRoute = extractInternalRoute(url);
         if (internalRoute) {
@@ -12414,18 +12614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const drawer = document.getElementById('mytee-drawer');
     if (!drawer) return;
 
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
     const willOpen = typeof forceOpen === 'boolean' ? forceOpen : !myteeState.isOpen;
-
-    if (willOpen && !token) {
-      alert('🔒 Please log in to your StudyMyte account to access MYTEE AI.');
-      if (typeof navigate === 'function') {
-        navigate('/login');
-      } else {
-        window.location.hash = '#/login';
-      }
-      return;
-    }
 
     if (typeof forceOpen === 'boolean') {
       myteeState.isOpen = forceOpen;
@@ -12488,21 +12677,14 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollMyteeToBottom();
   }
 
-  function appendModelMessage(data) {
-    const msgBox = document.getElementById('mytee-messages');
-    if (!msgBox) return;
+  let activeStreamingCanceller = null;
 
-    const wrap = document.createElement('div');
-    wrap.className = 'mytee-msg-wrap model';
-
+  function buildModelMessageExtras(data) {
     let cardsHtml = '';
     if (Array.isArray(data.resources) && data.resources.length > 0) {
       cardsHtml = data.resources.map(res => {
         const typeClass = res.type === 'paper' ? 'pyq' : '';
         const tagLabel = res.type === 'paper' ? 'PYQ' : (res.type === 'notes' ? 'NOTES' : res.type.toUpperCase());
-        const docViewUrl = res.viewUrl || `/api/documents/download/${res.id}`;
-        const docDlUrl = `/api/documents/download/${res.id}`;
-
         return `
           <div class="mytee-resource-card">
             <div class="mytee-resource-header">
@@ -12524,52 +12706,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }).join('');
     }
 
-    // Auto-extract platform links and build prominent redirect buttons
     const combinedActions = [...(Array.isArray(data.actions) ? data.actions : [])];
     const existingActionUrls = new Set(combinedActions.map(a => a.path));
-
     const replyText = data.reply || '';
     const knownPlatforms = [
-      {
-        match: /https?:\/\/(www\.)?instagram\.com\/[^\s\)\"\']+/i,
-        url: 'https://www.instagram.com/studymyte_official/',
-        label: 'Open Instagram',
-        type: 'instagram'
-      },
-      {
-        match: /https?:\/\/t\.me\/[^\s\)\"\']+/i,
-        url: 'https://t.me/+Y8-xHuu_XBo0ZDBl',
-        label: 'Open Telegram Channel',
-        type: 'telegram'
-      },
-      {
-        match: /https?:\/\/github\.com\/[^\s\)\"\']+/i,
-        url: 'https://github.com/ankitgl200/studyhubStudents',
-        label: 'Open GitHub Repo',
-        type: 'github'
-      },
-      {
-        match: /mailto:support@studymyte\.tech/i,
-        url: 'mailto:support@studymyte.tech',
-        label: 'Email Support',
-        type: 'mail'
-      },
-      {
-        match: /https?:\/\/(?:www\.)?studymyte\.tech(\/#|\/)?support/i,
-        url: 'https://studymyte.tech/#/support',
-        label: 'Open Support Portal',
-        type: 'support'
-      }
+      { match: /https?:\/\/(www\.)?instagram\.com\/[^\s\)\"\']+/i, url: 'https://www.instagram.com/studymyte_official/', label: 'Open Instagram', type: 'instagram' },
+      { match: /https?:\/\/t\.me\/[^\s\)\"\']+/i, url: 'https://t.me/+Y8-xHuu_XBo0ZDBl', label: 'Open Telegram Channel', type: 'telegram' },
+      { match: /https?:\/\/github\.com\/[^\s\)\"\']+/i, url: 'https://github.com/ankitgl200/studyhubStudents', label: 'Open GitHub Repo', type: 'github' },
+      { match: /mailto:support@studymyte\.tech/i, url: 'mailto:support@studymyte.tech', label: 'Email Support', type: 'mail' },
+      { match: /https?:\/\/(?:www\.)?studymyte\.tech(\/#|\/)?support/i, url: 'https://studymyte.tech/#/support', label: 'Open Support Portal', type: 'support' }
     ];
 
     for (const plat of knownPlatforms) {
       if (plat.match.test(replyText) && !existingActionUrls.has(plat.url)) {
-        combinedActions.push({
-          label: plat.label,
-          path: plat.url,
-          external: true,
-          platformType: plat.type
-        });
+        combinedActions.push({ label: plat.label, path: plat.url, external: true, platformType: plat.type });
         existingActionUrls.add(plat.url);
       }
     }
@@ -12579,42 +12729,41 @@ document.addEventListener('DOMContentLoaded', () => {
       actionsHtml = `
         <div class="mytee-actions-container" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
           ${combinedActions.map(act => {
-        const internalRoute = extractInternalRoute(act.path);
-        const isExternal = !internalRoute && (act.external || (act.path && (act.path.startsWith('http://') || act.path.startsWith('https://') || act.path.startsWith('mailto:'))));
-        if (isExternal) {
-          act.path = normalizeStudymyteUrl(act.path);
-          let brandClass = act.platformType || '';
-          let iconName = 'external-link';
-          if (!brandClass) {
-            if (/instagram/i.test(act.path) || /instagram/i.test(act.label)) { brandClass = 'instagram'; iconName = 'instagram'; }
-            else if (/telegram|t\.me/i.test(act.path) || /telegram/i.test(act.label)) { brandClass = 'telegram'; iconName = 'send'; }
-            else if (/github/i.test(act.path) || /github/i.test(act.label)) { brandClass = 'github'; iconName = 'github'; }
-            else if (/mailto:/i.test(act.path)) { brandClass = 'mail'; iconName = 'mail'; }
-            else if (/support/i.test(act.path)) { brandClass = 'support'; iconName = 'life-buoy'; }
-          } else {
-            if (brandClass === 'instagram') iconName = 'instagram';
-            else if (brandClass === 'telegram') iconName = 'send';
-            else if (brandClass === 'github') iconName = 'github';
-            else if (brandClass === 'mail') iconName = 'mail';
-            else if (brandClass === 'support') iconName = 'life-buoy';
-          }
-
-          return `
+            const internalRoute = extractInternalRoute(act.path);
+            const isExternal = !internalRoute && (act.external || (act.path && (act.path.startsWith('http://') || act.path.startsWith('https://') || act.path.startsWith('mailto:'))));
+            if (isExternal) {
+              act.path = normalizeStudymyteUrl(act.path);
+              let brandClass = act.platformType || '';
+              let iconName = 'external-link';
+              if (!brandClass) {
+                if (/instagram/i.test(act.path) || /instagram/i.test(act.label)) { brandClass = 'instagram'; iconName = 'instagram'; }
+                else if (/telegram|t\.me/i.test(act.path) || /telegram/i.test(act.label)) { brandClass = 'telegram'; iconName = 'send'; }
+                else if (/github/i.test(act.path) || /github/i.test(act.label)) { brandClass = 'github'; iconName = 'github'; }
+                else if (/mailto:/i.test(act.path)) { brandClass = 'mail'; iconName = 'mail'; }
+                else if (/support/i.test(act.path)) { brandClass = 'support'; iconName = 'life-buoy'; }
+              } else {
+                if (brandClass === 'instagram') iconName = 'instagram';
+                else if (brandClass === 'telegram') iconName = 'send';
+                else if (brandClass === 'github') iconName = 'github';
+                else if (brandClass === 'mail') iconName = 'mail';
+                else if (brandClass === 'support') iconName = 'life-buoy';
+              }
+              return `
                 <a href="${act.path}" target="_blank" rel="noopener noreferrer" class="mytee-redirect-card-btn ${brandClass}" title="Opens in a new window">
                   <i data-lucide="${iconName}" style="width: 14px; height: 14px;"></i>
                   <span>${act.label}</span>
                   <span style="font-size: 11px; opacity: 0.85; margin-left: 2px;">↗</span>
                 </a>
               `;
-        } else {
-          const navPath = internalRoute || act.path;
-          return `
+            } else {
+              const navPath = internalRoute || act.path;
+              return `
                 <button type="button" class="mytee-nav-pill-btn" data-nav-path="${navPath}">
                   <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i> ${act.label}
                 </button>
               `;
-        }
-      }).join('')}
+            }
+          }).join('')}
         </div>
       `;
     }
@@ -12633,32 +12782,73 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    const messageHtml = formatMyteeMarkdown(data.reply || '');
-
-    wrap.innerHTML = `
-      <div class="mytee-msg-bubble">
-        ${messageHtml}
-        ${cardsHtml}
-        ${ticketHtml}
-        ${actionsHtml}
-        <div class="mytee-msg-footer">
-          <span>Just now</span>
-          <button type="button" class="mytee-feedback-action mytee-btn-copy" title="Copy response">
-            <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy
-          </button>
-          <button type="button" class="mytee-feedback-action mytee-btn-like" title="Helpful answer">
-            <i data-lucide="thumbs-up" style="width: 12px; height: 12px;"></i>
-          </button>
-          <button type="button" class="mytee-feedback-action mytee-btn-dislike" title="Not helpful">
-            <i data-lucide="thumbs-down" style="width: 12px; height: 12px;"></i>
-          </button>
-        </div>
+    const footerHtml = `
+      <div class="mytee-msg-footer">
+        <span>Just now</span>
+        <button type="button" class="mytee-feedback-action mytee-btn-copy" title="Copy response">
+          <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy
+        </button>
+        <button type="button" class="mytee-feedback-action mytee-btn-like" title="Helpful answer">
+          <i data-lucide="thumbs-up" style="width: 12px; height: 12px;"></i>
+        </button>
+        <button type="button" class="mytee-feedback-action mytee-btn-dislike" title="Not helpful">
+          <i data-lucide="thumbs-down" style="width: 12px; height: 12px;"></i>
+        </button>
       </div>
     `;
 
+    return { cardsHtml, actionsHtml, ticketHtml, footerHtml };
+  }
+
+  function handleMyteeClientAction(action) {
+    if (!action) return;
+    if (action.type === 'navigate') {
+      const targetPath = action.path || '/';
+      if (typeof navigate === 'function') {
+        navigate(targetPath);
+      } else {
+        window.location.hash = targetPath.startsWith('#') ? targetPath : '#' + (targetPath.startsWith('/') ? targetPath : '/' + targetPath);
+      }
+      if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') {
+        toggleMyteeDrawer(false);
+      }
+    } else if (action.type === 'set_theme' && typeof setThemeMode === 'function') {
+      setThemeMode(action.value, true);
+    } else if (action.type === 'set_font' && typeof applyFontStyle === 'function') {
+      applyFontStyle(action.value, true);
+    } else if (action.type === 'download_app_android') {
+      const dlLink = document.createElement('a');
+      dlLink.href = '/studymyte.apk';
+      dlLink.download = 'studymyte.apk';
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      document.body.removeChild(dlLink);
+    }
+  }
+
+  function appendModelMessage(data) {
+    const msgBox = document.getElementById('mytee-messages');
+    if (!msgBox) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mytee-msg-wrap model';
+
+    const { cardsHtml, actionsHtml, ticketHtml, footerHtml } = buildModelMessageExtras(data);
+    const fullReply = data.reply || '';
+
+    wrap.innerHTML = `
+      <div class="mytee-msg-bubble">
+        <div class="mytee-msg-text">${formatMyteeMarkdown(fullReply)}</div>
+        <div class="mytee-msg-extras">
+          ${cardsHtml}
+          ${ticketHtml}
+          ${actionsHtml}
+          ${footerHtml}
+        </div>
+      </div>
+    `;
     msgBox.appendChild(wrap);
     scrollMyteeToBottom();
-
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
     }
@@ -12668,23 +12858,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!text || typeof text !== 'string') return;
     const clean = text.trim();
     if (!clean || myteeState.isSending) return;
-
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-    if (!token) {
-      appendModelMessage({
-        reply: '🔒 **Please Log In to Access MYTEE**\n\nMYTEE AI is available exclusively to registered members. Please log in or create an account to start asking questions or exploring study resources.',
-        actions: [
-          { label: 'Log In', path: '/login' },
-          { label: 'Register', path: '/register' }
-        ]
-      });
-      if (typeof navigate === 'function') {
-        navigate('/login');
-      } else {
-        window.location.hash = '#/login';
-      }
-      return;
-    }
 
     myteeState.isSending = true;
     appendUserMessage(clean);
@@ -12701,11 +12874,13 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
           ...getAuthTokenHeader()
         },
         body: JSON.stringify({
           message: clean,
-          sessionId: myteeState.sessionId
+          sessionId: myteeState.sessionId,
+          stream: true
         })
       });
 
@@ -12732,38 +12907,115 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(errJson.message || 'Server error communicating with MYTEE');
       }
 
-      const resData = await response.json();
-      if (resData.sessionId) {
-        myteeState.sessionId = resData.sessionId;
-        localStorage.setItem('mytee_session_id', resData.sessionId);
-      }
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/event-stream') && response.body) {
+        // --- REAL-TIME SERVER-SENT EVENTS (SSE) STREAMING ---
+        const msgBox = document.getElementById('mytee-messages');
+        const wrap = document.createElement('div');
+        wrap.className = 'mytee-msg-wrap model';
+        wrap.innerHTML = `
+          <div class="mytee-msg-bubble">
+            <div class="mytee-msg-text"></div>
+            <span class="mytee-streaming-cursor"></span>
+            <div class="mytee-msg-extras mytee-revealed-content" style="display: none; margin-top: 6px;"></div>
+          </div>
+        `;
+        msgBox.appendChild(wrap);
+        scrollMyteeToBottom();
 
-      if (resData.clientAction) {
-        if (resData.clientAction.type === 'navigate') {
-          const targetPath = resData.clientAction.path || '/';
-          if (typeof navigate === 'function') {
-            navigate(targetPath);
-          } else {
-            window.location.hash = targetPath.startsWith('#') ? targetPath : '#' + (targetPath.startsWith('/') ? targetPath : '/' + targetPath);
+        const textEl = wrap.querySelector('.mytee-msg-text');
+        const cursorEl = wrap.querySelector('.mytee-streaming-cursor');
+        const extrasEl = wrap.querySelector('.mytee-msg-extras');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedText = '';
+        let finalData = null;
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          let currentEvent = 'message';
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
+
+            if (trimmedLine.startsWith('event:')) {
+              currentEvent = trimmedLine.replace(/^event:\s*/, '').trim();
+            } else if (trimmedLine.startsWith('data:')) {
+              const jsonStr = trimmedLine.replace(/^data:\s*/, '');
+              try {
+                const parsed = JSON.parse(jsonStr);
+                if (currentEvent === 'token') {
+                  if (parsed.text) {
+                    accumulatedText += parsed.text;
+                    if (textEl) {
+                      textEl.innerHTML = formatMyteeMarkdown(accumulatedText);
+                    }
+                    scrollMyteeToBottom();
+                  }
+                } else if (currentEvent === 'complete') {
+                  finalData = parsed;
+                }
+              } catch (parseErr) {
+                console.warn('[MYTEE Stream] Chunk parse error:', parseErr);
+              }
+            }
           }
-          if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') {
-            toggleMyteeDrawer(false);
-          }
-        } else if (resData.clientAction.type === 'set_theme' && typeof setThemeMode === 'function') {
-          setThemeMode(resData.clientAction.value, true);
-        } else if (resData.clientAction.type === 'set_font' && typeof applyFontStyle === 'function') {
-          applyFontStyle(resData.clientAction.value, true);
-        } else if (resData.clientAction.type === 'download_app_android') {
-          const dlLink = document.createElement('a');
-          dlLink.href = '/studymyte.apk';
-          dlLink.download = 'studymyte.apk';
-          document.body.appendChild(dlLink);
-          dlLink.click();
-          document.body.removeChild(dlLink);
         }
-      }
 
-      appendModelMessage(resData);
+        // Clean up blinking cursor
+        if (cursorEl) cursorEl.remove();
+
+        const finalPayload = finalData || { reply: accumulatedText };
+
+        if (finalPayload.sessionId) {
+          myteeState.sessionId = finalPayload.sessionId;
+          localStorage.setItem('mytee_session_id', finalPayload.sessionId);
+        }
+
+        if (finalPayload.reply && textEl) {
+          textEl.innerHTML = formatMyteeMarkdown(finalPayload.reply);
+        }
+
+        const { cardsHtml, actionsHtml, ticketHtml, footerHtml } = buildModelMessageExtras(finalPayload);
+        if (extrasEl) {
+          extrasEl.innerHTML = `
+            ${cardsHtml}
+            ${ticketHtml}
+            ${actionsHtml}
+            ${footerHtml}
+          `;
+          extrasEl.style.display = 'block';
+        }
+
+        if (finalPayload.clientAction) {
+          handleMyteeClientAction(finalPayload.clientAction);
+        }
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+        scrollMyteeToBottom();
+
+      } else {
+        // Fallback for non-streaming response
+        const resData = await response.json();
+        if (resData.sessionId) {
+          myteeState.sessionId = resData.sessionId;
+          localStorage.setItem('mytee_session_id', resData.sessionId);
+        }
+        if (resData.clientAction) {
+          handleMyteeClientAction(resData.clientAction);
+        }
+        appendModelMessage(resData);
+      }
 
     } catch (err) {
       removeTypingIndicator();
@@ -12997,5 +13249,450 @@ document.addEventListener('DOMContentLoaded', () => {
     close: () => toggleMyteeDrawer(false),
     toggle: () => toggleMyteeDrawer(),
     send: (q) => handleSendMyteeMessage(q)
+  };
+})();
+
+// =========================================================================
+// StudyMyte AI Threat Sentinel & Unusual Activity Reports UI Controller
+// =========================================================================
+
+let securityReportsList = [];
+
+async function loadAdminSecurityReports() {
+  const container = document.getElementById('admin-security-reports-container');
+  const countBadge = document.getElementById('admin-security-reports-count');
+  if (!container) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const res = await fetch('/api/admin/security/reports', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (res.status === 403) {
+      container.innerHTML = '<div style="color: #ef4444; padding: 20px;">Access denied: Administrator privileges required.</div>';
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.success) {
+      container.innerHTML = '<div style="color: #ef4444; padding: 20px;">' + (data.message || 'Failed to load security reports') + '</div>';
+      return;
+    }
+
+    securityReportsList = data.reports || [];
+    if (countBadge) countBadge.textContent = securityReportsList.length;
+
+    renderAdminSecurityReports(securityReportsList);
+  } catch (err) {
+    console.error('Error loading security reports:', err);
+    container.innerHTML = '<div style="color: #ef4444; padding: 20px;">Error communicating with security surveillance service.</div>';
+  }
+}
+
+function renderAdminSecurityReports(reports) {
+  const container = document.getElementById('admin-security-reports-container');
+  if (!container) return;
+
+  if (!reports || reports.length === 0) {
+    container.innerHTML = `
+      <div style="background: var(--card-bg, #ffffff); border: 1px dashed var(--border-color, rgba(30,86,160,0.15)); border-radius: 12px; padding: 40px 20px; text-align: center;">
+        <i data-lucide="shield-check" style="width: 48px; height: 48px; color: #10b981; margin: 0 auto 12px auto; display: block;"></i>
+        <h4 style="margin: 0 0 6px 0; font-size: 16px; color: var(--text-main, #1c3d5a);">No Suspicious Activity Detected</h4>
+        <p style="margin: 0; font-size: 13px; color: var(--text-muted, #64748b);">The AI Threat Sentinel has detected zero security anomalies across active student sessions.</p>
+      </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  const token = localStorage.getItem('token') || '';
+  let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
+
+  reports.forEach(report => {
+    const isBanned = report.isBlocked || report.status === 'banned';
+    const statusColor = isBanned ? '#ef4444' : '#f59e0b';
+    const statusLabel = isBanned ? '⛔ ACCOUNT LOCKED' : '⚠️ WARNING ACTIVE';
+    const banInfo = report.banExpiresAt 
+      ? ('Suspension expires: ' + new Date(report.banExpiresAt).toLocaleString())
+      : (isBanned ? 'Permanent Ban' : 'No active lockout');
+
+    const pdfUrl = `/api/admin/security/report-pdf/${report.id}?token=${encodeURIComponent(token)}`;
+
+    html += `
+      <div style="background: var(--card-bg, #ffffff); border: 1px solid ${isBanned ? 'rgba(239, 68, 68, 0.5)' : 'var(--border-color, rgba(30,86,160,0.15))'}; border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm, 0 4px 12px rgba(0,0,0,0.06));">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+              <h4 style="margin: 0; font-size: 18px; color: var(--text-main, #1c3d5a); font-weight: 700;">${escapeHTML(report.userName)}</h4>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; background: ${statusColor}18; color: ${statusColor}; border: 1px solid ${statusColor}55;">
+                ${statusLabel}
+              </span>
+              <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(var(--primary-rgb, 37, 99, 235), 0.1); color: var(--primary, #2563eb); font-weight: 600;">
+                ${escapeHTML((report.userRole || 'student').toUpperCase())}
+              </span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted, #64748b);">
+              ${escapeHTML(report.userEmail)} • Total Strikes: <strong style="color: #ef4444;">${report.totalStrikes} / 3</strong> • ${banInfo}
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="${pdfUrl}" target="_blank" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; text-decoration: none;">
+              <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Download Incident PDF
+            </a>
+            ${isBanned ? `
+              <button onclick="unblockUserSecurity('${report.userId}')" class="btn btn-success" style="font-size: 12px; padding: 6px 12px; background: #10b981; border: none; color: #fff; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="unlock" style="width: 14px; height: 14px;"></i> Unblock User
+              </button>
+            ` : `
+              <button onclick="manualBanUserSecurity('${report.userId}')" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px; background: #ef4444; border: none; color: #fff; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="lock" style="width: 14px; height: 14px;"></i> Manual Lockout
+              </button>
+            `}
+            <button onclick="deleteSecurityReport('${report.id}')" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; color: #ef4444; border-color: rgba(239, 68, 68, 0.35);" title="Delete this security report">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Consolidated Strikes Timeline -->
+        <div style="margin-top: 14px; border-top: 1px solid var(--border-color, rgba(30,86,160,0.12)); padding-top: 14px;">
+          <h5 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted, #64748b); display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="activity" style="width: 15px; height: 15px;"></i> Recorded Security Strikes & Forensics Evidence:
+          </h5>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            ${(report.strikes || []).map(s => `
+              <div style="background: var(--white, #ffffff); border: 1px solid var(--border-color, rgba(30,86,160,0.12)); border-left: 4px solid ${s.severity === 'extreme' ? '#ef4444' : (s.severity === 'high' ? '#f59e0b' : '#3b82f6')}; border-radius: 6px; padding: 12px 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                  <span style="font-size: 12px; font-weight: 700; color: ${s.severity === 'extreme' ? '#ef4444' : '#f59e0b'};">
+                    STRIKE ${s.strikeNumber} • ${(s.threatCategory || 'THREAT').toUpperCase()} (${(s.severity || 'NORMAL').toUpperCase()} RISK)
+                  </span>
+                  <span style="font-size: 11px; color: var(--text-muted, #64748b);">${new Date(s.createdAt).toLocaleString()}</span>
+                </div>
+                <div style="font-size: 13px; margin-bottom: 6px; color: var(--text-main, #1c3d5a);">
+                  <strong>Offending Message:</strong> <code style="background: rgba(239,68,68,0.12); color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: 600;">${escapeHTML(s.flaggedMessage)}</code>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted, #64748b);">
+                  <strong>AI Forensic Reason:</strong> ${escapeHTML(s.aiReason || 'Security policy violation')}
+                </div>
+                ${s.recentChat && s.recentChat.length > 0 ? `
+                  <details style="margin-top: 8px; font-size: 12px;">
+                    <summary style="cursor: pointer; color: var(--primary, #2563eb); font-weight: 600;">View offending chat transcript context (${s.recentChat.length} turns)</summary>
+                    <div style="margin-top: 6px; background: rgba(var(--primary-rgb, 37, 99, 235), 0.04); border: 1px solid var(--border-color, rgba(30,86,160,0.12)); padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 180px; overflow-y: auto;">
+                      ${s.recentChat.map(c => `
+                        <div style="margin-bottom: 4px; line-height: 1.4;">
+                          <strong style="color: ${c.role === 'user' ? 'var(--primary, #2563eb)' : '#059669'};">${c.role.toUpperCase()}:</strong>
+                          <span style="color: var(--text-main, #1c3d5a);">${escapeHTML(c.content)}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </details>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+  if (window.lucide) lucide.createIcons();
+}
+
+async function deleteSecurityReport(reportId) {
+  if (!confirm('Are you sure you want to permanently delete this security activity report? This action cannot be undone.')) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/admin/security/report/' + reportId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message || 'Security report deleted successfully.');
+      loadAdminSecurityReports();
+    } else {
+      alert(data.message || 'Failed to delete security report.');
+    }
+  } catch (err) {
+    console.error('Delete security report error:', err);
+    alert('Network error deleting security report.');
+  }
+}
+
+async function unblockUserSecurity(userId) {
+  if (!confirm('Are you sure you want to unblock this user and restore full platform access?')) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/admin/security/unblock/' + userId, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message || 'User unblocked successfully.');
+      loadAdminSecurityReports();
+    } else {
+      alert(data.message || 'Failed to unblock user.');
+    }
+  } catch (err) {
+    console.error('Unblock error:', err);
+    alert('Network error unblocking user.');
+  }
+}
+
+async function manualBanUserSecurity(userId) {
+  const duration = prompt('Enter suspension duration: "1h" (1 hour), "3d" (3 days), or "perm" (Permanent):', '1h');
+  if (!duration) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/admin/security/ban/' + userId, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ banDuration: duration.trim(), reason: 'Manual administrative security lockout' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message || 'User placed under suspension.');
+      loadAdminSecurityReports();
+    } else {
+      alert(data.message || 'Failed to ban user.');
+    }
+  } catch (err) {
+    console.error('Ban error:', err);
+    alert('Network error banning user.');
+  }
+}
+
+// Global Inescapable Blocked Overlay Check
+function enforceSecurityLockdownScreen(lockdownData) {
+  // ADMIN IMMUNITY: Admins and superadmins are never locked out
+  if (window.currentUser && (window.currentUser.role === 'admin' || window.currentUser.role === 'superadmin')) {
+    return;
+  }
+
+  let overlay = document.getElementById('security-lockdown-wall');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'security-lockdown-wall';
+    overlay.style.cssText = 'position: fixed; inset: 0; z-index: 99999999; background: #090d16; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;';
+    document.body.appendChild(overlay);
+  }
+
+  const banExpiry = lockdownData.currentBanExpiresAt ? new Date(lockdownData.currentBanExpiresAt) : null;
+  const isPermanent = !banExpiry;
+
+  function updateCountdown() {
+    let timerText = '';
+    if (isPermanent) {
+      timerText = '<span style="color: #ef4444; font-weight: 700;">PERMANENT LOCKOUT</span>';
+    } else {
+      const diff = banExpiry - new Date();
+      if (diff <= 0) {
+        timerText = '<span style="color: #10b981; font-weight: 700;">Suspension Expired! Reloading...</span>';
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        timerText = `<span style="color: #f59e0b; font-weight: 700; font-family: monospace; font-size: 22px;">${h}h ${m}m ${s}s</span>`;
+      }
+    }
+
+    overlay.innerHTML = `
+      <div style="max-width: 580px; background: rgba(30, 41, 59, 0.9); border: 2px solid #ef4444; border-radius: 16px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(239, 68, 68, 0.3);">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid #ef4444;">
+          <span style="font-size: 36px;">🛡️</span>
+        </div>
+        <h2 style="margin: 0 0 10px 0; color: #ef4444; font-size: 26px;">ACCESS TERMINATED</h2>
+        <h4 style="margin: 0 0 16px 0; color: #f8fafc; font-size: 18px;">Account Suspended by AI Security Sentinel</h4>
+        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+          ${lockdownData.message || 'Your account has been locked due to severe security violations (hacking simulation, database breach probing, or prompt injection).'}
+        </p>
+        <div style="background: rgba(0,0,0,0.4); border-radius: 10px; padding: 16px; margin-bottom: 24px;">
+          <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">LOCKOUT STATUS</div>
+          <div>${timerText}</div>
+        </div>
+        <p style="color: #64748b; font-size: 12px; margin-bottom: 0;">
+          All platform files, lecture notes, and papers are locked. If you believe this is an error, contact administration at <a href="mailto:support@studymyte.tech" style="color: #38bdf8;">support@studymyte.tech</a>.
+        </p>
+      </div>
+    `;
+  }
+
+  updateCountdown();
+  if (!isPermanent) {
+    setInterval(updateCountdown, 1000);
+  }
+}
+
+// Floating Security Sentinel Warning Banner (Strikes 1 & 2)
+function showSecuritySentinelWarningBanner(strikeNumber, threatCategory, message) {
+  // ADMIN IMMUNITY: Do not show warning toast to testing admins
+  if (window.currentUser && (window.currentUser.role === 'admin' || window.currentUser.role === 'superadmin')) {
+    return;
+  }
+
+  let existingBanner = document.getElementById('security-sentinel-toast');
+  if (existingBanner) existingBanner.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'security-sentinel-toast';
+  banner.style.cssText = `
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999999;
+    max-width: 540px;
+    width: 90%;
+    background: #0f172a;
+    border: 2px solid ${strikeNumber >= 2 ? '#ef4444' : '#f59e0b'};
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px ${strikeNumber >= 2 ? 'rgba(239,68,68,0.4)' : 'rgba(245,158,11,0.3)'};
+    border-radius: 12px;
+    padding: 16px 20px;
+    color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    animation: slideDownToast 0.3s ease;
+  `;
+
+  banner.innerHTML = `
+    <div style="width: 36px; height: 36px; border-radius: 50%; background: ${strikeNumber >= 2 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px;">
+      ${strikeNumber >= 2 ? '🚨' : '⚠️'}
+    </div>
+    <div style="flex: 1;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <strong style="color: ${strikeNumber >= 2 ? '#ef4444' : '#f59e0b'}; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+          Unusual Activity Detected (Strike ${strikeNumber}/3)
+        </strong>
+        <span style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #94a3b8;">
+          ${threatCategory || 'SECURITY VIOLATION'}
+        </span>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.4; color: #cbd5e1;">
+        ${message || 'Parameter tampering, script injection, or unauthorized operations detected. All activity is logged.'}
+      </p>
+      <div style="margin-top: 6px; font-size: 11px; color: #ef4444; font-weight: 600;">
+        ⚠️ 3 strikes will result in an immediate automatic account lockout.
+      </div>
+    </div>
+    <button onclick="this.parentElement.remove()" style="background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+  `;
+
+  document.body.appendChild(banner);
+
+  setTimeout(() => {
+    if (banner && banner.parentElement) {
+      banner.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      banner.style.opacity = '0';
+      banner.style.transform = 'translate(-50%, -20px)';
+      setTimeout(() => banner.remove(), 400);
+    }
+  }, 7000);
+}
+
+// Client-Side Security Telemetry (Reports DevTools Console Tampering)
+async function reportClientSecurityTamper(type, details, payload) {
+  // ADMIN IMMUNITY: Admins/superadmins are whitelisted for console testing
+  if (window.currentUser && (window.currentUser.role === 'admin' || window.currentUser.role === 'superadmin')) {
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const res = await fetch('/api/admin/security/telemetry', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ type, details, payload })
+    });
+    const data = await res.json();
+    if (data.code === 'ACCOUNT_SECURITY_LOCKDOWN' || data.blocked) {
+      enforceSecurityLockdownScreen(data);
+    } else if (data.code === 'SECURITY_VIOLATION') {
+      showSecuritySentinelWarningBanner(data.strikeNumber || 1, data.threatCategory || 'Console Tampering', data.message);
+    }
+  } catch (err) {
+    console.error('Tamper reporting error:', err);
+  }
+}
+
+// DevTools Console Role Tampering Trap:
+// Traps attempts to set `currentUser.role = 'admin'` or `window.currentUser = { role: 'admin' }` in browser DevTools
+(function setupConsoleTamperTrap() {
+  let _trackedUser = window.currentUser || null;
+
+  function attachRoleGuard(userObj) {
+    if (!userObj || typeof userObj !== 'object') return;
+    // Admins and superadmins are completely exempt from console role trapping
+    if (userObj.role === 'admin' || userObj.role === 'superadmin') return;
+
+    let _role = userObj.role || 'student';
+
+    try {
+      Object.defineProperty(userObj, 'role', {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return _role;
+        },
+        set(newVal) {
+          if (newVal !== _role && (newVal === 'admin' || newVal === 'superadmin')) {
+            console.warn('%c[SECURITY SENTINEL] Unauthorized DevTools role elevation detected! Action reported.', 'color: #ef4444; font-weight: bold; font-size: 15px;');
+            reportClientSecurityTamper(
+              'CONSOLE_ROLE_TAMPERING',
+              `User attempted to elevate role from '${_role}' to '${newVal}' via browser DevTools console`,
+              `currentUser.role = '${newVal}'`
+            );
+            return;
+          }
+          _role = newVal;
+        }
+      });
+    } catch (e) {}
+  }
+
+  // Poll/watch for when currentUser is assigned
+  let trapInterval = setInterval(() => {
+    if (window.currentUser && window.currentUser !== _trackedUser) {
+      _trackedUser = window.currentUser;
+      attachRoleGuard(_trackedUser);
+    }
+  }, 1000);
+})();
+
+// Global fetch interceptor to trap 403 ACCOUNT_SECURITY_LOCKDOWN and SECURITY_VIOLATION
+(function() {
+  const origFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const res = await origFetch.apply(this, args);
+    if (res.status === 403) {
+      try {
+        const cloned = res.clone();
+        const json = await cloned.json();
+        if (json.blocked || json.code === 'ACCOUNT_SECURITY_LOCKDOWN') {
+          enforceSecurityLockdownScreen(json);
+        } else if (json.code === 'SECURITY_VIOLATION') {
+          showSecuritySentinelWarningBanner(json.strikeNumber || 1, json.threatCategory || 'Security Violation', json.message);
+        }
+      } catch (e) {}
+    }
+    return res;
   };
 })();

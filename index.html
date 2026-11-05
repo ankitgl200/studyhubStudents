@@ -103,7 +103,7 @@
     gtag('config', 'G-MLBCW8QCG1');
   </script>
   <link id="theme-stylesheet" rel="stylesheet" href="/style.css?v=1.3.4">
-  <link rel="stylesheet" href="/mytee.css?v=1.3.8">
+  <link rel="stylesheet" href="/mytee.css?v=1.3.13">
   <style>
     /* Critical fallback to prevent flash of unstyled content */
     #mytee-drawer.mytee-hidden { display: none !important; }
@@ -2424,6 +2424,29 @@
             </div>
           </div>
 
+          <!-- Section: Unusual Activity & Security Reports (AI Threat Sentinel) -->
+          <div id="admin-section-security" class="admin-subview" style="display: none; margin-bottom: 35px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid rgba(239, 68, 68, 0.2); padding-bottom: 12px;">
+              <div>
+                <h3 class="section-title" style="margin: 0; font-size: 20px; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="shield-alert" style="color: #ef4444; width: 22px; height: 22px;"></i>
+                  Unusual Activity Reports (<span id="admin-security-reports-count">0</span>)
+                </h3>
+                <p style="color: var(--text-muted); margin-top: 4px; font-size: 14px; margin-bottom: 0;">
+                  Autonomous AI Threat Surveillance • 3-Strike Escalation Dossiers &amp; Forensic Logs
+                </p>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="btn-refresh-security-reports" class="btn btn-secondary" style="font-size: 13px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div id="admin-security-reports-container">
+              <div style="text-align: center; padding: 30px; color: var(--text-muted);">Loading security dossiers...</div>
+            </div>
+          </div>
+
           <!-- Section: User Ratings & Reviews -->
           <div id="admin-section-reviews" class="admin-subview" style="display: none;">
             <div
@@ -4247,7 +4270,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
-  <script src="/app.js?v=1.3.8"></script>
+  <script src="/app.js?v=1.3.13"></script>
 
 
 

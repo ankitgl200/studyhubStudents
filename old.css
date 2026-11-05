@@ -1650,8 +1650,6 @@ body {
   height: 24px;
 }
 
-/* Floating SONIC Chatbot Button */
-.btn-floating-sonic {
   position: fixed;
   bottom: 30px;
   right: 30px;
@@ -1671,13 +1669,11 @@ body {
   animation: pulse-light 2s infinite;
 }
 
-.btn-floating-sonic:hover {
   background-color: var(--primary-dark);
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
 }
 
-.btn-floating-sonic i {
   width: 24px;
   height: 24px;
 }
@@ -1701,7 +1697,6 @@ body {
     width: 48px;
     height: 48px;
   }
-  .btn-floating-sonic {
     bottom: 20px;
     right: 20px;
     width: 48px;
@@ -1834,15 +1829,12 @@ body {
   }
 }
 
-/* Print Styling for SONIC Chatbot */
 @media print {
   body * {
     visibility: hidden;
   }
-  #view-sonic, #view-sonic * {
     visibility: visible;
   }
-  #view-sonic {
     position: absolute;
     left: 0;
     top: 0;
@@ -1852,21 +1844,18 @@ body {
     background: white !important;
     box-shadow: none !important;
   }
-  #view-sonic .chatbot-container {
     max-width: 100% !important;
     width: 100% !important;
     height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
   }
-  #view-sonic .card {
     box-shadow: none !important;
     border: none !important;
     height: auto !important;
     overflow: visible !important;
     background: transparent !important;
   }
-  #sonic-messages {
     overflow-y: visible !important;
     height: auto !important;
     background: white !important;
@@ -1874,7 +1863,6 @@ body {
     display: flex !important;
     flex-direction: column !important;
   }
-  #btn-print-chat, #form-sonic-chat, #sonic-typing, .navbar, .mobile-nav-menu, .mobile-nav-overlay, .footer {
     display: none !important;
   }
   .message-bubble {
@@ -1886,8 +1874,6 @@ body {
   }
 }
 
-/* SONIC Message Bubble Animations */
-@keyframes sonic-bubble-in {
   0% {
     opacity: 0;
     transform: translateY(12px) scale(0.97);
@@ -1899,12 +1885,9 @@ body {
 }
 
 .message-bubble {
-  animation: sonic-bubble-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* Typing Indicator Animation */
-#sonic-typing {
-  animation: sonic-bubble-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* Logo styling for Classic UI */
@@ -2290,7 +2273,7 @@ body {
   --bar-lo: #fcfcfc;
   --icon-off: #64748b;
   --icon-on: #ffffff;
-  --glow-rgb: 30 86 160; /* StudyHub blue */
+  --glow-rgb: 30 86 160; /* StudyMyte blue */
   --glow: rgb(var(--glow-rgb));
   --acc: var(--primary);
 }
@@ -2569,7 +2552,6 @@ body {
     bottom: 96px !important;
     left: 20px !important;
   }
-  .btn-floating-sonic {
     bottom: 96px !important;
     right: 20px !important;
   }
@@ -2692,7 +2674,6 @@ body, input, select, textarea, button {
     bottom: 30px !important;
     left: 30px !important;
   }
-  .btn-floating-sonic {
     bottom: 30px !important;
     right: 30px !important;
   }
