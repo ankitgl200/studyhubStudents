@@ -11080,7 +11080,7 @@ async function renderPendingContributions() {
                 for (const dBtn of otherDeleteBtns) {
                   const otherId = dBtn.getAttribute('data-id');
               
-... [truncated for diff preview]
+
                   if (otherId) await api.rejectDocument(otherId).catch(() => { });
                 }
               }
