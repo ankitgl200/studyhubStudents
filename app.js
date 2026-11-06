@@ -1624,7 +1624,12 @@ async function renderHomeView() {
         ${list.map((ann, idx) => {
       const delayStyle = `animation-delay: ${idx * 0.08}s;`;
       const cardStyle = ann.docUrl ? `style="cursor: pointer; border-left: 4px solid var(--primary); ${delayStyle}"` : `style="${delayStyle}"`;
-      const cardClick = ann.docUrl ? `onclick="window.open('${ann.docUrl}', '_blank')"` : '';
+      const isAnnPdf = ann.docUrl && (/\.pdf/i.test(ann.docUrl) || /documents\/download/i.test(ann.docUrl));
+      const cardClick = ann.docUrl ? (
+        isAnnPdf
+          ? `onclick="if(typeof window.loadPdfIntoViewer === 'function') window.loadPdfIntoViewer('${ann.docUrl}', '${escapeHTML(ann.title || 'Announcement Attachment')}'); else window.open('${ann.docUrl}', '_blank');"`
+          : `onclick="window.open('${ann.docUrl}', '_blank')"`
+      ) : '';
       return `
             <div class="announcement-card" ${cardStyle} ${cardClick}>
               <h4 style="display: flex; align-items: center; gap: 8px;">
@@ -10095,6 +10100,20 @@ async function initApp() {
     }
   } catch (e) {}
 
+  // Check if browser has active security lockdown
+  try {
+    const cachedLockdown = localStorage.getItem('studymyte_security_lockdown');
+    if (cachedLockdown) {
+      const parsed = JSON.parse(cachedLockdown);
+      if (parsed.currentBanExpiresAt && new Date() >= new Date(parsed.currentBanExpiresAt)) {
+        localStorage.removeItem('studymyte_security_lockdown');
+      } else {
+        enforceSecurityLockdownScreen(parsed);
+        return;
+      }
+    }
+  } catch (e) {}
+
   // Block pinch-to-zoom
   document.addEventListener('touchstart', (e) => {
     if (e.touches.length > 1) {
@@ -11103,7 +11122,6 @@ async function renderPendingContributions() {
                 const otherDeleteBtns = card.querySelectorAll(`.btn-reject-doc:not([data-id="${docId}"])`);
                 for (const dBtn of otherDeleteBtns) {
                   const otherId = dBtn.getAttribute('data-id');
-              
                   if (otherId) await api.rejectDocument(otherId).catch(() => { });
                 }
               }
@@ -11747,13 +11765,15 @@ function initContributionEventHandlers() {
 
   window.openDocumentViewer = function (docId, fileName, docType) {
     interceptWithDonationPopup(() => {
-      const url = `${API_BASE}/documents/download/${docId}?token=${localStorage.getItem('token')}`;
-      if (docType === 'competitive') {
-        window.open(url, '_blank');
-        return;
-      }
+      const token = localStorage.getItem('token') || '';
+      const url = `${API_BASE}/documents/download/${docId}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+      // All documents (including competitive exams, books, notes, PYQs) strictly open inside the protected inbuilt viewer
       loadPdfIntoViewer(url, fileName);
     });
+  };
+
+  window.loadPdfIntoViewer = function (url, fileName) {
+    loadPdfIntoViewer(url, fileName);
   };
 
   window.openBlobViewer = function (blobUrl, fileName) {
@@ -12449,6 +12469,14 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/^\s*(\d+)\.\s+(.*$)/gim, '<li><strong>$1.</strong> $2</li>')
       // Markdown links [text](url) - internal links open in same webpage without reload or target="_blank"
       .replace(/\[([^\]]+)\]\s*\(([^\s\)]+)\)/g, (match, label, url) => {
+        const cleanUrl = url.trim();
+        const docDownloadMatch = cleanUrl.match(/(?:\/api)?\/documents\/download\/([a-f0-9]{24})/i);
+        const isPdfDoc = /\.pdf(?:[\?#].*)?$/i.test(cleanUrl) || docDownloadMatch;
+        if (isPdfDoc) {
+          const docId = docDownloadMatch ? docDownloadMatch[1] : '';
+          return `<button type="button" class="mytee-btn-action primary mytee-btn-view-doc inline-doc-view-btn" ${docId ? `data-doc-id="${docId}"` : `data-doc-url="${cleanUrl}"`} data-file-name="${label.replace(/"/g, '&quot;')}" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; margin: 2px 4px; font-size: 12px; font-weight: 600; border-radius: 6px; vertical-align: baseline; cursor: pointer;"><i data-lucide="eye" style="width: 13px; height: 13px; display: inline-block;"></i> <span>${label}</span></button>`;
+        }
+
         const internalRoute = extractInternalRoute(url);
         if (internalRoute) {
           return `<button type="button" class="mytee-nav-pill-btn" data-nav-path="${internalRoute}" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; margin: 0 2px; font-size: 12px; vertical-align: baseline;"><i data-lucide="arrow-right" style="width: 12px; height: 12px; display: inline-block;"></i> <span>${label}</span></button>`;
@@ -13145,15 +13173,52 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewDocBtn = e.target.closest('.mytee-btn-view-doc');
         if (viewDocBtn) {
           const docId = viewDocBtn.getAttribute('data-doc-id');
+          const docUrl = viewDocBtn.getAttribute('data-doc-url');
           const fileName = viewDocBtn.getAttribute('data-file-name') || 'Document.pdf';
           const docType = viewDocBtn.getAttribute('data-doc-type') || 'notes';
+
           if (docId && typeof window.openDocumentViewer === 'function') {
             window.openDocumentViewer(docId, fileName, docType);
-            if (window.innerWidth <= 768) {
-              toggleMyteeDrawer(false);
-            }
+          } else if (docUrl && typeof window.loadPdfIntoViewer === 'function') {
+            window.loadPdfIntoViewer(docUrl, fileName);
+          } else if (docId && typeof window.loadPdfIntoViewer === 'function') {
+            const token = localStorage.getItem('token') || '';
+            window.loadPdfIntoViewer(`${API_BASE}/documents/download/${docId}${token ? `?token=${encodeURIComponent(token)}` : ''}`, fileName);
+          }
+
+          if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') {
+            toggleMyteeDrawer(false);
           }
           return;
+        }
+
+        // Intercept any <a> tag in chat that points to PDF or documents/download
+        const chatAnchor = e.target.closest('a');
+        if (chatAnchor) {
+          const href = chatAnchor.getAttribute('href') || '';
+          const docMatch = href.match(/(?:\/api)?\/documents\/download\/([a-f0-9]{24})/i);
+          if (docMatch) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.openDocumentViewer === 'function') {
+              window.openDocumentViewer(docMatch[1], chatAnchor.innerText.trim() || 'Document.pdf', 'notes');
+            }
+            if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') {
+              toggleMyteeDrawer(false);
+            }
+            return;
+          }
+          if (/\.pdf(?:[\?#].*)?$/i.test(href)) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.loadPdfIntoViewer === 'function') {
+              window.loadPdfIntoViewer(href, chatAnchor.innerText.trim() || 'Document.pdf');
+            }
+            if (window.innerWidth <= 768 && typeof toggleMyteeDrawer === 'function') {
+              toggleMyteeDrawer(false);
+            }
+            return;
+          }
         }
 
         // Suggestion chip clicked
@@ -13936,3 +14001,31 @@ async function reportClientSecurityTamper(type, details, payload) {
     return res;
   };
 })();
+// Universal StudyMyte Inbuilt PDF Viewer & Anti-Piracy Interceptor:
+// Guarantees that EVERY PDF document clicked anywhere across the entire website opens in the protected viewer
+document.addEventListener('click', (e) => {
+  const anchor = e.target.closest('a');
+  if (!anchor) return;
+  const href = anchor.getAttribute('href') || '';
+  if (!href) return;
+
+  const docMatch = href.match(/(?:\/api)?\/documents\/download\/([a-f0-9]{24})/i);
+  if (docMatch) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window.openDocumentViewer === 'function') {
+      window.openDocumentViewer(docMatch[1], anchor.innerText.trim() || 'Document.pdf', 'notes');
+    }
+    return;
+  }
+
+  if (/\.pdf(?:[\?#].*)?$/i.test(href)) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window.loadPdfIntoViewer === 'function') {
+      window.loadPdfIntoViewer(href, anchor.innerText.trim() || 'Document.pdf');
+    } else if (typeof window.openBlobViewer === 'function') {
+      window.openBlobViewer(href, anchor.innerText.trim() || 'Document.pdf');
+    }
+  }
+}, true);
