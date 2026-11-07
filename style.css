@@ -5597,57 +5597,6 @@ body[data-theme="dark"] {
 }
 
 /* ==========================================================================
-   STUDYMYTE ADVANCED ANTI-PIRACY & SCREENSHOT PREVENTION SYSTEM
-   ========================================================================== */
-
-.pdf-viewer-shielded {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  filter: blur(100px) brightness(0) !important;
-  pointer-events: none !important;
-  transition: none !important;
-}
-
-#pdf-viewer-container canvas {
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  -khtml-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  user-select: none !important;
-  pointer-events: none !important;
-}
-
-#modal-doc-viewer {
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-}
-
-@media print {
-  html, body, #app, #modal-doc-viewer, #pdf-viewer-container, canvas, .modal-overlay, #doc-viewer-body {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    width: 0 !important;
-    overflow: hidden !important;
-  }
-  body::before {
-    content: "DOCUMENT EXPORT & PRINTING FORBIDDEN. StudyMyte Proprietary Academic Content - Piracy Violation Logged." !important;
-    display: block !important;
-    font-size: 24px !important;
-    color: #ef4444 !important;
-    text-align: center !important;
-    padding: 100px 20px !important;
-    font-weight: 800 !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    background: #090d16 !important;
-    min-height: 100vh !important;
-  }
-}
-
-/* ==========================================================================
    SMART AI DOCUMENT AUTO-FILL & METADATA EXTRACTOR STYLES
    ========================================================================== */
 
