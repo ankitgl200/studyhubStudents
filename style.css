@@ -5647,3 +5647,52 @@ body[data-theme="dark"] {
   }
 }
 
+/* ==========================================================================
+   SMART AI DOCUMENT AUTO-FILL & METADATA EXTRACTOR STYLES
+   ========================================================================== */
+
+.ai-autofill-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--primary-accent, #6366f1);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  animation: fadeIn 0.3s ease;
+  line-height: 1.5;
+}
+
+.ai-autofill-banner.pulsing {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #3b82f6;
+  animation: pulse 1.8s infinite;
+}
+
+.ai-autofill-banner.success {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+
+.ai-field-glow {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+  transition: all 0.4s ease !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+

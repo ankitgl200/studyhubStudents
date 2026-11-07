@@ -5476,6 +5476,163 @@ function initEditorEventHandlers() {
   }
 }
 
+/* ==========================================================================
+   SMART AI DOCUMENT AUTO-FILL & METADATA EXTRACTOR (FRONTEND PIPELINE)
+   ========================================================================== */
+
+async function autoDetectAndFillDocumentMeta(file, formType) {
+  if (!file || !file.name || !file.name.toLowerCase().endsWith('.pdf')) return;
+
+  const banner = document.getElementById(`${formType}-ai-autofill-banner`);
+  if (banner) {
+    banner.className = 'ai-autofill-banner pulsing';
+    banner.style.display = 'flex';
+    banner.innerHTML = `<i data-lucide="sparkles" class="spin-icon" style="width: 18px; height: 18px; flex-shrink: 0;"></i> <span><strong>AI Analyzing PDF...</strong> Detecting subject, unit, academic year & title</span>`;
+    if (typeof refreshIcons === 'function') refreshIcons();
+    else if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  // 1. Client-Side PDF Text Extraction (first 2-3 pages) via pdfjsLib
+  let extractedText = '';
+  try {
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pagesToScan = Math.min(3, pdf.numPages);
+      for (let p = 1; p <= pagesToScan; p++) {
+        const page = await pdf.getPage(p);
+        const textContent = await page.getTextContent();
+        extractedText += textContent.items.map(it => it.str).join(' ') + '\n';
+        if (extractedText.length > 2500) break;
+      }
+    }
+  } catch (pdfErr) {
+    console.warn('[AutoFill] Client PDF text extraction skipped, using filename heuristic:', pdfErr);
+  }
+
+  // 2. Call backend metadata extraction API
+  try {
+    let currentCategory = null;
+    let currentFolderId = null;
+    let currentFolderName = null;
+
+    if (formType === 'upload') {
+      currentCategory = document.getElementById('upload-section-type')?.value || null;
+      currentFolderId = document.getElementById('upload-folder-id')?.value || null;
+      currentFolderName = document.getElementById('upload-folder-name')?.value || null;
+    } else if (formType === 'contribute') {
+      currentCategory = document.getElementById('contribute-category')?.value || null;
+    }
+
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/documents/auto-extract-meta`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        extractedText,
+        currentCategory,
+        currentFolderId,
+        currentFolderName
+      })
+    });
+
+    const data = await res.json();
+    if (!data || !data.success || !data.meta) {
+      throw new Error(data?.message || 'Extraction failed');
+    }
+
+    const meta = data.meta;
+
+    // 3. Auto-populate Form Fields with Animation
+    const touchedFields = [];
+
+    if (formType === 'contribute') {
+      // Document Title
+      const titleInput = document.getElementById('contribute-doc-title');
+      if (titleInput && meta.title) {
+        titleInput.value = meta.title;
+        touchedFields.push(titleInput);
+      }
+
+      // Academic Year
+      const yearSelect = document.getElementById('contribute-doc-year');
+      if (yearSelect && meta.academicYear) {
+        for (let i = 0; i < yearSelect.options.length; i++) {
+          if (yearSelect.options[i].value.includes(meta.academicYear.slice(0, 4))) {
+            yearSelect.selectedIndex = i;
+            touchedFields.push(yearSelect);
+            break;
+          }
+        }
+      }
+
+      // Category & Target Folder
+      const catSelect = document.getElementById('contribute-category');
+      if (catSelect && meta.category) {
+        catSelect.value = meta.category;
+        touchedFields.push(catSelect);
+        if (typeof populateFoldersForCategory === 'function') {
+          populateFoldersForCategory(meta.category, meta.matchedFolderId);
+        }
+      }
+    } else if (formType === 'upload') {
+      // Document Title
+      const titleInput = document.getElementById('upload-doc-title');
+      if (titleInput && meta.title) {
+        titleInput.value = meta.title;
+        touchedFields.push(titleInput);
+      }
+
+      // Academic Year
+      const yearSelect = document.getElementById('upload-doc-year');
+      if (yearSelect && meta.academicYear) {
+        for (let i = 0; i < yearSelect.options.length; i++) {
+          if (yearSelect.options[i].value.includes(meta.academicYear.slice(0, 4))) {
+            yearSelect.selectedIndex = i;
+            touchedFields.push(yearSelect);
+            break;
+          }
+        }
+      }
+    }
+
+    // Apply glowing border to auto-filled fields
+    touchedFields.forEach(el => {
+      el.classList.add('ai-field-glow');
+      setTimeout(() => el.classList.remove('ai-field-glow'), 2500);
+    });
+
+    // 4. Update Banner with Success Message
+    if (banner) {
+      banner.className = 'ai-autofill-banner success';
+      const label = meta.matchedFolderName || meta.subject || meta.category || 'Details';
+      banner.innerHTML = `<i data-lucide="check-circle-2" style="width: 18px; height: 18px; flex-shrink: 0; color: #10b981;"></i> <span><strong>✨ AI Auto-Filled:</strong> ${escapeHTML(meta.title)} • <em>${escapeHTML(label)}</em> (You can edit any field before submitting)</span>`;
+      if (typeof refreshIcons === 'function') refreshIcons();
+      else if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  } catch (err) {
+    console.warn('[AutoFill] Server AI extraction notice:', err);
+    // Graceful fallback to clean filename
+    const cleanTitle = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim();
+    const titleInput = document.getElementById(formType === 'contribute' ? 'contribute-doc-title' : 'upload-doc-title');
+    if (titleInput && !titleInput.value) {
+      titleInput.value = cleanTitle;
+    }
+    if (banner) {
+      banner.className = 'ai-autofill-banner';
+      banner.innerHTML = `<i data-lucide="sparkles" style="width: 18px; height: 18px; flex-shrink: 0;"></i> <span>Title auto-detected from file name. (Edit fields if required)</span>`;
+      if (typeof refreshIcons === 'function') refreshIcons();
+      else if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  }
+}
+window.autoDetectAndFillDocumentMeta = autoDetectAndFillDocumentMeta;
+
 function openUploadModal(docType, folderId = null, folderName = '') {
   document.getElementById('upload-error-alert').style.display = 'none';
   document.getElementById('upload-section-type').value = docType;
@@ -5554,6 +5711,8 @@ function openUploadModal(docType, folderId = null, folderName = '') {
   document.getElementById('upload-doc-title').value = '';
   document.getElementById('upload-file-input').value = '';
   document.getElementById('upload-file-label').textContent = 'Click to browse files';
+  const uploadAiBanner = document.getElementById('upload-ai-autofill-banner');
+  if (uploadAiBanner) { uploadAiBanner.style.display = 'none'; uploadAiBanner.innerHTML = ''; }
 
   const scanCameraInput = document.getElementById('scan-camera-input');
   const scanGalleryInput = document.getElementById('scan-gallery-input');
@@ -8908,6 +9067,7 @@ function initEventHandlers() {
     const file = e.target.files[0];
     if (file) {
       fileLabel.textContent = file.name;
+      autoDetectAndFillDocumentMeta(file, 'upload');
     } else {
       fileLabel.textContent = 'Click to browse files';
     }
@@ -11383,6 +11543,8 @@ function initContributionEventHandlers() {
     if (errorAlert) errorAlert.style.display = 'none';
     if (successAlert) successAlert.style.display = 'none';
     if (contributeForm) contributeForm.reset();
+    const contributeAiBanner = document.getElementById('contribute-ai-autofill-banner');
+    if (contributeAiBanner) { contributeAiBanner.style.display = 'none'; contributeAiBanner.innerHTML = ''; }
 
     // Populate contributor name
     const contributorNameInput = document.getElementById('contribute-user-name');
@@ -11939,6 +12101,7 @@ function initContributionEventHandlers() {
       const file = e.target.files[0];
       if (file) {
         fileLabel.textContent = file.name;
+        autoDetectAndFillDocumentMeta(file, 'contribute');
       } else {
         fileLabel.textContent = 'Click to browse files';
       }
