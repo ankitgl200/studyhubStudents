@@ -14241,6 +14241,13 @@ async function loadSuperAdminStorageStats() {
   const container = document.getElementById('superadmin-storage-stats-container');
   if (!container) return;
 
+  const refreshBtn = document.getElementById('btn-refresh-storage-stats');
+  if (refreshBtn) {
+    const icon = refreshBtn.querySelector('i');
+    if (icon) icon.classList.add('spin-animation');
+    refreshBtn.disabled = true;
+  }
+
   // Strict Client-Side Role Guard: Only Super Admin can view infrastructure storage
   if (!currentUser || currentUser.role !== 'superadmin') {
     container.innerHTML = `
@@ -14251,6 +14258,11 @@ async function loadSuperAdminStorageStats() {
       </div>
     `;
     if (window.lucide) lucide.createIcons();
+    if (refreshBtn) {
+      const icon = refreshBtn.querySelector('i');
+      if (icon) icon.classList.remove('spin-animation');
+      refreshBtn.disabled = false;
+    }
     return;
   }
 
@@ -14264,8 +14276,12 @@ async function loadSuperAdminStorageStats() {
 
   try {
     const token = localStorage.getItem('token');
-    const res = await fetch(`${API_BASE}/admin/security/storage-stats`, {
-      headers: { 'Authorization': 'Bearer ' + token }
+    const res = await fetch(`${API_BASE}/admin/security/storage-stats?_t=${Date.now()}`, {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
     });
 
     if (res.status === 403 || res.status === 401) {
@@ -14299,6 +14315,12 @@ async function loadSuperAdminStorageStats() {
       </div>
     `;
     if (window.lucide) lucide.createIcons();
+  } finally {
+    if (refreshBtn) {
+      const icon = refreshBtn.querySelector('i');
+      if (icon) icon.classList.remove('spin-animation');
+      refreshBtn.disabled = false;
+    }
   }
 }
 
@@ -14349,7 +14371,7 @@ function renderSuperAdminStorageUI(data) {
             <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
               <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Used Storage</span>
               <strong style="font-size: 16px; color: var(--text-main, #1c3d5a);">${cloudinary ? (cloudinary.usedMB >= 1024 ? (cloudinary.usedMB / 1024).toFixed(2) + ' GB' : cloudinary.usedMB + ' MB') : 'N/A'}</strong>
-              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of 25.0 GB limit</span>
+              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of 25.0 GB limit (${cloudinary && cloudinary.liveDocCount !== undefined ? cloudinary.liveDocCount : 0} active files)</span>
             </div>
             <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
               <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Free Space Left</span>
@@ -14394,7 +14416,7 @@ function renderSuperAdminStorageUI(data) {
             <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
               <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Disk Allocation</span>
               <strong style="font-size: 16px; color: var(--text-main, #1c3d5a);">${mongodb.usedMB} MB</strong>
-              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of 512 MB Atlas tier</span>
+              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of 512 MB Atlas tier (${mongodb.totalObjects || 0} objects)</span>
             </div>
             <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
               <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Free DB Storage</span>
@@ -14424,9 +14446,14 @@ function renderSuperAdminStorageUI(data) {
                 <span style="font-size: 11.5px; color: var(--text-muted, #64748b);">Verification OTPs &amp; Welcome Emails</span>
               </div>
             </div>
-            <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: ${getBarColor(emailPercent)}18; color: ${getBarColor(emailPercent)}; border: 1px solid ${getBarColor(emailPercent)}44;">
-              ${emailPercent}% Used
-            </span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button onclick="syncEmailJsQuotaPrompt(${emailjs ? emailjs.usedThisMonth : 1}, ${emailjs ? (emailjs.resetDay || 7) : 7})" title="Calibrate EmailJS quota count" style="background: none; border: none; cursor: pointer; color: #f59e0b; padding: 3px 5px; display: inline-flex; align-items: center; border-radius: 4px;" onmouseover="this.style.background='rgba(245,158,11,0.12)'" onmouseout="this.style.background='none'">
+                <i data-lucide="sliders-horizontal" style="width: 14px; height: 14px;"></i>
+              </button>
+              <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: ${getBarColor(emailPercent)}18; color: ${getBarColor(emailPercent)}; border: 1px solid ${getBarColor(emailPercent)}44;">
+                ${emailPercent}% Used
+              </span>
+            </div>
           </div>
 
           <!-- Progress Bar -->
@@ -14462,6 +14489,41 @@ function renderSuperAdminStorageUI(data) {
   container.innerHTML = html;
   if (window.lucide) lucide.createIcons();
 }
+
+window.syncEmailJsQuotaPrompt = async function(currentUsed, currentResetDay) {
+  const inputUsed = prompt('Enter real requests sent shown on your EmailJS dashboard:', currentUsed !== undefined ? currentUsed : 1);
+  if (inputUsed === null) return;
+  const numUsed = parseInt(inputUsed, 10);
+  if (isNaN(numUsed) || numUsed < 0) {
+    alert('Please enter a valid non-negative number.');
+    return;
+  }
+  const inputReset = prompt('Enter monthly reset day (e.g. 7 for Dec 7):', currentResetDay || 7);
+  if (inputReset === null) return;
+  const numReset = parseInt(inputReset, 10);
+  if (isNaN(numReset) || numReset < 1 || numReset > 31) {
+    alert('Please enter a valid day of month (1-31).');
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/admin/security/emailjs-sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ baseCount: numUsed, resetDay: numReset })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to sync EmailJS quota');
+    if (typeof showToast === 'function') showToast('EmailJS quota updated successfully', 'success');
+    loadSuperAdminStorageStats();
+  } catch (err) {
+    alert(err.message || 'Error syncing quota');
+  }
+};
 
 // Bind Refresh button click
 document.addEventListener('click', (e) => {
