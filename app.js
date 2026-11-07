@@ -5941,6 +5941,11 @@ async function addFilesToBatch(fileList) {
   const currentYear = new Date().getFullYear();
   const defaultYear = `${currentYear}-${(currentYear + 1).toString().slice(-2)}`;
 
+  const dragLabel = document.getElementById('batch-drag-label');
+  if (dragLabel) {
+    dragLabel.innerHTML = `<span class="batch-spinner-sm" style="color: #3b82f6; margin-right: 6px;"></span> Reading & analyzing ${fileList.length} PDF file(s)...`;
+  }
+
   let addedCount = 0;
   for (let i = 0; i < fileList.length; i++) {
     const file = fileList[i];
@@ -5975,6 +5980,14 @@ async function addFilesToBatch(fileList) {
     addedCount++;
 
     extractBatchFileMeta(fileItem);
+  }
+
+  if (dragLabel) {
+    setTimeout(() => {
+      dragLabel.textContent = batchUploadFiles.length >= 5
+        ? 'Maximum 5 files attached'
+        : 'Click or Drag & Drop more PDFs (Max 5 files)';
+    }, 1200);
   }
 
   if (addedCount > 0) {
@@ -6074,8 +6087,8 @@ function renderBatchTabs() {
     const isActive = idx === activeBatchFileIndex;
     const shortName = item.fileName.length > 18 ? item.fileName.slice(0, 16) + '...' : item.fileName;
     const statusIcon = item.status === 'scanning'
-      ? '<i data-lucide="sparkles" class="spin-icon" style="width: 13px; height: 13px; color: #3b82f6;"></i>'
-      : '<i data-lucide="check" style="width: 13px; height: 13px; color: #10b981;"></i>';
+      ? `<span class="batch-spinner-sm" style="width: 12px; height: 12px; color: ${isActive ? '#ffffff' : '#3b82f6'}; border-width: 1.5px;"></span>`
+      : `<i data-lucide="check" style="width: 13px; height: 13px; color: ${isActive ? '#ffffff' : '#10b981'};"></i>`;
 
     return `
       <div class="batch-tab-item ${isActive ? 'active' : ''}" data-index="${idx}" onclick="selectBatchTab(${idx})">
@@ -6127,21 +6140,26 @@ function syncFormWithActiveFile() {
   const metaSemEl = document.getElementById('batch-meta-sem');
   const statusPill = document.getElementById('batch-meta-status-pill');
 
-  if (metaNameEl) metaNameEl.textContent = current.title || current.fileName;
-  if (metaSubjectEl) metaSubjectEl.textContent = current.subject || current.folderName || 'General';
-  if (metaYearEl) metaYearEl.textContent = current.academicYear || '-';
-  if (metaSemEl) metaSemEl.textContent = current.semester ? `Semester ${current.semester}` : 'All Semesters';
-
-  if (statusPill) {
-    if (current.status === 'scanning') {
-      statusPill.style.background = 'rgba(59, 130, 246, 0.15)';
-      statusPill.style.color = '#3b82f6';
-      statusPill.textContent = 'AI Scanning...';
-    } else {
+  if (current.status === 'scanning') {
+    if (statusPill) {
+      statusPill.innerHTML = '<span class="batch-spinner-sm" style="width: 11px; height: 11px; margin-right: 4px; border-width: 1.5px;"></span> AI Scanning...';
+      statusPill.style.background = 'rgba(59, 130, 246, 0.18)';
+      statusPill.style.color = '#60a5fa';
+    }
+    if (metaNameEl) metaNameEl.innerHTML = '<span class="batch-skeleton-shimmer" style="width: 90%;"></span>';
+    if (metaSubjectEl) metaSubjectEl.innerHTML = '<span class="batch-skeleton-shimmer" style="width: 75%;"></span>';
+    if (metaYearEl) metaYearEl.innerHTML = '<span class="batch-skeleton-shimmer" style="width: 60%;"></span>';
+    if (metaSemEl) metaSemEl.innerHTML = '<span class="batch-skeleton-shimmer" style="width: 50%;"></span>';
+  } else {
+    if (statusPill) {
+      statusPill.innerHTML = '<i data-lucide="sparkles" style="width: 12px; height: 12px; margin-right: 4px; color: #10b981;"></i> Auto-Detected';
       statusPill.style.background = 'rgba(16, 185, 129, 0.15)';
       statusPill.style.color = '#10b981';
-      statusPill.textContent = 'Auto-Detected';
     }
+    if (metaNameEl) metaNameEl.textContent = current.title || current.fileName;
+    if (metaSubjectEl) metaSubjectEl.textContent = current.subject || current.folderName || 'General';
+    if (metaYearEl) metaYearEl.textContent = current.academicYear || '-';
+    if (metaSemEl) metaSemEl.textContent = current.semester ? `Semester ${current.semester}` : 'All Semesters';
   }
 
   const titleInp = document.getElementById('batch-doc-title');
@@ -6161,6 +6179,8 @@ function syncFormWithActiveFile() {
   }
 
   populateBatchFoldersForCategory(current.category || 'notes', current.folderId);
+  if (typeof refreshIcons === 'function') refreshIcons();
+  else if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function removeBatchFile(index) {
@@ -6182,7 +6202,13 @@ async function populateBatchFoldersForCategory(category, preselectedFolderId = n
   const container = document.getElementById('batch-folder-container');
   if (!container) return;
 
-  container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select" disabled><option>Loading folders...</option></select>`;
+  container.innerHTML = `
+    <label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label>
+    <div class="batch-folder-loader">
+      <span class="batch-spinner-sm" style="color: #3b82f6; width: 14px; height: 14px; border-width: 1.5px;"></span>
+      <span>Loading folders & subjects...</span>
+    </div>
+  `;
 
   if (!category) {
     container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select" disabled><option>Select Category First</option></select>`;
@@ -6321,14 +6347,20 @@ function openBatchConfirmationModal() {
   const listContainer = document.getElementById('batch-confirm-list-container');
   if (listContainer) {
     listContainer.innerHTML = batchUploadFiles.map((item, idx) => `
-      <div class="batch-confirm-card">
+      <div class="batch-confirm-card" id="batch-confirm-card-${idx}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-          <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">
-            #${idx + 1}. ${escapeHTML(item.title)}
+          <div style="font-weight: 700; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 6px;">
+            <span style="color: #3b82f6;">#${idx + 1}.</span>
+            <span id="batch-confirm-title-${idx}">${escapeHTML(item.title)}</span>
           </div>
-          <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700; text-transform: uppercase;">
-            ${escapeHTML(item.category)}
-          </span>
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700; text-transform: uppercase;">
+              ${escapeHTML(item.category)}
+            </span>
+            <span id="batch-card-status-${idx}" class="batch-card-status-badge pending">
+              <i data-lucide="clock" style="width: 11px; height: 11px;"></i> In Queue
+            </span>
+          </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-muted); margin-top: 4px;">
           <span><strong>File:</strong> ${escapeHTML(item.fileName)} (${item.fileSize})</span>
@@ -6344,6 +6376,8 @@ function openBatchConfirmationModal() {
 
   const confirmModal = document.getElementById('modal-batch-confirm');
   if (confirmModal) confirmModal.style.display = 'flex';
+  if (typeof refreshIcons === 'function') refreshIcons();
+  else if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function executeBatchUpload() {
@@ -6351,23 +6385,58 @@ async function executeBatchUpload() {
   const btnBack = document.getElementById('btn-batch-confirm-back');
   const progressWrapper = document.getElementById('batch-progress-wrapper');
   const progressBar = document.getElementById('batch-progress-bar');
-  const progressStatus = document.getElementById('batch-progress-status');
   const progressPercent = document.getElementById('batch-progress-percent');
+  const progressPercentBadge = document.getElementById('batch-progress-percent-badge');
+  const progressStatus = document.getElementById('batch-progress-status');
+  const progressSubstatus = document.getElementById('batch-progress-substatus');
+  const progressCountText = document.getElementById('batch-progress-count-text');
+  const progressIconBadge = document.getElementById('batch-progress-icon-badge');
+  const progressEta = document.getElementById('batch-progress-eta');
 
-  if (btnExecute) btnExecute.disabled = true;
+  if (btnExecute) {
+    btnExecute.disabled = true;
+    btnExecute.innerHTML = '<span class="batch-spinner-sm" style="width: 14px; height: 14px; margin-right: 6px;"></span> Uploading Batch...';
+  }
   if (btnBack) btnBack.disabled = true;
-  if (progressWrapper) progressWrapper.style.display = 'block';
 
+  if (progressWrapper) progressWrapper.style.display = 'flex';
+  if (progressBar) {
+    progressBar.classList.remove('completed');
+    progressBar.style.width = '0%';
+  }
+  if (progressPercentBadge) progressPercentBadge.classList.remove('completed');
+  if (progressPercent) progressPercent.textContent = '0%';
+  if (progressEta) {
+    progressEta.textContent = 'Active Upload';
+    progressEta.style.color = '#60a5fa';
+  }
+
+  const totalFiles = batchUploadFiles.length;
   let successCount = 0;
   let failedFiles = [];
 
-  for (let i = 0; i < batchUploadFiles.length; i++) {
+  for (let i = 0; i < totalFiles; i++) {
     const item = batchUploadFiles[i];
-    const currentPercent = Math.round((i / batchUploadFiles.length) * 100);
+    const currentPercent = Math.round((i / totalFiles) * 100);
 
+    // Update Progress Card UI
     if (progressBar) progressBar.style.width = `${currentPercent}%`;
     if (progressPercent) progressPercent.textContent = `${currentPercent}%`;
-    if (progressStatus) progressStatus.textContent = `Uploading ${i + 1} of ${batchUploadFiles.length}: ${item.title}...`;
+    if (progressStatus) progressStatus.textContent = `Uploading ${i + 1} of ${totalFiles}: "${item.title}"`;
+    if (progressSubstatus) progressSubstatus.textContent = `Streaming ${item.fileName} (${item.fileSize}) to cloud storage...`;
+    if (progressCountText) progressCountText.textContent = `${successCount} of ${totalFiles} uploaded`;
+
+    // Highlight active card in review list
+    const cardEl = document.getElementById(`batch-confirm-card-${i}`);
+    const statusEl = document.getElementById(`batch-card-status-${i}`);
+    if (cardEl) {
+      cardEl.classList.add('active-uploading');
+      cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (statusEl) {
+      statusEl.className = 'batch-card-status-badge uploading';
+      statusEl.innerHTML = '<span class="batch-spinner-sm" style="width: 10px; height: 10px; margin-right: 4px;"></span> Uploading...';
+    }
 
     const formData = new FormData();
     formData.append('pdf', item.file);
@@ -6383,15 +6452,53 @@ async function executeBatchUpload() {
         body: formData
       });
       successCount++;
+      if (cardEl) {
+        cardEl.classList.remove('active-uploading');
+        cardEl.classList.add('upload-success');
+      }
+      if (statusEl) {
+        statusEl.className = 'batch-card-status-badge success';
+        statusEl.innerHTML = '<i data-lucide="check-circle-2" style="width: 11px; height: 11px;"></i> Uploaded';
+      }
     } catch (err) {
       console.error(`Error uploading "${item.title}":`, err);
       failedFiles.push({ title: item.title, error: err.message });
+      if (cardEl) {
+        cardEl.classList.remove('active-uploading');
+        cardEl.classList.add('upload-error');
+      }
+      if (statusEl) {
+        statusEl.className = 'batch-card-status-badge failed';
+        statusEl.innerHTML = '<i data-lucide="alert-circle" style="width: 11px; height: 11px;"></i> Failed';
+      }
     }
+
+    if (progressCountText) progressCountText.textContent = `${successCount} of ${totalFiles} uploaded`;
+    if (typeof refreshIcons === 'function') refreshIcons();
+    else if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
-  if (progressBar) progressBar.style.width = '100%';
+  // 100% Finish State
+  if (progressBar) {
+    progressBar.style.width = '100%';
+    progressBar.classList.add('completed');
+  }
   if (progressPercent) progressPercent.textContent = '100%';
-  if (progressStatus) progressStatus.textContent = `Completed! ${successCount} of ${batchUploadFiles.length} uploaded.`;
+  if (progressPercentBadge) progressPercentBadge.classList.add('completed');
+  if (progressIconBadge) {
+    progressIconBadge.innerHTML = '<i data-lucide="check-circle-2" style="width: 20px; height: 20px; color: #10b981;"></i>';
+    progressIconBadge.style.background = 'rgba(16, 185, 129, 0.18)';
+    progressIconBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+  }
+  if (progressStatus) progressStatus.textContent = `🎉 All Done! ${successCount} of ${totalFiles} Uploaded Successfully`;
+  if (progressSubstatus) progressSubstatus.textContent = 'Documents verified and published to catalog folders.';
+  if (progressEta) {
+    progressEta.textContent = 'Completed';
+    progressEta.style.color = '#10b981';
+  }
+
+  if (typeof refreshIcons === 'function') refreshIcons();
+  else if (typeof lucide !== 'undefined') lucide.createIcons();
 
   setTimeout(() => {
     closeBatchConfirmModal();
@@ -6403,13 +6510,16 @@ async function executeBatchUpload() {
       alert(`Uploaded ${successCount} documents. ${failedFiles.length} failed: \n` + failedFiles.map(f => `• ${f.title}: ${f.error}`).join('\n'));
     }
 
-    if (btnExecute) btnExecute.disabled = false;
+    if (btnExecute) {
+      btnExecute.disabled = false;
+      btnExecute.innerHTML = '<i data-lucide="upload" style="width: 16px; height: 16px;"></i> Confirm & Upload All';
+    }
     if (btnBack) btnBack.disabled = false;
 
     if (typeof renderMyUploadsView === 'function') {
       renderMyUploadsView();
     }
-  }, 1000);
+  }, 1400);
 }
 
 function initBatchUploadEventHandlers() {

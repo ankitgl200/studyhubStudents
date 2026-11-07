@@ -102,7 +102,7 @@
 
     gtag('config', 'G-MLBCW8QCG1');
   </script>
-  <link id="theme-stylesheet" rel="stylesheet" href="/style.css?v=1.3.7">
+  <link id="theme-stylesheet" rel="stylesheet" href="/style.css?v=1.3.8">
   <link rel="stylesheet" href="/mytee.css?v=1.3.13">
   <style>
     /* Critical fallback to prevent flash of unstyled content */
@@ -3486,13 +3486,41 @@
           <!-- Injected dynamically -->
         </div>
 
-        <div id="batch-progress-wrapper" style="display: none; margin-top: 18px; padding: 14px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25);">
-          <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #3b82f6; margin-bottom: 6px;">
-            <span id="batch-progress-status">Uploading files...</span>
-            <span id="batch-progress-percent">0%</span>
+        <!-- HIGH-POLISH INTERACTIVE BATCH PROGRESS CARD -->
+        <div id="batch-progress-wrapper" class="batch-modern-progress-card" style="display: none;">
+          <div class="batch-progress-header">
+            <div class="batch-progress-title-wrap">
+              <div class="batch-progress-icon-badge" id="batch-progress-icon-badge">
+                <span class="batch-spinner-sm" style="color: #3b82f6; width: 16px; height: 16px;"></span>
+              </div>
+              <div style="min-width: 0; flex: 1;">
+                <div id="batch-progress-status" style="font-size: 13.5px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  Preparing Upload...
+                </div>
+                <div id="batch-progress-substatus" style="font-size: 11px; color: var(--text-muted); margin-top: 1px;">
+                  Securing file payload & verifying catalog metadata
+                </div>
+              </div>
+            </div>
+            <div id="batch-progress-percent-badge" class="batch-progress-badge">
+              <span id="batch-progress-percent">0%</span>
+            </div>
           </div>
-          <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden;">
-            <div id="batch-progress-bar" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s ease;"></div>
+
+          <!-- Animated Track & Fill -->
+          <div class="batch-progress-track">
+            <div id="batch-progress-bar" class="batch-progress-fill" style="width: 0%;"></div>
+          </div>
+
+          <!-- Live Stats & Item Progress Footer -->
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); padding-top: 2px;">
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <span class="batch-live-pulse-dot" id="batch-progress-live-dot"></span>
+              <span id="batch-progress-count-text">0 of 0 uploaded</span>
+            </span>
+            <span id="batch-progress-eta" style="color: #60a5fa; font-weight: 600;">
+              Active Sync
+            </span>
           </div>
         </div>
       </div>
@@ -4454,7 +4482,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
-  <script src="/app.js?v=1.3.20"></script>
+  <script src="/app.js?v=1.3.21"></script>
 
 
 
