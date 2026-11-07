@@ -5644,4 +5644,75 @@ body[data-theme="dark"] {
   animation: spin 1s linear infinite;
 }
 
+/* ==========================================================================
+   BATCH MULTI-FILE UPLOAD & TAB STYLES
+   ========================================================================== */
+
+.batch-tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-secondary, rgba(255,255,255,0.06));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.batch-tab-item:hover {
+  background: var(--bg-hover, rgba(255,255,255,0.1));
+  color: var(--text-main);
+}
+
+.batch-tab-item.active {
+  background: #2563eb !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+}
+
+.batch-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.2);
+  color: inherit;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.batch-tab-close:hover {
+  background: rgba(239, 68, 68, 0.8) !important;
+  color: #fff !important;
+}
+
+.batch-confirm-card {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--card-bg, #1e293b);
+  border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.batch-confirm-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+
 

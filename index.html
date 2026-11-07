@@ -2489,13 +2489,16 @@
 
       <!-- MY UPLOADS VIEW -->
       <div id="view-my-uploads" class="page-view" style="display: none;">
-        <div class="folder-page-header">
+        <div class="folder-page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div class="folder-breadcrumbs">
             <span class="breadcrumb-active" style="display: flex; align-items: center; gap: 8px;">
               <i data-lucide="folder-heart" style="color: var(--primary); width: 22px; height: 22px;"></i>
               My Uploaded Documents
             </span>
           </div>
+          <button id="btn-my-uploads-batch-upload" class="btn btn-primary" style="display: none; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.3);">
+            <i data-lucide="sparkles" style="width: 17px; height: 17px;"></i> Batch Upload (Multi-PDF)
+          </button>
         </div>
 
         <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
@@ -3337,6 +3340,169 @@
           <button type="submit" class="btn btn-primary" id="btn-upload-submit">Upload</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- BATCH MULTI-FILE UPLOAD MODAL (ADMIN / TEACHERS) -->
+  <div id="modal-batch-upload" class="modal-overlay" style="display: none; z-index: 1050;">
+    <div class="modal-content" style="max-width: 680px; width: 95%;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="sparkles" style="width: 20px; height: 20px; color: #3b82f6;"></i>
+          Batch Upload Documents (AI Auto-Fill)
+        </h3>
+        <button id="modal-batch-upload-close" class="modal-close">&times;</button>
+      </div>
+
+      <div id="batch-upload-error-alert" class="alert alert-danger" style="display: none;"></div>
+      <div id="batch-upload-success-alert" class="alert alert-success" style="display: none;"></div>
+
+      <!-- File Drop & Selector Box -->
+      <div id="batch-drag-box" class="file-upload-box" style="margin-bottom: 16px; padding: 20px; cursor: pointer;">
+        <i data-lucide="upload-cloud" class="file-upload-icon" style="width: 32px; height: 32px;"></i>
+        <p style="font-size: 14px; font-weight: 600; margin: 4px 0;" id="batch-drag-label">
+          Click or Drag & Drop PDFs here (1 to 5 files)
+        </p>
+        <p style="font-size: 11px; color: var(--text-muted); margin: 0;">
+          PDF format only • Max 5 files • AI auto-extracts metadata for every document
+        </p>
+        <input type="file" id="batch-file-input" accept="application/pdf" multiple style="display: none;" />
+      </div>
+
+      <!-- Horizontal Tabs Strip (Rendered dynamically when files are added) -->
+      <div id="batch-tabs-wrapper" style="display: none; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">
+            ATTACHED FILES (<span id="batch-file-count-text">0/5</span>)
+          </span>
+          <button type="button" id="btn-batch-add-more" style="background: none; border: none; color: #3b82f6; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add More
+          </button>
+        </div>
+        <div id="batch-tabs-container" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;">
+          <!-- Tabs injected dynamically -->
+        </div>
+      </div>
+
+      <!-- Active Tab Form Body -->
+      <div id="batch-active-file-form" style="display: none;">
+        <!-- Top AI Extracted Metadata Overview Box -->
+        <div id="batch-meta-overview-box" style="margin-bottom: 18px; padding: 14px 18px; border-radius: 12px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(59, 130, 246, 0.15); padding-bottom: 6px;">
+            <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> AI Document Summary
+            </span>
+            <span id="batch-meta-status-pill" style="font-size: 11px; padding: 2px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">
+              Auto-Detected
+            </span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 13px;">
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">NAME OF DOC</span>
+              <strong id="batch-meta-name" style="color: var(--text-main); word-break: break-word;">-</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">SUBJECT</span>
+              <strong id="batch-meta-subject" style="color: var(--text-main);">-</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">YEAR</span>
+              <strong id="batch-meta-year" style="color: var(--text-main);">-</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">SEM</span>
+              <strong id="batch-meta-sem" style="color: var(--text-main);">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <form id="form-batch-upload" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="batch-doc-title">Document Title</label>
+            <input type="text" id="batch-doc-title" class="form-input" placeholder="e.g. Unit 1 Notes" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="batch-doc-category">Resource Section / Category</label>
+            <select id="batch-doc-category" class="form-select" required>
+              <option value="" disabled selected>Select Section / Category</option>
+              <option value="notes">Notes</option>
+              <option value="papers">Previous Year Papers (PYQs)</option>
+              <option value="lab_manuals">Lab Manuals</option>
+              <option value="books">Books</option>
+              <option value="simulations">Simulations</option>
+              <option value="competitive">Competitive Exam PYQs</option>
+              <option value="syllabus">Syllabus</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="batch-folder-container">
+            <label class="form-label">Target Folder / Subject</label>
+            <select id="batch-subject" class="form-select" disabled>
+              <option value="">Select Category First</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="batch-doc-year">Academic Year</label>
+            <select id="batch-doc-year" class="form-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" id="modal-batch-upload-cancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-batch-upload-submit" style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i> Review & Upload All (<span id="batch-btn-count">0</span>)
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="batch-empty-placeholder" style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 13.5px;">
+        <i data-lucide="files" style="width: 38px; height: 38px; margin-bottom: 8px; opacity: 0.5;"></i>
+        <p>No documents added yet. Select 1 to 5 PDF files above to begin batch upload.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BATCH FINAL CONFIRMATION MODAL -->
+  <div id="modal-batch-confirm" class="modal-overlay" style="display: none; z-index: 1060;">
+    <div class="modal-content" style="max-width: 600px; width: 95%;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="check-circle-2" style="width: 22px; height: 22px; color: #10b981;"></i>
+          Confirm Batch Upload
+        </h3>
+        <button id="modal-batch-confirm-close" class="modal-close">&times;</button>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 14px; margin: 0 0 14px 0;">
+          Please review the documents before uploading. All documents will be verified and published to their target folders.
+        </p>
+
+        <div id="batch-confirm-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+          <!-- Injected dynamically -->
+        </div>
+
+        <div id="batch-progress-wrapper" style="display: none; margin-top: 18px; padding: 14px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25);">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #3b82f6; margin-bottom: 6px;">
+            <span id="batch-progress-status">Uploading files...</span>
+            <span id="batch-progress-percent">0%</span>
+          </div>
+          <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden;">
+            <div id="batch-progress-bar" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s ease;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <button type="button" id="btn-batch-confirm-back" class="btn btn-secondary">Back to Edit</button>
+        <button type="button" id="btn-batch-confirm-execute" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="upload" style="width: 16px; height: 16px;"></i> Confirm & Upload All
+        </button>
+      </div>
     </div>
   </div>
 

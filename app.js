@@ -5729,6 +5729,12 @@ async function renderMyUploadsView() {
   const container = document.getElementById('my-uploads-list-container');
   if (!container) return;
 
+  const batchBtn = document.getElementById('btn-my-uploads-batch-upload');
+  const isStaffUser = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator' || currentUser.role === 'staff');
+  if (batchBtn) {
+    batchBtn.style.display = isStaffUser ? 'inline-flex' : 'none';
+  }
+
   container.innerHTML = getListSkeleton();
 
   try {
@@ -5868,6 +5874,638 @@ function renderFilteredMyUploads() {
 
   refreshIcons();
 }
+
+
+/* ==========================================================================
+   BATCH MULTI-FILE UPLOAD SUITE (ADMINS & TEACHERS / EDUCATORS)
+   Supports up to 5 concurrent PDF files, individual tab switching,
+   AI text extraction, top metadata overview box, cascading folder selection,
+   and final verification confirmation before simultaneous upload.
+   ========================================================================== */
+
+let batchUploadFiles = [];
+let activeBatchFileIndex = 0;
+
+function isStaffOrAdminUser() {
+  return currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'educator' || currentUser.role === 'staff');
+}
+
+function openBatchUploadModal() {
+  if (!isStaffOrAdminUser()) {
+    alert('Access restricted to verified educators and administrators.');
+    return;
+  }
+
+  const modal = document.getElementById('modal-batch-upload');
+  if (!modal) return;
+
+  batchUploadFiles = [];
+  activeBatchFileIndex = 0;
+
+  const errAlert = document.getElementById('batch-upload-error-alert');
+  const succAlert = document.getElementById('batch-upload-success-alert');
+  if (errAlert) errAlert.style.display = 'none';
+  if (succAlert) succAlert.style.display = 'none';
+
+  const yearSelect = document.getElementById('batch-doc-year');
+  if (yearSelect) {
+    const years = getAcademicYears();
+    yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+  }
+
+  const fileInput = document.getElementById('batch-file-input');
+  if (fileInput) fileInput.value = '';
+
+  renderBatchTabs();
+  modal.style.display = 'flex';
+  if (typeof refreshIcons === 'function') refreshIcons();
+  else if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+window.openBatchUploadModal = openBatchUploadModal;
+
+function closeBatchUploadModal() {
+  const modal = document.getElementById('modal-batch-upload');
+  if (modal) modal.style.display = 'none';
+}
+window.closeBatchUploadModal = closeBatchUploadModal;
+
+function closeBatchConfirmModal() {
+  const modal = document.getElementById('modal-batch-confirm');
+  if (modal) modal.style.display = 'none';
+}
+window.closeBatchConfirmModal = closeBatchConfirmModal;
+
+async function addFilesToBatch(fileList) {
+  if (!fileList || fileList.length === 0) return;
+
+  const currentYear = new Date().getFullYear();
+  const defaultYear = `${currentYear}-${(currentYear + 1).toString().slice(-2)}`;
+
+  let addedCount = 0;
+  for (let i = 0; i < fileList.length; i++) {
+    const file = fileList[i];
+    if (batchUploadFiles.length >= 5) {
+      alert('Maximum 5 files can be uploaded simultaneously in one batch.');
+      break;
+    }
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      alert(`Skipped "${file.name}": Only PDF documents are allowed.`);
+      continue;
+    }
+
+    const cleanTitle = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim();
+    const fileItem = {
+      id: 'bf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      file: file,
+      fileName: file.name,
+      fileSize: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+      title: cleanTitle,
+      category: 'notes',
+      folderId: null,
+      folderName: null,
+      academicYear: defaultYear,
+      subject: null,
+      semester: null,
+      meta: null,
+      status: 'scanning'
+    };
+
+    batchUploadFiles.push(fileItem);
+    addedCount++;
+
+    extractBatchFileMeta(fileItem);
+  }
+
+  if (addedCount > 0) {
+    renderBatchTabs();
+    selectBatchTab(batchUploadFiles.length - 1);
+  }
+}
+
+async function extractBatchFileMeta(fileItem) {
+  let extractedText = '';
+  try {
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+      const arrayBuffer = await fileItem.file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pagesToScan = Math.min(3, pdf.numPages);
+      for (let p = 1; p <= pagesToScan; p++) {
+        const page = await pdf.getPage(p);
+        const textContent = await page.getTextContent();
+        extractedText += textContent.items.map(it => it.str).join(' ') + '\n';
+        if (extractedText.length > 2500) break;
+      }
+    }
+  } catch (err) {
+    console.warn('[BatchAutoFill] Client text extraction notice:', err);
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/documents/auto-extract-meta`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        fileName: fileItem.fileName,
+        extractedText
+      })
+    });
+
+    const data = await res.json();
+    if (data && data.success && data.meta) {
+      const m = data.meta;
+      fileItem.title = m.title || fileItem.title;
+      fileItem.category = m.category || fileItem.category;
+      fileItem.academicYear = m.academicYear || fileItem.academicYear;
+      fileItem.subject = m.subject || m.subjectCode || null;
+      fileItem.semester = m.semester || null;
+      fileItem.folderId = m.matchedFolderId || null;
+      fileItem.folderName = m.matchedFolderName || null;
+      fileItem.meta = m;
+      fileItem.status = 'ready';
+    } else {
+      fileItem.status = 'ready';
+    }
+  } catch (err) {
+    console.warn('[BatchAutoFill] API extraction error:', err);
+    fileItem.status = 'ready';
+  }
+
+  renderBatchTabs();
+  const currentIndex = batchUploadFiles.findIndex(f => f.id === fileItem.id);
+  if (currentIndex === activeBatchFileIndex) {
+    syncFormWithActiveFile();
+  }
+}
+
+function renderBatchTabs() {
+  const wrapper = document.getElementById('batch-tabs-wrapper');
+  const container = document.getElementById('batch-tabs-container');
+  const emptyPlaceholder = document.getElementById('batch-empty-placeholder');
+  const activeForm = document.getElementById('batch-active-file-form');
+  const countText = document.getElementById('batch-file-count-text');
+  const btnCount = document.getElementById('batch-btn-count');
+  const btnAddMore = document.getElementById('btn-batch-add-more');
+
+  if (!container || !wrapper) return;
+
+  if (batchUploadFiles.length === 0) {
+    wrapper.style.display = 'none';
+    if (activeForm) activeForm.style.display = 'none';
+    if (emptyPlaceholder) emptyPlaceholder.style.display = 'block';
+    if (countText) countText.textContent = '0/5';
+    if (btnCount) btnCount.textContent = '0';
+    return;
+  }
+
+  wrapper.style.display = 'block';
+  if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
+  if (activeForm) activeForm.style.display = 'block';
+  if (countText) countText.textContent = `${batchUploadFiles.length}/5`;
+  if (btnCount) btnCount.textContent = `${batchUploadFiles.length}`;
+  if (btnAddMore) btnAddMore.style.display = batchUploadFiles.length >= 5 ? 'none' : 'inline-flex';
+
+  container.innerHTML = batchUploadFiles.map((item, idx) => {
+    const isActive = idx === activeBatchFileIndex;
+    const shortName = item.fileName.length > 18 ? item.fileName.slice(0, 16) + '...' : item.fileName;
+    const statusIcon = item.status === 'scanning'
+      ? '<i data-lucide="sparkles" class="spin-icon" style="width: 13px; height: 13px; color: #3b82f6;"></i>'
+      : '<i data-lucide="check" style="width: 13px; height: 13px; color: #10b981;"></i>';
+
+    return `
+      <div class="batch-tab-item ${isActive ? 'active' : ''}" data-index="${idx}" onclick="selectBatchTab(${idx})">
+        ${statusIcon}
+        <span>#${idx + 1} ${escapeHTML(shortName)}</span>
+        <button type="button" class="batch-tab-close" onclick="event.stopPropagation(); removeBatchFile(${idx});" title="Remove File">
+          &times;
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  if (typeof refreshIcons === 'function') refreshIcons();
+  else if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function saveActiveFileFormData() {
+  if (activeBatchFileIndex < 0 || activeBatchFileIndex >= batchUploadFiles.length) return;
+  const current = batchUploadFiles[activeBatchFileIndex];
+  if (!current) return;
+
+  const titleInp = document.getElementById('batch-doc-title');
+  const catSel = document.getElementById('batch-doc-category');
+  const yearSel = document.getElementById('batch-doc-year');
+
+  if (titleInp) current.title = titleInp.value.trim();
+  if (catSel) current.category = catSel.value;
+  if (yearSel) current.academicYear = yearSel.value;
+}
+
+function selectBatchTab(index) {
+  if (index < 0 || index >= batchUploadFiles.length) return;
+
+  saveActiveFileFormData();
+
+  activeBatchFileIndex = index;
+  renderBatchTabs();
+  syncFormWithActiveFile();
+}
+window.selectBatchTab = selectBatchTab;
+
+function syncFormWithActiveFile() {
+  const current = batchUploadFiles[activeBatchFileIndex];
+  if (!current) return;
+
+  const metaNameEl = document.getElementById('batch-meta-name');
+  const metaSubjectEl = document.getElementById('batch-meta-subject');
+  const metaYearEl = document.getElementById('batch-meta-year');
+  const metaSemEl = document.getElementById('batch-meta-sem');
+  const statusPill = document.getElementById('batch-meta-status-pill');
+
+  if (metaNameEl) metaNameEl.textContent = current.title || current.fileName;
+  if (metaSubjectEl) metaSubjectEl.textContent = current.subject || current.folderName || 'General';
+  if (metaYearEl) metaYearEl.textContent = current.academicYear || '-';
+  if (metaSemEl) metaSemEl.textContent = current.semester ? `Semester ${current.semester}` : 'All Semesters';
+
+  if (statusPill) {
+    if (current.status === 'scanning') {
+      statusPill.style.background = 'rgba(59, 130, 246, 0.15)';
+      statusPill.style.color = '#3b82f6';
+      statusPill.textContent = 'AI Scanning...';
+    } else {
+      statusPill.style.background = 'rgba(16, 185, 129, 0.15)';
+      statusPill.style.color = '#10b981';
+      statusPill.textContent = 'Auto-Detected';
+    }
+  }
+
+  const titleInp = document.getElementById('batch-doc-title');
+  const catSel = document.getElementById('batch-doc-category');
+  const yearSel = document.getElementById('batch-doc-year');
+
+  if (titleInp) titleInp.value = current.title;
+  if (catSel) catSel.value = current.category || 'notes';
+
+  if (yearSel && current.academicYear) {
+    for (let i = 0; i < yearSel.options.length; i++) {
+      if (yearSel.options[i].value.includes(current.academicYear.slice(0, 4))) {
+        yearSel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  populateBatchFoldersForCategory(current.category || 'notes', current.folderId);
+}
+
+function removeBatchFile(index) {
+  if (index < 0 || index >= batchUploadFiles.length) return;
+  batchUploadFiles.splice(index, 1);
+
+  if (activeBatchFileIndex >= batchUploadFiles.length) {
+    activeBatchFileIndex = Math.max(0, batchUploadFiles.length - 1);
+  }
+
+  renderBatchTabs();
+  if (batchUploadFiles.length > 0) {
+    syncFormWithActiveFile();
+  }
+}
+window.removeBatchFile = removeBatchFile;
+
+async function populateBatchFoldersForCategory(category, preselectedFolderId = null) {
+  const container = document.getElementById('batch-folder-container');
+  if (!container) return;
+
+  container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select" disabled><option>Loading folders...</option></select>`;
+
+  if (!category) {
+    container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select" disabled><option>Select Category First</option></select>`;
+    return;
+  }
+
+  try {
+    if (category === 'syllabus') {
+      container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select"><option value="general" selected>General Syllabus (No Folder Required)</option></select>`;
+      if (batchUploadFiles[activeBatchFileIndex]) {
+        batchUploadFiles[activeBatchFileIndex].folderId = 'general';
+        batchUploadFiles[activeBatchFileIndex].folderName = 'General Syllabus';
+      }
+      return;
+    }
+
+    const folders = await api.getAllFolders(category);
+    if (!folders || folders.length === 0) {
+      container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select"><option value="general" selected>General / Root ${escapeHTML(capitalizeName(category))} (No Subfolder)</option></select>`;
+      if (batchUploadFiles[activeBatchFileIndex]) {
+        batchUploadFiles[activeBatchFileIndex].folderId = 'general';
+        batchUploadFiles[activeBatchFileIndex].folderName = `General ${capitalizeName(category)}`;
+      }
+      return;
+    }
+
+    const childrenMap = new Map();
+    const folderMap = new Map();
+    folders.forEach(f => {
+      folderMap.set(String(f.id), f);
+      const pid = f.parentId ? String(f.parentId) : 'root';
+      if (!childrenMap.has(pid)) childrenMap.set(pid, []);
+      childrenMap.get(pid).push(f);
+    });
+
+    container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><div id="batch-cascading-selects-wrapper" style="display:flex; flex-direction:column; gap:8px;"></div>`;
+    const wrapper = document.getElementById('batch-cascading-selects-wrapper');
+
+    function renderSelectForParent(parentId, depth) {
+      const existingSelects = Array.from(wrapper.querySelectorAll('.batch-cascading-select'));
+      existingSelects.forEach(sel => {
+        if (parseInt(sel.getAttribute('data-depth')) >= depth) sel.remove();
+      });
+
+      const children = childrenMap.get(parentId) || [];
+      if (children.length === 0) return;
+
+      children.sort((a, b) => a.name.localeCompare(b.name));
+
+      const select = document.createElement('select');
+      select.className = 'form-select batch-cascading-select';
+      select.setAttribute('data-depth', depth);
+      select.required = true;
+
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.disabled = true;
+      defaultOption.selected = true;
+      defaultOption.textContent = depth === 0 ? 'Select Top Level Folder...' : 'Select Sub-folder...';
+      select.appendChild(defaultOption);
+
+      children.forEach(child => {
+        const opt = document.createElement('option');
+        opt.value = child.id;
+        opt.textContent = child.name;
+        select.appendChild(opt);
+      });
+
+      select.addEventListener('change', (e) => {
+        const selectedId = e.target.value;
+        const selectedObj = folderMap.get(String(selectedId));
+        if (batchUploadFiles[activeBatchFileIndex]) {
+          batchUploadFiles[activeBatchFileIndex].folderId = selectedId;
+          batchUploadFiles[activeBatchFileIndex].folderName = selectedObj ? selectedObj.name : null;
+          const metaSubjectEl = document.getElementById('batch-meta-subject');
+          if (metaSubjectEl && selectedObj) metaSubjectEl.textContent = selectedObj.name;
+        }
+        renderSelectForParent(selectedId, depth + 1);
+      });
+
+      wrapper.appendChild(select);
+    }
+
+    renderSelectForParent('root', 0);
+
+    if (preselectedFolderId && folderMap.has(String(preselectedFolderId))) {
+      let pathIds = [];
+      let curr = folderMap.get(String(preselectedFolderId));
+      while (curr) {
+        pathIds.unshift(String(curr.id));
+        curr = curr.parentId && folderMap.has(String(curr.parentId)) ? folderMap.get(String(curr.parentId)) : null;
+      }
+
+      for (let i = 0; i < pathIds.length; i++) {
+        const sel = wrapper.querySelector(`.batch-cascading-select[data-depth="${i}"]`);
+        if (sel) {
+          sel.value = pathIds[i];
+          renderSelectForParent(pathIds[i], i + 1);
+        }
+      }
+      if (batchUploadFiles[activeBatchFileIndex]) {
+        batchUploadFiles[activeBatchFileIndex].folderId = preselectedFolderId;
+        const selObj = folderMap.get(String(preselectedFolderId));
+        if (selObj) batchUploadFiles[activeBatchFileIndex].folderName = selObj.name;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load batch folders:', err);
+    container.innerHTML = `<label class="form-label" style="display:block; margin-bottom:8px;">Target Folder / Subject</label><select id="batch-subject" class="form-select" disabled><option>Error loading folders</option></select>`;
+  }
+}
+
+function openBatchConfirmationModal() {
+  saveActiveFileFormData();
+
+  if (batchUploadFiles.length === 0) {
+    alert('Please add at least one PDF document to upload.');
+    return;
+  }
+
+  for (let i = 0; i < batchUploadFiles.length; i++) {
+    const item = batchUploadFiles[i];
+    if (!item.title || item.title.trim() === '') {
+      selectBatchTab(i);
+      alert(`Missing Document Title for File #${i + 1} (${item.fileName}). Please enter a title.`);
+      document.getElementById('batch-doc-title')?.focus();
+      return;
+    }
+    if (item.category !== 'syllabus' && (!item.folderId || item.folderId === '')) {
+      selectBatchTab(i);
+      alert(`Please select a Target Folder / Subject for File #${i + 1} ("${item.title}").`);
+      return;
+    }
+  }
+
+  const listContainer = document.getElementById('batch-confirm-list-container');
+  if (listContainer) {
+    listContainer.innerHTML = batchUploadFiles.map((item, idx) => `
+      <div class="batch-confirm-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">
+            #${idx + 1}. ${escapeHTML(item.title)}
+          </div>
+          <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700; text-transform: uppercase;">
+            ${escapeHTML(item.category)}
+          </span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+          <span><strong>File:</strong> ${escapeHTML(item.fileName)} (${item.fileSize})</span>
+          <span><strong>Target:</strong> ${escapeHTML(item.folderName || 'General')}</span>
+          <span><strong>Year:</strong> ${escapeHTML(item.academicYear)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  const progressWrapper = document.getElementById('batch-progress-wrapper');
+  if (progressWrapper) progressWrapper.style.display = 'none';
+
+  const confirmModal = document.getElementById('modal-batch-confirm');
+  if (confirmModal) confirmModal.style.display = 'flex';
+}
+
+async function executeBatchUpload() {
+  const btnExecute = document.getElementById('btn-batch-confirm-execute');
+  const btnBack = document.getElementById('btn-batch-confirm-back');
+  const progressWrapper = document.getElementById('batch-progress-wrapper');
+  const progressBar = document.getElementById('batch-progress-bar');
+  const progressStatus = document.getElementById('batch-progress-status');
+  const progressPercent = document.getElementById('batch-progress-percent');
+
+  if (btnExecute) btnExecute.disabled = true;
+  if (btnBack) btnBack.disabled = true;
+  if (progressWrapper) progressWrapper.style.display = 'block';
+
+  let successCount = 0;
+  let failedFiles = [];
+
+  for (let i = 0; i < batchUploadFiles.length; i++) {
+    const item = batchUploadFiles[i];
+    const currentPercent = Math.round((i / batchUploadFiles.length) * 100);
+
+    if (progressBar) progressBar.style.width = `${currentPercent}%`;
+    if (progressPercent) progressPercent.textContent = `${currentPercent}%`;
+    if (progressStatus) progressStatus.textContent = `Uploading ${i + 1} of ${batchUploadFiles.length}: ${item.title}...`;
+
+    const formData = new FormData();
+    formData.append('pdf', item.file);
+    formData.append('title', item.title);
+    formData.append('type', item.category);
+    formData.append('folderId', item.folderId || '');
+    formData.append('subject', item.folderName || item.subject || '');
+    formData.append('year', item.academicYear || '');
+
+    try {
+      await request('/documents/upload', {
+        method: 'POST',
+        body: formData
+      });
+      successCount++;
+    } catch (err) {
+      console.error(`Error uploading "${item.title}":`, err);
+      failedFiles.push({ title: item.title, error: err.message });
+    }
+  }
+
+  if (progressBar) progressBar.style.width = '100%';
+  if (progressPercent) progressPercent.textContent = '100%';
+  if (progressStatus) progressStatus.textContent = `Completed! ${successCount} of ${batchUploadFiles.length} uploaded.`;
+
+  setTimeout(() => {
+    closeBatchConfirmModal();
+    closeBatchUploadModal();
+
+    if (failedFiles.length === 0) {
+      alert(`🎉 Successfully uploaded all ${successCount} documents!`);
+    } else {
+      alert(`Uploaded ${successCount} documents. ${failedFiles.length} failed: \n` + failedFiles.map(f => `• ${f.title}: ${f.error}`).join('\n'));
+    }
+
+    if (btnExecute) btnExecute.disabled = false;
+    if (btnBack) btnBack.disabled = false;
+
+    if (typeof renderMyUploadsView === 'function') {
+      renderMyUploadsView();
+    }
+  }, 1000);
+}
+
+function initBatchUploadEventHandlers() {
+  const batchBtn = document.getElementById('btn-my-uploads-batch-upload');
+  if (batchBtn) {
+    batchBtn.addEventListener('click', openBatchUploadModal);
+  }
+
+  const closeBtn = document.getElementById('modal-batch-upload-close');
+  const cancelBtn = document.getElementById('modal-batch-upload-cancel');
+  if (closeBtn) closeBtn.addEventListener('click', closeBatchUploadModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeBatchUploadModal);
+
+  const confirmCloseBtn = document.getElementById('modal-batch-confirm-close');
+  const confirmBackBtn = document.getElementById('btn-batch-confirm-back');
+  const confirmExecBtn = document.getElementById('btn-batch-confirm-execute');
+  if (confirmCloseBtn) confirmCloseBtn.addEventListener('click', closeBatchConfirmModal);
+  if (confirmBackBtn) confirmBackBtn.addEventListener('click', closeBatchConfirmModal);
+  if (confirmExecBtn) confirmExecBtn.addEventListener('click', executeBatchUpload);
+
+  const dragBox = document.getElementById('batch-drag-box');
+  const fileInput = document.getElementById('batch-file-input');
+  const btnAddMore = document.getElementById('btn-batch-add-more');
+
+  if (dragBox && fileInput) {
+    dragBox.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      addFilesToBatch(e.target.files);
+      fileInput.value = '';
+    });
+
+    dragBox.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dragBox.style.borderColor = '#3b82f6';
+      dragBox.style.background = 'rgba(59, 130, 246, 0.08)';
+    });
+
+    dragBox.addEventListener('dragleave', () => {
+      dragBox.style.borderColor = '';
+      dragBox.style.background = '';
+    });
+
+    dragBox.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragBox.style.borderColor = '';
+      dragBox.style.background = '';
+      if (e.dataTransfer && e.dataTransfer.files) {
+        addFilesToBatch(e.dataTransfer.files);
+      }
+    });
+  }
+
+  if (btnAddMore && fileInput) {
+    btnAddMore.addEventListener('click', () => fileInput.click());
+  }
+
+  const titleInp = document.getElementById('batch-doc-title');
+  if (titleInp) {
+    titleInp.addEventListener('input', (e) => {
+      if (batchUploadFiles[activeBatchFileIndex]) {
+        batchUploadFiles[activeBatchFileIndex].title = e.target.value.trim();
+        const metaNameEl = document.getElementById('batch-meta-name');
+        if (metaNameEl) metaNameEl.textContent = e.target.value.trim() || batchUploadFiles[activeBatchFileIndex].fileName;
+      }
+    });
+  }
+
+  const catSel = document.getElementById('batch-doc-category');
+  if (catSel) {
+    catSel.addEventListener('change', (e) => {
+      if (batchUploadFiles[activeBatchFileIndex]) {
+        batchUploadFiles[activeBatchFileIndex].category = e.target.value;
+        batchUploadFiles[activeBatchFileIndex].folderId = null;
+        batchUploadFiles[activeBatchFileIndex].folderName = null;
+        populateBatchFoldersForCategory(e.target.value);
+      }
+    });
+  }
+
+  const yearSel = document.getElementById('batch-doc-year');
+  if (yearSel) {
+    yearSel.addEventListener('change', (e) => {
+      if (batchUploadFiles[activeBatchFileIndex]) {
+        batchUploadFiles[activeBatchFileIndex].academicYear = e.target.value;
+        const metaYearEl = document.getElementById('batch-meta-year');
+        if (metaYearEl) metaYearEl.textContent = e.target.value;
+      }
+    });
+  }
+
+  const btnReviewSubmit = document.getElementById('btn-batch-upload-submit');
+  if (btnReviewSubmit) {
+    btnReviewSubmit.addEventListener('click', openBatchConfirmationModal);
+  }
+}
+
 
 function openEditDocumentModal(docId, title, subject, year) {
   document.getElementById('edit-doc-id').value = docId;
@@ -12443,6 +13081,7 @@ async function renderAboutView() {
 let editingTeamId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  initBatchUploadEventHandlers();
   const btnAddTeam = document.getElementById('btn-admin-add-team');
   const btnCancelEdit = document.getElementById('btn-admin-cancel-edit-team');
 
