@@ -2424,6 +2424,29 @@
             </div>
           </div>
 
+          <!-- Section: Super Admin Cloud & Database Capacity Health (Cloudinary, MongoDB, EmailJS) -->
+          <div id="superadmin-section-storage" class="admin-subview" style="display: none; margin-bottom: 35px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid rgba(59, 130, 246, 0.25); padding-bottom: 12px;">
+              <div>
+                <h3 class="section-title" style="margin: 0; font-size: 20px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="hard-drive" style="color: var(--primary); width: 22px; height: 22px;"></i>
+                  Cloud Storage &amp; Infrastructure Capacity
+                </h3>
+                <p style="color: var(--text-muted); margin-top: 4px; font-size: 14px; margin-bottom: 0;">
+                  Live Telemetry â€¢ Cloudinary Documents, MongoDB Database &amp; EmailJS Delivery Quotas
+                </p>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="btn-refresh-storage-stats" class="btn btn-secondary" style="font-size: 13px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Telemetry
+                </button>
+              </div>
+            </div>
+            <div id="superadmin-storage-stats-container">
+              <div style="text-align: center; padding: 30px; color: var(--text-muted);">Connecting to infrastructure telemetry...</div>
+            </div>
+          </div>
+
           <!-- Section: Unusual Activity & Security Reports (AI Threat Sentinel) -->
           <div id="admin-section-security" class="admin-subview" style="display: none; margin-bottom: 35px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid rgba(239, 68, 68, 0.2); padding-bottom: 12px;">
@@ -4270,7 +4293,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
-  <script src="/app.js?v=1.3.16"></script>
+  <script src="/app.js?v=1.3.17"></script>
 
 
 

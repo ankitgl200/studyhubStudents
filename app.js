@@ -3264,6 +3264,12 @@ function renderProfileView() {
             <div class="item-left"><i data-lucide="shield-alert" style="color: #ef4444;"></i><span style="color: #ef4444; font-weight: 600;">Unusual Activity Reports</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
+          ${currentUser.role === 'superadmin' ? `
+            <a href="#/admin/storage" class="profile-menu-item">
+              <div class="item-left"><i data-lucide="hard-drive" style="color: var(--primary);"></i><span style="color: var(--primary); font-weight: 700;">Cloud &amp; DB Storage</span></div>
+              <i data-lucide="chevron-right" class="arrow-right"></i>
+            </a>
+          ` : ''}
           <a href="#/admin/reviews" class="profile-menu-item">
             <div class="item-left"><i data-lucide="star" style="color: var(--danger);"></i><span>User Reviews</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -3283,6 +3289,12 @@ function renderProfileView() {
             <div class="item-left"><i data-lucide="shield-alert" style="color: #ef4444;"></i><span style="color: #ef4444; font-weight: 600;">Unusual Activity Reports</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
           </a>
+          ${currentUser.role === 'superadmin' ? `
+            <a href="#/admin?tab=storage" class="profile-menu-item">
+              <div class="item-left"><i data-lucide="hard-drive" style="color: var(--primary);"></i><span style="color: var(--primary); font-weight: 700;">Storage Quotas &amp; Telemetry</span></div>
+              <i data-lucide="chevron-right" class="arrow-right"></i>
+            </a>
+          ` : ''}
           <a href="#/admin?tab=pending" class="profile-menu-item">
             <div class="item-left"><i data-lucide="user-check" style="color: var(--danger);"></i><span>Teacher Approval</span></div>
             <i data-lucide="chevron-right" class="arrow-right"></i>
@@ -4006,6 +4018,10 @@ async function renderAdminDashboardView(currentHash) {
       if (subpageTitle) subpageTitle.textContent = 'Unusual Activity Reports';
       const view = document.getElementById('admin-section-security');
       if (view) view.style.display = 'block';
+    } else if (currentHash === '/admin/storage' || currentHash === '/admin?tab=storage') {
+      if (subpageTitle) subpageTitle.textContent = 'Cloud & Database Capacity';
+      const view = document.getElementById('superadmin-section-storage');
+      if (view) view.style.display = 'block';
     } else if (currentHash === '/admin/reviews') {
       if (subpageTitle) subpageTitle.textContent = 'User Reviews';
       const view = document.getElementById('admin-section-reviews');
@@ -4018,6 +4034,19 @@ async function renderAdminDashboardView(currentHash) {
     document.querySelectorAll('.admin-subview').forEach(view => {
       view.style.display = 'block';
     });
+  }
+
+  // Hide superadmin storage section if current user is not a superadmin
+  const storageSection = document.getElementById('superadmin-section-storage');
+  if (storageSection) {
+    if (currentUser && currentUser.role === 'superadmin') {
+      if (!isMobile || currentHash === '/admin/storage' || currentHash === '/admin?tab=storage') {
+        storageSection.style.display = 'block';
+        loadSuperAdminStorageStats();
+      }
+    } else {
+      storageSection.style.display = 'none';
+    }
   }
 
   loadAdminSecurityReports();
@@ -13341,6 +13370,244 @@ document.addEventListener('DOMContentLoaded', () => {
     send: (q) => handleSendMyteeMessage(q)
   };
 })();
+
+// =========================================================================
+// StudyMyte Super Admin Cloud & Database Capacity Health Controller
+// =========================================================================
+
+async function loadSuperAdminStorageStats() {
+  const container = document.getElementById('superadmin-storage-stats-container');
+  if (!container) return;
+
+  // Strict Client-Side Role Guard: Only Super Admin can view infrastructure storage
+  if (!currentUser || currentUser.role !== 'superadmin') {
+    container.innerHTML = `
+      <div style="background: var(--card-bg, #ffffff); border: 1px dashed var(--border-color, rgba(30,86,160,0.15)); border-radius: 12px; padding: 25px; text-align: center; color: var(--text-muted, #64748b);">
+        <i data-lucide="lock" style="width: 36px; height: 36px; color: #ef4444; margin: 0 auto 10px auto; display: block;"></i>
+        <h4 style="margin: 0 0 6px 0; font-size: 15px; color: var(--text-main, #1c3d5a);">Restricted Telemetry</h4>
+        <p style="margin: 0; font-size: 13px;">Super Administrator privileges are strictly required to view cloud infrastructure and database telemetry.</p>
+      </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 40px; color: var(--text-muted, #64748b);">
+      <i data-lucide="loader-2" class="spin-animation" style="width: 22px; height: 22px; color: var(--primary);"></i>
+      <span style="font-size: 14px; font-weight: 500;">Querying live storage quotas from Cloudinary, MongoDB Atlas &amp; EmailJS...</span>
+    </div>
+  `;
+  if (window.lucide) lucide.createIcons();
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/admin/security/storage-stats`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (res.status === 403 || res.status === 401) {
+      container.innerHTML = `
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 25px; text-align: center; color: #991b1b;">
+          <i data-lucide="shield-x" style="width: 36px; height: 36px; margin: 0 auto 10px auto; display: block; color: #dc2626;"></i>
+          <h4 style="margin: 0 0 6px 0; font-size: 15px;">Access Denied</h4>
+          <p style="margin: 0; font-size: 13px;">Super Admin verification required by server security policy.</p>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+      return;
+    }
+
+    const json = await res.json().catch(() => null);
+    if (!json || !json.success || !json.data) {
+      throw new Error((json && json.message) || 'Failed to parse telemetry response');
+    }
+
+    renderSuperAdminStorageUI(json.data);
+  } catch (err) {
+    console.error('Error fetching storage stats:', err);
+    container.innerHTML = `
+      <div style="background: var(--card-bg, #ffffff); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 25px; text-align: center;">
+        <i data-lucide="alert-triangle" style="width: 36px; height: 36px; color: #f59e0b; margin: 0 auto 10px auto; display: block;"></i>
+        <h4 style="margin: 0 0 6px 0; font-size: 15px; color: var(--text-main, #1c3d5a);">Telemetry Service Error</h4>
+        <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--text-muted, #64748b);">${escapeHTML(err.message)}</p>
+        <button onclick="loadSuperAdminStorageStats()" class="btn btn-secondary btn-sm" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 6px;">
+          <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Retry Connection
+        </button>
+      </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function renderSuperAdminStorageUI(data) {
+  const container = document.getElementById('superadmin-storage-stats-container');
+  if (!container) return;
+
+  const { mongodb, cloudinary, emailjs } = data;
+
+  function getBarColor(percent) {
+    if (percent >= 85) return '#ef4444'; // Red
+    if (percent >= 60) return '#f59e0b'; // Amber
+    return '#10b981'; // Green
+  }
+
+  const cloudPercent = cloudinary ? Math.min(100, Math.max(0, cloudinary.usedPercent)) : 0;
+  const mongoPercent = mongodb ? Math.min(100, Math.max(0, mongodb.usedPercent)) : 0;
+  const emailPercent = emailjs ? Math.min(100, Math.max(0, emailjs.usedPercent)) : 0;
+
+  let html = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+      
+      <!-- 1. Cloudinary Card (PDF & Document Assets) -->
+      <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, rgba(30,86,160,0.15)); border-radius: 14px; padding: 22px; box-shadow: var(--shadow-sm, 0 4px 14px rgba(0,0,0,0.05)); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                <i data-lucide="cloud" style="width: 22px; height: 22px;"></i>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-main, #1c3d5a);">Cloudinary Cloud Storage</h4>
+                <span style="font-size: 11.5px; color: var(--text-muted, #64748b);">PDF Lecture Notes, PYQs &amp; Manuals</span>
+              </div>
+            </div>
+            <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: ${getBarColor(cloudPercent)}18; color: ${getBarColor(cloudPercent)}; border: 1px solid ${getBarColor(cloudPercent)}44;">
+              ${cloudPercent}% Used
+            </span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="background: rgba(0,0,0,0.06); height: 8px; border-radius: 999px; overflow: hidden; margin-bottom: 16px;">
+            <div style="width: ${cloudPercent}%; background: ${getBarColor(cloudPercent)}; height: 100%; border-radius: 999px; transition: width 0.6s ease;"></div>
+          </div>
+
+          <!-- Storage Breakdown -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+            <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
+              <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Used Storage</span>
+              <strong style="font-size: 16px; color: var(--text-main, #1c3d5a);">${cloudinary ? (cloudinary.usedMB >= 1024 ? (cloudinary.usedMB / 1024).toFixed(2) + ' GB' : cloudinary.usedMB + ' MB') : 'N/A'}</strong>
+              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of 25.0 GB limit</span>
+            </div>
+            <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
+              <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Free Space Left</span>
+              <strong style="font-size: 16px; color: #10b981;">${cloudinary ? (cloudinary.remainingMB >= 1024 ? (cloudinary.remainingMB / 1024).toFixed(2) + ' GB' : cloudinary.remainingMB + ' MB') : 'N/A'}</strong>
+              <span style="font-size: 11px; color: #10b981; display: block; font-weight: 600;">Ready for uploads</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictive Capacity Estimate -->
+        <div style="background: rgba(37, 99, 235, 0.06); border-left: 3px solid #2563eb; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: var(--text-main, #1c3d5a);">
+          <i data-lucide="file-check-2" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 5px; color: #2563eb;"></i>
+          <strong>Approx Capacity:</strong> Can store approx. <strong style="color: #2563eb;">+${cloudinary ? cloudinary.approxPdfsLeft.toLocaleString() : 0} more lecture note PDFs</strong> (~2.5 MB avg).
+        </div>
+      </div>
+
+      <!-- 2. MongoDB Database Card (Atlas Free Cluster M0) -->
+      <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, rgba(30,86,160,0.15)); border-radius: 14px; padding: 22px; box-shadow: var(--shadow-sm, 0 4px 14px rgba(0,0,0,0.05)); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; color: #10b981;">
+                <i data-lucide="database" style="width: 22px; height: 22px;"></i>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-main, #1c3d5a);">MongoDB Database Cluster</h4>
+                <span style="font-size: 11.5px; color: var(--text-muted, #64748b);">User Profiles, Subject Folders &amp; Audit Logs</span>
+              </div>
+            </div>
+            <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: ${getBarColor(mongoPercent)}18; color: ${getBarColor(mongoPercent)}; border: 1px solid ${getBarColor(mongoPercent)}44;">
+              ${mongoPercent}% Used
+            </span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="background: rgba(0,0,0,0.06); height: 8px; border-radius: 999px; overflow: hidden; margin-bottom: 16px;">
+            <div style="width: ${mongoPercent}%; background: ${getBarColor(mongoPercent)}; height: 100%; border-radius: 999px; transition: width 0.6s ease;"></div>
+          </div>
+
+          <!-- Database Breakdown -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+            <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
+              <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Disk Allocation</span>
+              <strong style="font-size: 16px; color: var(--text-main, #1c3d5a);">${mongodb.usedMB} MB</strong>
+              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of 512 MB Atlas tier</span>
+            </div>
+            <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
+              <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Free DB Storage</span>
+              <strong style="font-size: 16px; color: #10b981;">${mongodb.remainingMB} MB</strong>
+              <span style="font-size: 11px; color: #10b981; display: block; font-weight: 600;">Data: ${mongodb.dataSizeMB} MB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictive Capacity Estimate -->
+        <div style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: var(--text-main, #1c3d5a);">
+          <i data-lucide="users" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 5px; color: #10b981;"></i>
+          <strong>Approx Capacity:</strong> Space for <strong style="color: #10b981;">+${mongodb.approxUsersLeft.toLocaleString()} student accounts</strong> OR <strong style="color: #10b981;">+${mongodb.approxNotesLeft.toLocaleString()} metadata records</strong>.
+        </div>
+      </div>
+
+      <!-- 3. EmailJS Delivery Card (Monthly Quotas) -->
+      <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, rgba(30,86,160,0.15)); border-radius: 14px; padding: 22px; box-shadow: var(--shadow-sm, 0 4px 14px rgba(0,0,0,0.05)); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                <i data-lucide="mail" style="width: 22px; height: 22px;"></i>
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-main, #1c3d5a);">EmailJS SMTP Dispatcher</h4>
+                <span style="font-size: 11.5px; color: var(--text-muted, #64748b);">Verification OTPs &amp; Welcome Emails</span>
+              </div>
+            </div>
+            <span style="font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: ${getBarColor(emailPercent)}18; color: ${getBarColor(emailPercent)}; border: 1px solid ${getBarColor(emailPercent)}44;">
+              ${emailPercent}% Used
+            </span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="background: rgba(0,0,0,0.06); height: 8px; border-radius: 999px; overflow: hidden; margin-bottom: 16px;">
+            <div style="width: ${emailPercent}%; background: ${getBarColor(emailPercent)}; height: 100%; border-radius: 999px; transition: width 0.6s ease;"></div>
+          </div>
+
+          <!-- Quota Breakdown -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+            <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
+              <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Sent This Month</span>
+              <strong style="font-size: 16px; color: var(--text-main, #1c3d5a);">${emailjs.usedThisMonth} emails</strong>
+              <span style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">of ${emailjs.monthlyLimit} free tier quota</span>
+            </div>
+            <div style="background: var(--bg-main, #f8fafc); border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, rgba(0,0,0,0.04));">
+              <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Remaining Quota</span>
+              <strong style="font-size: 16px; color: #10b981;">${emailjs.remainingThisMonth} emails</strong>
+              <span style="font-size: 11px; color: #10b981; display: block; font-weight: 600;">Resets: ${emailjs.resetDate}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictive Capacity Estimate -->
+        <div style="background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12px; color: var(--text-main, #1c3d5a);">
+          <i data-lucide="shield-check" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 5px; color: #f59e0b;"></i>
+          <strong>Approx Capacity:</strong> Can dispatch <strong style="color: #f59e0b;">${emailjs.approxOtpsLeft} more password reset / verification OTPs</strong> before quota reset.
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  container.innerHTML = html;
+  if (window.lucide) lucide.createIcons();
+}
+
+// Bind Refresh button click
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#btn-refresh-storage-stats');
+  if (btn) {
+    loadSuperAdminStorageStats();
+  }
+});
 
 // =========================================================================
 // StudyMyte AI Threat Sentinel & Unusual Activity Reports UI Controller
